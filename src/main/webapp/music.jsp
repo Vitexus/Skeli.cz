@@ -2,8 +2,8 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <main>
-    <h2>Vítejte!</h2>
-    <p> o mně.</p>
+    <h2>Moje Hudba!</h2>
+    <p> </p>
 </main>
 
 <%@ include file="includes/footer.jsp" %>
