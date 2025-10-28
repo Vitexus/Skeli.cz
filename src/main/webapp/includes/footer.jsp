@@ -20,8 +20,21 @@
         </div>
 </footer>
 
+<div id="cookieBar" style="position:fixed; left:20px; right:20px; bottom:20px; background:#111; color:#fff; padding:12px 16px; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.25); display:none;">
+  Tento web používá cookies a načítá platformy třetích stran (YouTube/Spotify). <a href="/privacy.jsp" style="color:#ffd700;">Zásady</a> | <a href="/terms.jsp" style="color:#ffd700;">Podmínky</a>
+  <div style="float:right;">
+    <button id="cookieAccept" style="margin-right:8px;">Souhlasím</button>
+    <button id="cookieReject">Odmítám</button>
+  </div>
+</div>
+<script>
+  (function(){
+    const k='cookieConsent'; const v=localStorage.getItem(k);
+    if(!v) document.getElementById('cookieBar').style.display='block';
+    document.getElementById('cookieAccept').onclick=function(){ localStorage.setItem(k,'true'); document.getElementById('cookieBar').style.display='none'; document.dispatchEvent(new Event('consent-granted')); };
+    document.getElementById('cookieReject').onclick=function(){ localStorage.setItem(k,'false'); document.getElementById('cookieBar').style.display='none'; };
+  })();
+</script>
 
 </body>
-
-
 </html>

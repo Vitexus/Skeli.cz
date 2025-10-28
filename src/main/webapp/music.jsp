@@ -61,7 +61,9 @@
 
   <section class="section">
     <h3 class="section-title"><span class="ico"><i class="fab fa-spotify" style="color:#1DB954"></i></span> Spotify</h3>
-    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/artist/5IouXw8U9uKCTwmncG5bUl?utm_source=generator" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+    <div id="spotifyEmbed" data-src="https://open.spotify.com/embed/artist/5IouXw8U9uKCTwmncG5bUl?utm_source=generator" style="min-height:160px;">
+      <button id="spotifyLoad" style="padding:6px 10px;">Povolit a načíst Spotify</button>
+    </div>
   </section>
 
   <section class="section">
@@ -70,7 +72,7 @@
     <div class="grid" id="tracks">
     <% for (int i = 0; i < ids.size(); i++) { String id = ids.get(i); String nm = names.get(i); String yr = years.get(i); %>
       <div class="thumb" data-idx="<%= i %>" data-id="<%= id %>" data-name="<%= nm != null ? nm : "" %>" data-year="<%= yr != null ? yr : "" %>" title="Přehrát: <%= (nm != null && !nm.isEmpty()) ? nm : id %>">
-        <img src="https://img.youtube.com/vi/<%= id %>/hqdefault.jpg" alt="<%= (nm != null && !nm.isEmpty()) ? nm : id %>">
+        <img src="https://img.youtube.com/vi/<%= id %>/hqdefault.jpg" alt="<%= (nm != null && !nm.isEmpty()) ? nm : id %>" loading="lazy">
         <div class="overlay">
           <div class="meta">
             <div class="track-title"><%= (nm != null && !nm.isEmpty()) ? nm : "Načítám…" %></div>
@@ -94,6 +96,19 @@
 
 <script>
 $(function(){
+  // Consent-gated Spotify
+  function tryLoadSpotify(){
+    var granted = localStorage.getItem('cookieConsent') === 'true';
+    var c = $('#spotifyEmbed'); if (!c.length) return;
+    if (granted && !c.data('loaded')) {
+      var src = c.data('src');
+      c.html('<iframe style="border-radius:12px" src="'+src+'" width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>');
+      c.data('loaded',true);
+    }
+  }
+  $('#spotifyLoad').on('click', function(){ localStorage.setItem('cookieConsent','true'); document.dispatchEvent(new Event('consent-granted')); tryLoadSpotify(); });
+  document.addEventListener('consent-granted', tryLoadSpotify);
+  tryLoadSpotify();
   function openModal(id, title, year){
     $('#modalFrame').attr('src', 'https://www.youtube.com/embed/'+id+'?autoplay=1');
     $('#modalTitle').text(title || '—');

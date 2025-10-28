@@ -65,4 +65,22 @@
         <servlet-name>YouTubeSyncServlet</servlet-name>
         <url-pattern>/admin/sync</url-pattern>
     </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminVideoServlet</servlet-name>
+        <servlet-class>com.github.skeliit.AdminVideoServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminVideoServlet</servlet-name>
+        <url-pattern>/admin/video</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminCommentServlet</servlet-name>
+        <servlet-class>com.github.skeliit.AdminCommentServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminCommentServlet</servlet-name>
+        <url-pattern>/admin/comment</url-pattern>
+    </servlet-mapping>
 </web-app>
