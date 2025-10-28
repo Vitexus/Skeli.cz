@@ -18,8 +18,8 @@
             try {
                 boolean mariaLoaded = false;
                 boolean mysqlLoaded = false;
-                try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Throwable t) { out.println("<!-- MariaDB driver not found: " + t.getMessage() + " -->"); }
-                try { Class.forName("com.mysql.cj.jdbc.Driver"); mysqlLoaded = true; } catch (Throwable t) { out.println("<!-- MySQL driver not found: " + t.getMessage() + " -->"); }
+try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Throwable th) { out.println("<!-- MariaDB driver not found: " + th.getMessage() + " -->"); }
+                try { Class.forName("com.mysql.cj.jdbc.Driver"); mysqlLoaded = true; } catch (Throwable th) { out.println("<!-- MySQL driver not found: " + th.getMessage() + " -->"); }
 
                 SQLException connError = null;
                 if (mariaLoaded) {

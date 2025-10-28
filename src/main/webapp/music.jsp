@@ -3,7 +3,9 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <style>
-  .section { background: rgba(255,255,255,0.55); border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; box-shadow: 0 6px 18px rgba(0,0,0,0.10); }
+  .section { background: var(--panel); border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; box-shadow: 0 6px 18px rgba(0,0,0,0.10); }
+  .section.spotify { background: linear-gradient(0deg, rgba(29,185,84,0.22), rgba(255,255,255,0.05)); border-color: rgba(29,185,84,0.35); }
+  .section.youtube { background: linear-gradient(0deg, rgba(255,0,0,0.14), rgba(255,255,255,0.05)); border-color: rgba(255,0,0,0.28); }
   .section-title { margin: 0 0 10px; display:flex; align-items:center; gap: 8px; font-weight:700; }
   .section-title .ico { font-size: 1.2em; }
   .now-playing { margin: 10px 0 20px; padding: 10px 14px; background: rgba(255,255,255,0.35); border-radius: 10px; display:inline-block; box-shadow: 0 6px 18px rgba(0,0,0,0.10); }
@@ -29,8 +31,8 @@
     String password = "skeli";
     boolean mariaLoaded = false;
     boolean mysqlLoaded = false;
-    try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Throwable t) { /* ignore */ }
-    try { Class.forName("com.mysql.cj.jdbc.Driver"); mysqlLoaded = true; } catch (Throwable t) { /* ignore */ }
+try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Throwable th) { /* ignore */ }
+    try { Class.forName("com.mysql.cj.jdbc.Driver"); mysqlLoaded = true; } catch (Throwable th) { /* ignore */ }
 
     String sql = "SELECT v.youtube_id, COALESCE(v.title, s.name, v.youtube_id) AS title, s.year " +
                  "FROM videos v LEFT JOIN songs s ON s.id = v.song_id " +
@@ -59,16 +61,16 @@
 <main>
   <h2>Moje Hudba!</h2>
 
-  <section class="section">
-    <h3 class="section-title"><span class="ico"><i class="fab fa-spotify" style="color:#1DB954"></i></span> Spotify</h3>
+  <section class="section spotify">
+    <h3 class="section-title"><span class="ico"><i class="fab fa-spotify" style="color:#1DB954"></i></span> <%= ((java.util.Properties)request.getAttribute("t")).getProperty("section.spotify","Spotify") %></h3>
     <div id="spotifyEmbed" data-src="https://open.spotify.com/embed/artist/5IouXw8U9uKCTwmncG5bUl?utm_source=generator" style="min-height:160px;">
       <button id="spotifyLoad" style="padding:6px 10px;">Povolit a načíst Spotify</button>
     </div>
   </section>
 
-  <section class="section">
-    <h3 class="section-title"><span class="ico"><i class="fab fa-youtube" style="color:#FF0000"></i></span> YouTube</h3>
-    <div class="now-playing">Přehrává se: <span id="np-title">—</span> <span id="np-year"></span></div>
+  <section class="section youtube">
+    <h3 class="section-title"><span class="ico"><i class="fab fa-youtube" style="color:#FF0000"></i></span> <%= ((java.util.Properties)request.getAttribute("t")).getProperty("section.youtube","YouTube") %></h3>
+    <div class="now-playing"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("now.playing","Now playing:") %> <span id="np-title">—</span> <span id="np-year"></span></div>
     <div class="grid" id="tracks">
     <% for (int i = 0; i < ids.size(); i++) { String id = ids.get(i); String nm = names.get(i); String yr = years.get(i); %>
       <div class="thumb" data-idx="<%= i %>" data-id="<%= id %>" data-name="<%= nm != null ? nm : "" %>" data-year="<%= yr != null ? yr : "" %>" title="Přehrát: <%= (nm != null && !nm.isEmpty()) ? nm : id %>">

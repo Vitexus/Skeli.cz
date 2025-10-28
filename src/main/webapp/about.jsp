@@ -3,7 +3,7 @@
 
 <main>
   <section style="text-align:center; margin-bottom:18px;">
-    <h2>O mně</h2>
+    <h2><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.title","About me") %></h2>
     <p>Jsem Skeli – rapper, producent a nadšenec do webu. Baví mě tvořit hudbu i aplikace, které něco předají.</p>
   </section>
   <section style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:16px;">

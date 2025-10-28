@@ -30,9 +30,9 @@
     <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
 
 <style>
-:root { --bg:#121212; --text:#111; --panel:rgba(255,255,255,0.49); --panel-strong:rgba(255,255,255,0.7); }
-body.light { --bg:#f6f6f6; --text:#111; --panel:rgba(255,255,255,0.85); --panel-strong:#fff; }
-body.dark { --bg:#121212; --text:#eaeaea; --panel:rgba(255,255,255,0.49); --panel-strong:rgba(255,255,255,0.7); }
+:root { --bg:#0b0c0d; --text:#e7e9ea; --panel:rgba(255,255,255,0.40); --panel-strong:rgba(255,255,255,0.7); --accent:#00d1ff; --spotify:#1DB954; --youtube:#FF0000; --fw:400; }
+body.light { --bg:#f6f6f6; --text:#111; --panel:#ffffff; --panel-strong:#fff; --accent:#007acc; }
+body.dark { --bg:#0b0c0d; --text:#e7e9ea; --panel:rgba(255,255,255,0.40); --panel-strong:rgba(255,255,255,0.7); --accent:#00d1ff; }
 .comforter-brush-regular {
   font-family: "Comforter Brush", cursive;
   font-weight: 800;
@@ -59,8 +59,8 @@ body.dark { --bg:#121212; --text:#eaeaea; --panel:rgba(255,255,255,0.49); --pane
 p {
     font-family: 'Inter', 'Alumni Sans Pinstripe', Arial, sans-serif;
     font-size: 1.05em;
-    color: #111;
-    font-weight: 400;
+    color: var(--text);
+    font-weight: var(--fw);
     line-height: 1.6;
 }
 
@@ -200,28 +200,36 @@ ul li a {
 }
 
 ul li a:hover {
-    color: gold;
-    text-shadow: 0 0 8px #ffd700;
+    color: var(--accent);
+    text-shadow: 0 0 8px var(--accent);
     text-decoration: underline;
 }
 
 
 
 </style>
+<%@ include file="/WEB-INF/i18n/i18n.jspf" %>
 <header>
 
 
    <h1 class="comforter-brush-regular">SKELOSQUAD</h1>
    <nav class="bruno-ace-sc-regular">
-        <a href="index.jsp">Domů</a> |
-        <a href="about.jsp">O nás</a> |
-        <a href="music.jsp">Hudba</a> |
-        <a href="texty.jsp">Texty</a>
+        <a href="index.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.home","Home") %></a> |
+        <a href="about.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.about","About") %></a> |
+        <a href="music.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.music","Music") %></a> |
+        <a href="texty.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.lyrics","Lyrics") %></a>
     </nav>
     <div style="position:absolute; top:10px; right:14px; font-size:0.95em; display:flex; gap:10px; align-items:center;">
         <% String currentUser = (String) session.getAttribute("username"); String currentRole = (String) session.getAttribute("role"); %>
-        <a href="donate.jsp" style="color:#ffd700; font-weight:700;">❤ Donate</a>
+        <a href="donate.jsp" style="color:var(--accent); font-weight:700;">❤ <%= ((java.util.Properties)request.getAttribute("t")).getProperty("btn.donate","Donate") %></a>
+        <button id="fontToggle" title="Toggle font weight" style="background:transparent;border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 8px;border-radius:6px;cursor:pointer;">Aa</button>
         <button id="themeToggle" title="Přepnout vzhled" style="background:transparent;border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 8px;border-radius:6px;cursor:pointer;">🌓</button>
+        <span>
+          <a href="?lang=cs" title="Česky">🇨🇿</a>
+          <a href="?lang=en" title="English">🇬🇧</a>
+          <a href="?lang=de" title="Deutsch">🇩🇪</a>
+          <a href="?lang=sk" title="Slovensky">🇸🇰</a>
+        </span>
         <% if ("ADMIN".equals(currentRole)) { %>
             <a href="/admin.jsp" style="color:#ffd700;">Admin</a> |
         <% } %>
@@ -236,6 +244,14 @@ ul li a:hover {
 </header>
 <script>
   (function(){
+    const fwKey='fontWeight';
+    const body=document.body; const curFw=localStorage.getItem(fwKey)||'400';
+    document.documentElement.style.setProperty('--fw', curFw);
+    document.getElementById('fontToggle').addEventListener('click',()=>{
+      const newFw=(getComputedStyle(document.documentElement).getPropertyValue('--fw').trim()==='400')?'600':'400';
+      document.documentElement.style.setProperty('--fw', newFw);
+      localStorage.setItem(fwKey,newFw);
+    });
     const k='theme';
     const body=document.body; const cur=localStorage.getItem(k)||'dark';
     body.classList.add(cur);

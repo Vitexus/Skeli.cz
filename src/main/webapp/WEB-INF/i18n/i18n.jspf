@@ -1,0 +1,14 @@
+<%-- i18n loader: sets request attribute 't' as java.util.Properties --%>
+<%
+  String lang = request.getParameter("lang");
+  if (lang != null && (lang.equals("cs")||lang.equals("en")||lang.equals("de")||lang.equals("sk"))) {
+    session.setAttribute("lang", lang);
+  }
+  String cur = (String) session.getAttribute("lang");
+  if (cur == null) cur = "cs";
+  java.util.Properties t = new java.util.Properties();
+  try (java.io.InputStream in = application.getResourceAsStream("/WEB-INF/i18n/messages_"+cur+".properties")) {
+    if (in != null) { t.load(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)); }
+  } catch (Exception ignore) {}
+  request.setAttribute("t", t);
+%>
