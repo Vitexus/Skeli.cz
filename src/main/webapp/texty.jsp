@@ -36,7 +36,7 @@
                             String name = rs.getString("song_name");
                             int lyricId = rs.getInt("lyric_id");
         %>
-                            <li><a href="lyric.jsp?id=<%= lyricId %>"><%= name %></a></li>
+                            <li><a href="/lyrics/<%= lyricId %>-<%= name.toLowerCase().replaceAll("[^a-z0-9]+","-").replaceAll("^-|-$","") %>"><%= name %></a></li>
         <%
                         }
                     } catch (SQLException e1) {
@@ -57,7 +57,7 @@
                             String name = rs.getString("song_name");
                             int lyricId = rs.getInt("lyric_id");
         %>
-                            <li><a href="lyric.jsp?id=<%= lyricId %>"><%= name %></a></li>
+                            <li><a href="/lyrics/<%= lyricId %>-<%= name.toLowerCase().replaceAll("[^a-z0-9]+","-").replaceAll("^-|-$","") %>"><%= name %></a></li>
         <%
                         }
                     } catch (SQLException e2) {

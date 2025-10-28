@@ -116,6 +116,14 @@ $(function(){
     $('#videoModal').fadeIn(120);
     $('#np-title').text(title || '—');
     $('#np-year').text(year ? '('+year+')' : '');
+    // Pokud titul chybí, zjisti z oEmbed a aktualizuj i DB (pokud ADMIN je přihlášen, řeší ručně)
+    if (!title || title.length < 2) {
+      $.getJSON('https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v='+id+'&format=json')
+        .done(function(d){
+          $('#modalTitle').text(d.title);
+          $('#np-title').text(d.title);
+        });
+    }
   }
   $('#modalClose, #videoModal').on('click', function(e){ if(e.target!==this) return; $('#videoModal').fadeOut(120, function(){ $('#modalFrame').attr('src',''); }); });
   $('#tracks .thumb').on('click', function(){

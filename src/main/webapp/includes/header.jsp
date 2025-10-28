@@ -218,19 +218,9 @@ ul li a:hover {
         <a href="music.jsp">Hudba</a> |
         <a href="texty.jsp">Texty</a>
     </nav>
-    <div style="position:absolute; top:10px; right:14px; font-size:0.95em;">
-        <% String currentUser = (String) session.getAttribute("username"); String currentRole = (String) session.getAttribute("role"); %>
-        <% if (currentUser == null) { %>
-            <a href="login.jsp" style="color:white;">Přihlásit</a> |
-            <a href="register.jsp" style="color:white;">Registrovat</a>
-        <% } else { %>
-            <span>👤 <%= currentUser %><% if ("ADMIN".equals(currentRole)) { %> (admin)<% } %></span> |
-            <a href="logout" style="color:white;">Odhlásit</a>
-        <% } %>
-    </div>
-    </nav>
     <div style="position:absolute; top:10px; right:14px; font-size:0.95em; display:flex; gap:10px; align-items:center;">
         <% String currentUser = (String) session.getAttribute("username"); String currentRole = (String) session.getAttribute("role"); %>
+        <a href="donate.jsp" style="color:#ffd700; font-weight:700;">❤ Donate</a>
         <button id="themeToggle" title="Přepnout vzhled" style="background:transparent;border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 8px;border-radius:6px;cursor:pointer;">🌓</button>
         <% if ("ADMIN".equals(currentRole)) { %>
             <a href="/admin.jsp" style="color:#ffd700;">Admin</a> |
