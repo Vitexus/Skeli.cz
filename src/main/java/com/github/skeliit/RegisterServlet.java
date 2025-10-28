@@ -20,16 +20,22 @@ public class RegisterServlet extends HttpServlet {
     }
 
     @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.sendRedirect("register.jsp");
+    }
+
+    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String username = req.getParameter("username");
         String password = req.getParameter("password");
-        if (username == null || password == null) {
+        String consent = req.getParameter("consent");
+        if (username == null || password == null || consent == null) {
             resp.sendRedirect("register.jsp");
             return;
         }
         String hash = BCrypt.hashpw(password, BCrypt.gensalt());
         try (Connection conn = getConn();
-             PreparedStatement ps = conn.prepareStatement("INSERT INTO users (username, password_hash, role) VALUES (?, ?, 'USER')")) {
+             PreparedStatement ps = conn.prepareStatement("INSERT INTO users (username, password_hash, role, created_at) VALUES (?, ?, 'USER', NOW())")) {
             ps.setString(1, username);
             ps.setString(2, hash);
             ps.executeUpdate();

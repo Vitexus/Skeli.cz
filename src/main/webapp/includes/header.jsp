@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-html lang="cs-cz">
+<html lang="cs-cz">
 
 <head>
     <meta charset="utf-8" />

@@ -6,9 +6,13 @@
   .now-playing { margin: 10px 0 20px; padding: 10px 14px; background: rgba(255,255,255,0.35); border-radius: 10px; display:inline-block; box-shadow: 0 6px 18px rgba(0,0,0,0.10); }
   .track-title { font-weight: 600; }
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; }
-  .thumb { position: relative; cursor:pointer; border-radius: 8px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,0.10); background: rgba(255,255,255,0.35); }
-  .thumb img { width: 100%; height: 180px; object-fit: cover; display:block; }
-  .thumb .meta { padding: 8px 10px; text-align:center; }
+  .thumb { position: relative; cursor:pointer; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 24px rgba(0,0,0,0.25); background: #111; transition: transform .12s ease; }
+  .thumb:hover { transform: translateY(-2px); }
+  .thumb img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display:block; filter: saturate(1.05) contrast(1.05); }
+  .thumb .overlay { position:absolute; inset:0; background: linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.05)); display:flex; align-items:flex-end; justify-content:stretch; }
+  .thumb .meta { width:100%; padding: 10px 12px; color:#fff; text-align:left; }
+  .track-title { font-weight:700; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+  .track-year { opacity:.8; }
   .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display:none; align-items: center; justify-content: center; z-index: 1000; }
   .modal .player { width: min(92vw, 900px); background: rgba(255,255,255,0.95); border-radius: 10px; padding: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
   .modal .head { display:flex; justify-content: space-between; align-items:center; padding: 2px 8px 8px; }
@@ -58,13 +62,14 @@
   <div class="now-playing">Přehrává se: <span id="np-title">—</span> <span id="np-year"></span></div>
 
   <div class="grid" id="tracks">
-  <div class="grid" id="tracks">
     <% for (int i = 0; i < ids.size(); i++) { String id = ids.get(i); String nm = names.get(i); String yr = years.get(i); %>
       <div class="thumb" data-idx="<%= i %>" data-id="<%= id %>" data-name="<%= nm != null ? nm : "" %>" data-year="<%= yr != null ? yr : "" %>" title="Přehrát: <%= (nm != null && !nm.isEmpty()) ? nm : id %>">
         <img src="https://img.youtube.com/vi/<%= id %>/hqdefault.jpg" alt="<%= (nm != null && !nm.isEmpty()) ? nm : id %>">
-        <div class="meta">
-          <div class="track-title"><%= (nm != null && !nm.isEmpty()) ? nm : "Načítám…" %></div>
-          <div class="track-year"><%= (yr != null && !yr.isEmpty()) ? ("(" + yr + ")") : "" %></div>
+        <div class="overlay">
+          <div class="meta">
+            <div class="track-title"><%= (nm != null && !nm.isEmpty()) ? nm : "Načítám…" %></div>
+            <div class="track-year"><%= (yr != null && !yr.isEmpty()) ? ("(" + yr + ")") : "" %></div>
+          </div>
         </div>
       </div>
     <% } %>
