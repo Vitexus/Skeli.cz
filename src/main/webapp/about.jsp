@@ -1,11 +1,27 @@
 <%@ include file="includes/header.jsp" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
-<main style="text-align:center;">
-    <h2>Vítejte!</h2>
-    <p>Jmenuji se Skeli a baví mě tvorba hudby a www aplikací.</p>
-    <p>Na této stránce najdete mou tvorbu.</p>
-    <p>Odkazy na sociální sítě:</p>
+<main>
+  <section style="text-align:center; margin-bottom:18px;">
+    <h2>O mně</h2>
+    <p>Jsem Skeli – rapper, producent a nadšenec do webu. Baví mě tvořit hudbu i aplikace, které něco předají.</p>
+  </section>
+  <section style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:16px;">
+    <div class="section" style="background:rgba(255,255,255,0.55); border-radius:12px; padding:16px;">
+      <h3>Hudební cesta</h3>
+      <p>Od prvních tracků až po současnou tvorbu. Na stránce Hudba najdete klipy a playlisty.</p>
+    </div>
+    <div class="section" style="background:rgba(255,255,255,0.55); border-radius:12px; padding:16px;">
+      <h3>Spolupráce</h3>
+      <p>Jestli tě baví moje věci, napiš. Ocením rap feature, produkci beatů i vizuál.</p>
+    </div>
+    <div class="section" style="background:rgba(255,255,255,0.55); border-radius:12px; padding:16px;">
+      <h3>Kontakt</h3>
+      <p>E-mail: <a href="mailto:booking@skeli.cz">booking@skeli.cz</a></p>
+    </div>
+  </section>
+  <section style="text-align:center; margin-top:18px;">
+    <p> Sleduj novinky na mých sítích:</p>
     <div style="font-size:3em; text-align:center;">
         <a href="https://www.facebook.com/mcskeli/" target="_blank" style="margin:0 10px; color:inherit; text-decoration:none;">
             <i class="fab fa-facebook" style="color:#4267B2;"></i>

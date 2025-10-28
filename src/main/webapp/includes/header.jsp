@@ -99,8 +99,9 @@ nav a:hover {
 
 main {
     flex: 1 0 auto;
-    max-width: 900px;
-    margin: 40px auto;
+    width: calc(100vw - 60px);
+    max-width: none;
+    margin: 30px auto;
     background: rgba(255,255,255,0.49);
     padding: 30px;
     border-radius: 10px;
