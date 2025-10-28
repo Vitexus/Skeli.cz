@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-html lang="cs-cz">
+<html lang="cs-cz">
 
 <head>
     <meta charset="utf-8" />
@@ -16,7 +16,6 @@ html lang="cs-cz">
     <link href="https://fonts.googleapis.com/css2?family=Alumni+Sans+Pinstripe:ital@0;1&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bruno+Ace+SC&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Comforter+Brush&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <!-- Slick Carousel CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
@@ -50,24 +49,17 @@ html lang="cs-cz">
     font-weight: bold;
 }
 p {
-    font-family: 'Inter', 'Alumni Sans Pinstripe', Arial, sans-serif;
-    font-size: 1.05em;
-    color: #111;
-    font-weight: 400;
-    line-height: 1.6;
+    font-family: 'Alumni Sans Pinstripe', Arial, sans-serif;
+    font-size: 1.2em;
+    color: black;
+    font-weight: bold;
 }
 
-html, body {
-    height: 100%;
-}
 body {
-    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-    background: #121212 url('img/IMG_0090.JPG') center center/cover no-repeat fixed;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f4f4 url('img/IMG_0090.JPG') center center/cover no-repeat fixed;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
 }
 
 header {
@@ -98,28 +90,30 @@ nav a:hover {
 }
 
 main {
-    flex: 1 0 auto;
-    max-width: 900px;
+    max-width: 800px;
     margin: 40px auto;
-    background: rgba(255,255,255,0.49);
+    background: rgba(255,255,255,0.7);
     padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    border-radius: 8px;
+    box-shadow: 4px 2px 4px rgba(200,0,0,0.2);
 }
 
 footer {
     background: linear-gradient(
         to top,
-        rgba(34,34,34,0.9) 0%,
-        rgba(255,255,255,0) 100%
+        rgba(34,34,34,0.9) 0%,   /* dole tmavší */
+        rgba(255,255,255,0) 100% /* směrem nahoru průhledné */
     );
     color: white;
     text-align: center;
-    padding: 80px 0;
-    position: static;
-    width: 100%;
+    padding: 150px 0;
+    position: fixed;     /* zajistí, že footer drží na místě */
+    bottom: 0;           /* vždy u spodního okraje */
+    left: 0;             /* přilepený vlevo */
+    width: 100%;         /* přes celou šířku */
     border-radius: 3px 3px 0px 0px;
-    margin-top: auto; /* push to bottom when content short */
+    margin: 0;
+    z-index: 999;        /* aby footer překryl obsah, pokud je potřeba */
 }
 
 body {
@@ -209,14 +203,4 @@ ul li a:hover {
         <a href="music.jsp">Hudba</a> |
         <a href="texty.jsp">Texty</a>
     </nav>
-    <div style="position:absolute; top:10px; right:14px; font-size:0.95em;">
-        <% String currentUser = (String) session.getAttribute("username"); String currentRole = (String) session.getAttribute("role"); %>
-        <% if (currentUser == null) { %>
-            <a href="login.jsp" style="color:white;">Přihlásit</a> |
-            <a href="register.jsp" style="color:white;">Registrovat</a>
-        <% } else { %>
-            <span>👤 <%= currentUser %><% if ("ADMIN".equals(currentRole)) { %> (admin)<% } %></span> |
-            <a href="logout" style="color:white;">Odhlásit</a>
-        <% } %>
-    </div>
 </header>

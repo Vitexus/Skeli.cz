@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
+         version="5.0">
+    <display-name>SkeliCZ</display-name>
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+    <listener>
+        <listener-class>com.github.skeliit.DbInit</listener-class>
+    </listener>
+
+    <servlet>
+        <servlet-name>LoginServlet</servlet-name>
+        <servlet-class>com.github.skeliit.LoginServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LoginServlet</servlet-name>
+        <url-pattern>/login</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>LogoutServlet</servlet-name>
+        <servlet-class>com.github.skeliit.LogoutServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LogoutServlet</servlet-name>
+        <url-pattern>/logout</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>RegisterServlet</servlet-name>
+        <servlet-class>com.github.skeliit.RegisterServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>RegisterServlet</servlet-name>
+        <url-pattern>/register</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>CommentsServlet</servlet-name>
+        <servlet-class>com.github.skeliit.CommentsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CommentsServlet</servlet-name>
+        <url-pattern>/comment</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>VotesServlet</servlet-name>
+        <servlet-class>com.github.skeliit.VotesServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>VotesServlet</servlet-name>
+        <url-pattern>/vote</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>YouTubeSyncServlet</servlet-name>
+        <servlet-class>com.github.skeliit.YouTubeSyncServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>YouTubeSyncServlet</servlet-name>
+        <url-pattern>/admin/sync</url-pattern>
+    </servlet-mapping>
+</web-app>

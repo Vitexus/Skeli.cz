@@ -1,0 +1,15 @@
+START TRANSACTION;
+
+ALTER TABLE `lyrics`
+  DROP FOREIGN KEY `fk_lyrics_song_id`;
+
+ALTER TABLE `lyrics`
+  MODIFY COLUMN `song_id` int(10) UNSIGNED NOT NULL;
+
+ALTER TABLE `lyrics`
+  ADD CONSTRAINT `fk_lyrics_song_id`
+  FOREIGN KEY (`song_id`) REFERENCES `songs` (`id`)
+  ON DELETE RESTRICT
+  ON UPDATE CASCADE;
+
+COMMIT;

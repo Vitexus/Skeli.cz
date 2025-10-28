@@ -4,8 +4,37 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.skeliit</groupId>
     <artifactId>SkeliCZ</artifactId>
-    <version>1.0-SNAPSHOT</version>
+<version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
+
+    <dependencies>
+        <!-- Servlet API for compiling web listeners/servlets (provided by Jetty at runtime) -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>5.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- MariaDB JDBC driver for better compatibility with MariaDB servers -->
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>3.5.6</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- JSON parser for YouTube API -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.17.1</version>
+        </dependency>
+        <!-- BCrypt for password hashing -->
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -19,6 +48,33 @@
                     </webApp>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>10.13.0</version>
+                <configuration>
+                    <url>jdbc:mariadb://localhost:3306/skeliweb?useUnicode=true&amp;characterEncoding=utf8mb4</url>
+                    <user>Skeli</user>
+                    <password>skeli</password>
+                </configuration>
+                <dependencies>
+                    <!-- Flyway database support for MySQL/MariaDB -->
+                    <dependency>
+                        <groupId>org.flywaydb</groupId>
+                        <artifactId>flyway-mysql</artifactId>
+                        <version>10.13.0</version>
+                    </dependency>
+                    <!-- MariaDB JDBC driver -->
+                    <dependency>
+                        <groupId>org.mariadb.jdbc</groupId>
+                        <artifactId>mariadb-java-client</artifactId>
+                        <version>3.5.6</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
         </plugins>
     </build>
+
 </project>
