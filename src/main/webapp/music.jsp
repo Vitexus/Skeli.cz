@@ -3,6 +3,9 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <style>
+  .section { background: rgba(255,255,255,0.55); border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; box-shadow: 0 6px 18px rgba(0,0,0,0.10); }
+  .section-title { margin: 0 0 10px; display:flex; align-items:center; gap: 8px; font-weight:700; }
+  .section-title .ico { font-size: 1.2em; }
   .now-playing { margin: 10px 0 20px; padding: 10px 14px; background: rgba(255,255,255,0.35); border-radius: 10px; display:inline-block; box-shadow: 0 6px 18px rgba(0,0,0,0.10); }
   .track-title { font-weight: 600; }
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; }
@@ -17,7 +20,6 @@
   .modal .player { width: min(92vw, 900px); background: rgba(255,255,255,0.95); border-radius: 10px; padding: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
   .modal .head { display:flex; justify-content: space-between; align-items:center; padding: 2px 8px 8px; }
   .modal .close { cursor:pointer; font-size: 1.4em; }
-  .spotify { margin: 10px 0 18px; }
 </style>
 
 <%
@@ -56,12 +58,16 @@
 
 <main>
   <h2>Moje Hudba!</h2>
-  <div class="spotify">
-    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/artist/5IouXw8U9uKCTwmncG5bUl?utm_source=generator" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-  </div>
-  <div class="now-playing">Přehrává se: <span id="np-title">—</span> <span id="np-year"></span></div>
 
-  <div class="grid" id="tracks">
+  <section class="section">
+    <h3 class="section-title"><span class="ico"><i class="fab fa-spotify" style="color:#1DB954"></i></span> Spotify</h3>
+    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/artist/5IouXw8U9uKCTwmncG5bUl?utm_source=generator" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+  </section>
+
+  <section class="section">
+    <h3 class="section-title"><span class="ico"><i class="fab fa-youtube" style="color:#FF0000"></i></span> YouTube</h3>
+    <div class="now-playing">Přehrává se: <span id="np-title">—</span> <span id="np-year"></span></div>
+    <div class="grid" id="tracks">
     <% for (int i = 0; i < ids.size(); i++) { String id = ids.get(i); String nm = names.get(i); String yr = years.get(i); %>
       <div class="thumb" data-idx="<%= i %>" data-id="<%= id %>" data-name="<%= nm != null ? nm : "" %>" data-year="<%= yr != null ? yr : "" %>" title="Přehrát: <%= (nm != null && !nm.isEmpty()) ? nm : id %>">
         <img src="https://img.youtube.com/vi/<%= id %>/hqdefault.jpg" alt="<%= (nm != null && !nm.isEmpty()) ? nm : id %>">
@@ -73,7 +79,8 @@
         </div>
       </div>
     <% } %>
-  </div>
+    </div>
+  </section>
 
   <div class="modal" id="videoModal">
     <div class="player">
