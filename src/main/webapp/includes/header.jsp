@@ -5,12 +5,16 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, viewport-fit=cover">
-    <title>Moje první webová stranka</title>
-    <meta name="description" content="Osobní portfolio programátora skeliho" />
-    <meta name="keywords" content="portfolio,Programator,Skeli,SK-IT" />
+    <title>Skeli — oficiální web</title>
+    <meta name="description" content="Skeli — hudba, texty, videa a novinky" />
+    <meta name="keywords" content="Skeli, hudba, rap, videoklipy, texty" />
     <meta name="author" content="Skeli" />
+    <meta property="og:title" content="Skeli — oficiální web" />
+    <meta property="og:description" content="Poslouchej hudbu, sleduj klipy a čti texty" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/" />
     <link rel="shortcut icon" href="obrazky/skeliico.ico" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Alumni+Sans+Pinstripe:ital@0;1&display=swap" rel="stylesheet">
@@ -26,6 +30,9 @@
     <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
 
 <style>
+:root { --bg:#121212; --text:#111; --panel:rgba(255,255,255,0.49); --panel-strong:rgba(255,255,255,0.7); }
+body.light { --bg:#f6f6f6; --text:#111; --panel:rgba(255,255,255,0.85); --panel-strong:#fff; }
+body.dark { --bg:#121212; --text:#eaeaea; --panel:rgba(255,255,255,0.49); --panel-strong:rgba(255,255,255,0.7); }
 .comforter-brush-regular {
   font-family: "Comforter Brush", cursive;
   font-weight: 800;
@@ -62,7 +69,8 @@ html, body {
 }
 body {
     font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-    background: #121212 url('img/IMG_0090.JPG') center center/cover no-repeat fixed;
+    background: var(--bg) url('img/IMG_0090.JPG') center center/cover no-repeat fixed;
+    color: var(--text);
     margin: 0;
     padding: 0;
     display: flex;
@@ -102,7 +110,7 @@ main {
     width: calc(100vw - 60px);
     max-width: none;
     margin: 30px auto;
-    background: rgba(255,255,255,0.49);
+    background: var(--panel);
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.25);
@@ -220,4 +228,30 @@ ul li a:hover {
             <a href="logout" style="color:white;">Odhlásit</a>
         <% } %>
     </div>
+    </nav>
+    <div style="position:absolute; top:10px; right:14px; font-size:0.95em; display:flex; gap:10px; align-items:center;">
+        <% String currentUser = (String) session.getAttribute("username"); String currentRole = (String) session.getAttribute("role"); %>
+        <button id="themeToggle" title="Přepnout vzhled" style="background:transparent;border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 8px;border-radius:6px;cursor:pointer;">🌓</button>
+        <% if ("ADMIN".equals(currentRole)) { %>
+            <a href="/admin.jsp" style="color:#ffd700;">Admin</a> |
+        <% } %>
+        <% if (currentUser == null) { %>
+            <a href="login.jsp" style="color:white;">Přihlásit</a> |
+            <a href="register.jsp" style="color:white;">Registrovat</a>
+        <% } else { %>
+            <span>👤 <%= currentUser %><% if ("ADMIN".equals(currentRole)) { %> (admin)<% } %></span> |
+            <a href="logout" style="color:white;">Odhlásit</a>
+        <% } %>
+    </div>
 </header>
+<script>
+  (function(){
+    const k='theme';
+    const body=document.body; const cur=localStorage.getItem(k)||'dark';
+    body.classList.add(cur);
+    document.getElementById('themeToggle').addEventListener('click',()=>{
+      body.classList.toggle('light'); body.classList.toggle('dark');
+      const v=body.classList.contains('light')?'light':'dark'; localStorage.setItem(k,v);
+    });
+  })();
+</script>
