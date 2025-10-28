@@ -58,6 +58,24 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>ForgotPasswordServlet</servlet-name>
+        <servlet-class>com.github.skeliit.ForgotPasswordServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ForgotPasswordServlet</servlet-name>
+        <url-pattern>/forgot</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ResetPasswordServlet</servlet-name>
+        <servlet-class>com.github.skeliit.ResetPasswordServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ResetPasswordServlet</servlet-name>
+        <url-pattern>/reset</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>YouTubeSyncServlet</servlet-name>
         <servlet-class>com.github.skeliit.YouTubeSyncServlet</servlet-class>
     </servlet>
@@ -82,5 +100,14 @@
     <servlet-mapping>
         <servlet-name>AdminCommentServlet</servlet-name>
         <url-pattern>/admin/comment</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>LyricRouterServlet</servlet-name>
+        <servlet-class>com.github.skeliit.LyricRouterServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LyricRouterServlet</servlet-name>
+        <url-pattern>/lyrics/*</url-pattern>
     </servlet-mapping>
 </web-app>

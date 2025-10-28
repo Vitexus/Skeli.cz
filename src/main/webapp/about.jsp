@@ -17,7 +17,7 @@
     </div>
     <div class="section" style="background:rgba(255,255,255,0.55); border-radius:12px; padding:16px;">
       <h3>Kontakt</h3>
-      <p>E-mail: <a href="mailto:booking@skeli.cz">booking@skeli.cz</a></p>
+<p>E-mail: <a href="mailto:skelimc@seznam.cz">skelimc@seznam.cz</a></p>
     </div>
   </section>
   <section style="text-align:center; margin-top:18px;">
