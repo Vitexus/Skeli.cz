@@ -1,3 +1,24 @@
+# Build
+/target/
+/*.iml
+/.idea/
+/.project
+/.classpath
+/.settings/
+/.vscode/
+
+# Logs
+logs/
+*.log
+
+# Local config
+src/main/webapp/WEB-INF/youtube.properties
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
 # Compiled class file
 *.class
 

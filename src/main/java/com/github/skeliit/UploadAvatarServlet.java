@@ -19,7 +19,7 @@ import java.sql.*;
 import java.util.UUID;
 
 @WebServlet(name = "UploadAvatarServlet", urlPatterns = {"/profile/avatar"})
-@MultipartConfig(maxFileSize = 2 * 1024 * 1024)
+@MultipartConfig(maxFileSize = 10 * 1024 * 1024, maxRequestSize = 15 * 1024 * 1024)
 public class UploadAvatarServlet extends HttpServlet {
     private Connection getConn() throws SQLException {
         String mariadbUrl = "jdbc:mariadb://localhost:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";

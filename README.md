@@ -1,5 +1,50 @@
 # Skeli.cz
 
+Java (Jakarta Servlet + JSP), MariaDB, Flyway. Cíl: moderní, bezpečný web.
+
+## Požadavky
+- Java 17+, Maven 3.9+
+- MariaDB 10.6+ (uživatel `Skeli` / `skeli`, DB `skeliweb`)
+
+## Rychlý start (dev)
+```bash
+mvn -q -DskipTests compile
+mvn org.eclipse.jetty:jetty-maven-plugin:11.0.15:run
+```
+Aplikace poběží na http://localhost:8080/
+
+## Databáze a migrace
+```bash
+mvn -q -Dflyway.configFiles=src/main/resources/flyway.conf flyway:migrate
+```
+(Flyway je také volán přes plugin v `pom.xml`.)
+
+## YouTube sync
+1. Vytvoř `src/main/webapp/WEB-INF/youtube.properties` podle šablony:
+   ```
+   apiKey=YOUR_KEY
+   channelId=YOUR_CHANNEL_ID
+   ```
+2. Přihlas se jako ADMIN a otevři `/admin/sync`.
+
+## Testy
+```bash
+mvn test
+```
+
+## Docker (volitelné)
+```bash
+docker compose up --build
+```
+Aplikace: http://localhost:8080  DB: localhost:3306
+
+## Bezpečnost
+- Admin chráněn filtrem (`/admin/*`).
+- Základní CSRF pro `/comment` a `/vote`.
+- Používejte prepared statements a `c:out` v JSP.
+
+# Skeli.cz
+
 transformace html strany na JAVU
 
 ## Stack

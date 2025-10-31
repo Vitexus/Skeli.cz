@@ -137,4 +137,37 @@
         <error-code>500</error-code>
         <location>/error.jsp</location>
     </error-page>
+
+    <!-- Filters -->
+    <filter>
+        <filter-name>AdminFilter</filter-name>
+        <filter-class>com.github.skeliit.AdminFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>AdminFilter</filter-name>
+        <url-pattern>/admin/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>CsrfFilter</filter-name>
+        <filter-class>com.github.skeliit.CsrfFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>CsrfFilter</filter-name>
+        <url-pattern>/comment</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>CsrfFilter</filter-name>
+        <url-pattern>/vote</url-pattern>
+    </filter-mapping>
+
+    <!-- MVC Controllers -->
+    <servlet>
+        <servlet-name>MusicController</servlet-name>
+        <servlet-class>com.github.skeliit.web.MusicController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>MusicController</servlet-name>
+        <url-pattern>/music</url-pattern>
+    </servlet-mapping>
 </web-app>

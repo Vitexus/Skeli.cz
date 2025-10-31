@@ -7,8 +7,7 @@
   .section.spotify { background: linear-gradient(0deg, rgba(204,43,43,0.24), rgba(255,255,255,0.04)); border-color: rgba(204,43,43,0.45); }
   .section.youtube { background: linear-gradient(0deg, rgba(255,0,0,0.14), rgba(255,255,255,0.05)); border-color: rgba(255,0,0,0.28); }
   .section-title { margin: 0 0 10px; display:flex; align-items:center; gap: 8px; font-weight:700; }
-  .media-columns { display:block; }
-  @media (min-width: 1100px){ .media-columns { display:grid; grid-template-columns: 1fr 1fr; gap:16px; align-items:start; } }
+.media-columns { display:block; }
   .section-title .ico { font-size: 1.2em; }
 </style>
 
@@ -51,17 +50,9 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
 %>
 
 <main>
-  <h2>Moje Hudba!</h2>
+  <h2 class="bruno-ace-sc-regular" style="text-align:center;"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.music","Music") %></h2>
 
   <div class="media-columns">
-  <section class="section spotify">
-    <h3 class="section-title"><span class="ico"><i class="fab fa-spotify" style="color:var(--spotify)"></i></span> <%= ((java.util.Properties)request.getAttribute("t")).getProperty("section.spotify","Spotify") %></h3>
-    <div id="spotifyEmbed" data-src="https://open.spotify.com/embed/artist/5IouXw8U9uKCTwmncG5bUl?utm_source=generator" style="min-height:160px;">
-      <button id="spotifyLoad" style="padding:6px 10px;">Povolit a načíst Spotify</button>
-      <button id="spotifyDock" style="padding:6px 10px; margin-left:8px;">Přehrát dole</button>
-    </div>
-  </section>
-
   <section class="section youtube">
     <h3 class="section-title"><span class="ico"><i class="fab fa-youtube" style="color:#FF0000"></i></span> <%= ((java.util.Properties)request.getAttribute("t")).getProperty("section.youtube","YouTube") %></h3>
     <jsp:include page="/elliptic" flush="true" />
@@ -70,19 +61,4 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
 
 </main>
 
-<script>
-$(function(){
-  function tryLoadSpotify(){
-    var c = $('#spotifyEmbed'); if (!c.length) return;
-    if (!c.data('loaded')) {
-      var src = c.data('src');
-      c.html('<iframe style="border-radius:12px" src="'+src+'" width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>');
-      c.data('loaded',true);
-    }
-  }
-  $('#spotifyLoad').on('click', function(){ tryLoadSpotify(); });
-  $('#spotifyDock').on('click', function(){ var src=$('#spotifyEmbed').data('src'); if(window.playSpotify) window.playSpotify(src); else { tryLoadSpotify(); } });
-  tryLoadSpotify();
-});
-</script>
 <%@ include file="includes/footer.jsp" %>

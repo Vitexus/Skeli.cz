@@ -3,13 +3,15 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <main>
-    <h2 style="text-align:center;">Texty</h2>
+    <h2 class="bruno-ace-sc-regular" style="text-align:center;"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.lyrics","Lyrics") %></h2>
     <style>
       /* Vrať původní vzhled navigace; zvýrazni seznam textů */
       .texts-card { background: rgba(255,255,255,0.55); border:1px solid var(--panel-border); border-radius:12px; padding:16px; margin-top:12px; box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
       .texts-list { list-style:none; padding:0; margin:0; display:block; }
 .texts-list li { margin:8px 0; text-align:center; }
-      .texts-list a { font-weight: var(--fw); }
+      .texts-list a { font-weight: var(--fw); text-decoration: none; transition: color .15s ease, text-shadow .15s ease; }
+      .texts-list a:link, .texts-list a:visited { color: var(--text); }
+      .texts-list a:hover, .texts-list a:focus { color: var(--accent); text-shadow: 0 0 8px var(--accent); text-decoration: underline; outline: none; }
     </style>
     <div class="texts-card">
       <ul class="texts-list">
@@ -38,9 +40,12 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
                         while (rs.next()) {
                             hadRows = true;
                             String name = rs.getString("song_name");
+                            if (name != null) name = name.replaceFirst("(?i)^\\s*skeli\\s*-\\s*","" );
+                            Integer y = (Integer) rs.getObject("song_year");
                             int lyricId = rs.getInt("lyric_id");
+                            if (rs.wasNull() || lyricId <= 0) continue;
         %>
-                            <li><a href="lyric.jsp?id=<%= lyricId %>"><%= name %></a></li>
+                            <li><a href="/lyrics/<%= lyricId %>"><%= name %></a><% if (y != null) { %> (<%= y %>)<% } %></li>
         <%
                         }
                     } catch (SQLException e1) {
@@ -59,9 +64,12 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
                         while (rs.next()) {
                             hadRows = true;
                             String name = rs.getString("song_name");
+                            if (name != null) name = name.replaceFirst("(?i)^\\s*skeli\\s*-\\s*","" );
+                            Integer y = (Integer) rs.getObject("song_year");
                             int lyricId = rs.getInt("lyric_id");
+                            if (rs.wasNull() || lyricId <= 0) continue;
         %>
-                            <li><a href="lyric.jsp?id=<%= lyricId %>"><%= name %></a></li>
+                            <li><a href="/lyrics/<%= lyricId %>"><%= name %></a><% if (y != null) { %> (<%= y %>)<% } %></li>
         <%
                         }
                     } catch (SQLException e2) {
