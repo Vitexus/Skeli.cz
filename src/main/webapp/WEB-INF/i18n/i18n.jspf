@@ -1,7 +1,7 @@
 <%-- i18n loader: sets request attribute 't' as java.util.Properties --%>
 <%
   String lang = request.getParameter("lang");
-  if (lang != null && (lang.equals("cs")||lang.equals("en")||lang.equals("de")||lang.equals("sk")||lang.equals("uk"))) {
+  if (lang != null && (lang.equals("cs")||lang.equals("en")||lang.equals("de")||lang.equals("uk"))) {
     session.setAttribute("lang", lang);
   }
   String cur = (String) session.getAttribute("lang");

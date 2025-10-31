@@ -3,21 +3,24 @@
 
 <main>
   <section style="text-align:center; margin-bottom:18px;">
-    <h2><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.title","About me") %></h2>
+    <h2 class="bruno-ace-sc-regular"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.title","About me") %></h2>
+    <div style="display:flex; justify-content:center; margin: 12px 0;">
+      <img src="/img/IMG_0132.JPG" alt="Skeli" style="width:220px;height:220px;border-radius:50%;object-fit:cover;box-shadow:0 12px 30px rgba(0,0,0,.35);border:2px solid var(--panel-border);" onerror="this.style.display='none'">
+    </div>
     <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.p1","Jsem Skeli – rapper, producent a nadšenec do webu. Baví mě tvořit hudbu i aplikace, které něco předají.") %></p>
   </section>
   <section style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:16px;">
     <div class="section" style="background:rgba(255,255,255,0.55); border:1px solid var(--panel-border); border-radius:12px; padding:16px;">
-      <h3>Hudební cesta</h3>
-      <p>Od prvních tracků až po současnou tvorbu. Na stránce Hudba najdete klipy a playlisty.</p>
+      <h3><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.music.title","Music journey") %></h3>
+      <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.music.text","From the first tracks to the current work. Find clips and playlists on the Music page.") %></p>
     </div>
     <div class="section" style="background:rgba(255,255,255,0.55); border:1px solid var(--panel-border); border-radius:12px; padding:16px;">
-      <h3>Spolupráce</h3>
-      <p>Jestli tě baví moje věci, napiš. Ocením rap feature, produkci beatů i vizuál.</p>
+      <h3><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.collab.title","Collaboration") %></h3>
+      <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.collab.text","If you enjoy my work, get in touch. I welcome rap features, beat production and visuals.") %></p>
     </div>
     <div class="section" style="background:rgba(255,255,255,0.55); border:1px solid var(--panel-border); border-radius:12px; padding:16px;">
-      <h3>Kontakt</h3>
-<p>E-mail: <a href="mailto:skelimc@seznam.cz">skelimc@seznam.cz</a></p>
+      <h3><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.contact.title","Contact") %></h3>
+<p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.contact.email","E-mail") %>: <a href="mailto:skelimc@seznam.cz">skelimc@seznam.cz</a></p>
     </div>
   </section>
   <section style="text-align:center; margin-top:18px;">

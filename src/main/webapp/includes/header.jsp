@@ -21,6 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Bruno+Ace+SC&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Comforter+Brush&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="preload" as="image" href="img/IMG_0090.JPG" fetchpriority="high">
     <!-- Slick Carousel CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
@@ -30,9 +31,9 @@
     <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
 
 <style>
-:root { --bg:#0b0c0d; --text:#e7e9ea; --panel:rgba(0,0,0,0.60); --panel-strong:rgba(0,0,0,0.75); --panel-border:rgba(255,255,255,0.18); --accent:#00d1ff; --spotify:#CC2B2B; --youtube:#FF0000; --fw:400; }
-body.light { --bg:#f6f6f6; --text:#111; --panel:#ffffff; --panel-strong:#ffffff; --panel-border:rgba(0,0,0,0.18); --accent:#007acc; }
-body.dark { --bg:#0b0c0d; --text:#e7e9ea; --panel:rgba(0,0,0,0.60); --panel-strong:rgba(0,0,0,0.75); --panel-border:rgba(255,255,255,0.18); --accent:#00d1ff; }
+:root { --bg:#0b0c0d; --text:#e7e9ea; --panel:rgba(0,0,0,0.60); --panel-strong:rgba(0,0,0,0.75); --panel-border:rgba(255,255,255,0.18); --accent:#ffd700; --spotify:#CC2B2B; --youtube:#FF0000; --fw:400; }
+body.light { --bg:#f6f6f6; --text:#111; --panel:#ffffff; --panel-strong:#ffffff; --panel-border:rgba(0,0,0,0.18); --accent:#a37b00; }
+body.dark { --bg:#0b0c0d; --text:#e7e9ea; --panel:rgba(0,0,0,0.60); --panel-strong:rgba(0,0,0,0.75); --panel-border:rgba(255,255,255,0.18); --accent:#ffd700; }
 .comforter-brush-regular {
   font-family: "Comforter Brush", cursive;
   font-weight: 800;
@@ -100,6 +101,7 @@ nav a {
     margin: 0 10px;
     font-weight: bold;
 }
+nav a.active { color: var(--accent); text-shadow: 0 0 8px var(--accent); position: relative; }
 h3 { font-family: "Bruno Ace SC", sans-serif; letter-spacing: 0.5px; }
 .top-controls { font-family: "Bruno Ace SC", sans-serif; }
 .top-controls a, .top-controls button { font-family: inherit; }
@@ -120,6 +122,8 @@ body.light .top-controls a { color:#111; }
 body.light .top-controls button { color:#111; border-color: rgba(0,0,0,0.35); }
 
 nav a:hover {
+    color: var(--accent);
+    text-shadow: 0 0 8px var(--accent);
     text-decoration: underline;
 }
 
@@ -248,16 +252,30 @@ ul li a:hover {
   .sp-iframe { width:100%; height:152px; border:0; border-radius:12px 12px 0 0; }
   .sp-hide { position:absolute; right:10px; top:-32px; border-radius:999px; border:1px solid var(--panel-border); background: rgba(0,0,0,0.65); color:#fff; padding:4px 10px; cursor:pointer; box-shadow:0 8px 22px rgba(0,0,0,.35); }
   .sp-hide:hover { background: rgba(0,0,0,0.8); }
-  .sp-minbar { position:fixed; left:50%; transform:translateX(-50%); bottom:10px; z-index:9998; display:none; background: rgba(0,0,0,0.65); color:#fff; border:1px solid var(--panel-border); border-radius:999px; padding:6px 10px; cursor:pointer; box-shadow:0 8px 22px rgba(0,0,0,.35); }
+  .sp-minbar { position:fixed; left:50%; transform:translateX(-50%); bottom:10px; z-index:9998; display:none; background: rgba(0,0,0,0.65); color:#fff; border:1px solid var(--panel-border); border-radius:999px; padding:6px 12px; cursor:pointer; box-shadow:0 8px 22px rgba(0,0,0,.35); display:flex; align-items:center; gap:8px; }
+  .sp-minbar i.fa-spotify { color:#FF0000; }
   .sp-minbar:hover { background: rgba(0,0,0,0.8); }
   body.light .sp-bar { background:#ffffff; box-shadow: 0 -12px 30px rgba(0,0,0,.20); }
-  body.light .sp-hide { background: rgba(255,255,255,0.9); color:#111; border-color: rgba(0,0,0,0.15); }
+body.light .sp-minbar { background: rgba(255,255,255,0.9); color:#111; border-color: rgba(0,0,0,0.15); }
+/* Smoke veil */
+.smoke-veil{position:fixed;left:0;right:0;bottom:0;height:35vh;pointer-events:none;background:radial-gradient(ellipse at bottom, rgba(255,255,255,0.06), transparent 60%);mask-image:linear-gradient(to top, rgba(0,0,0,.9), transparent);opacity:.55;animation:smokeMove 14s ease-in-out infinite alternate;}
+@keyframes smokeMove{0%{transform:translateY(0)}100%{transform:translateY(10px)}}
   body.light .sp-hide:hover { background: rgba(255,255,255,1); }
   body.light .sp-minbar { background: rgba(255,255,255,0.9); color:#111; border-color: rgba(0,0,0,0.15); }
 </style>
+<style>
+  .reveal { opacity: 0; transform: translateY(12px); transition: opacity .6s ease, transform .6s ease; will-change: opacity, transform; }
+  .reveal.show { opacity: 1; transform: none; }
+</style>
 <%@ include file="/WEB-INF/i18n/i18n.jspf" %>
+<%
+  String __csrf = (String) session.getAttribute("csrf");
+  if (__csrf == null) { __csrf = java.util.UUID.randomUUID().toString(); session.setAttribute("csrf", __csrf); }
+  request.setAttribute("csrf", __csrf);
+%>
 <header>
 
+   <div id="topClock" class="bruno-ace-sc-regular" style="position:absolute; left:14px; top:8px; font-size:0.95em; padding:4px 8px; border-radius:8px; background: rgba(0,0,0,0.35); border:1px solid var(--panel-border); box-shadow: 0 4px 14px rgba(0,0,0,.25);"></div>
 
    <h1 class="comforter-brush-regular">SKELOSQUAD</h1>
    <nav class="bruno-ace-sc-regular">
@@ -274,16 +292,15 @@ ul li a:hover {
         <div class="lang-switch">
           <button class="lang-btn" title="Jazyk" style="background:transparent;border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 8px;border-radius:6px;cursor:pointer;">🌐</button>
           <ul class="menu">
-            <li><a href="?lang=cs">Čeština 🇨🇿</a></li>
-            <li><a href="?lang=en">English 🇬🇧</a></li>
-            <li><a href="?lang=de">Deutsch 🇩🇪</a></li>
-            <li><a href="?lang=sk">Slovensky 🇸🇰</a></li>
-            <li><a href="?lang=uk">Українська 🇺🇦</a></li>
+             <li><a href="?lang=cs">Čeština 🇨🇿</a></li>
+             <li><a href="?lang=en">English 🇬🇧</a></li>
+             <li><a href="?lang=de">Deutsch 🇩🇪</a></li>
+             <li><a href="?lang=uk">Українська 🇺🇦</a></li>
           </ul>
         </div>
         <% if (currentUser == null) { %>
-            <a href="login.jsp" style="color:white;">Přihlásit</a> |
-            <a href="register.jsp" style="color:white;">Registrovat</a>
+            <a href="login.jsp" style="color:white;"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("btn.login","Login") %></a> |
+            <a href="register.jsp" style="color:white;"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("btn.register","Register") %></a>
         <% } else { %>
             <div class="user-menu" style="position:relative; display:inline-block;">
               <span style="color:white; cursor:pointer;">👤 <%= currentUser %><% if ("ADMIN".equals(currentRole)) { %> (admin)<% } %></span>
@@ -300,6 +317,18 @@ ul li a:hover {
 <script>
   (function(){
     const fwKey='fontWeight';
+    // Digital clock with locale based on session lang
+    const sessionLang = (function(){ try { return '<% String __lang = (String) session.getAttribute("lang"); if (__lang == null) __lang = "cs"; out.print(__lang); %>'; } catch(e){ return 'cs'; } })();
+    const localeMap = { cs:'cs-CZ', en:'en-GB', de:'de-DE', uk:'uk-UA' };
+    function updateClock(){
+      const el = document.getElementById('topClock'); if(!el) return;
+      const now = new Date();
+      const loc = localeMap[sessionLang] || sessionLang || undefined;
+      const d = new Intl.DateTimeFormat(loc, { weekday:'long', day:'2-digit', month:'long', year:'numeric'}).format(now);
+      const t = new Intl.DateTimeFormat(loc, { hour:'2-digit', minute:'2-digit', second:'2-digit'}).format(now);
+      el.textContent = d + ' • ' + t;
+    }
+    updateClock(); setInterval(updateClock, 1000);
     const body=document.body; const curFw=localStorage.getItem(fwKey)||'400';
     document.documentElement.style.setProperty('--fw', curFw);
     document.getElementById('fontToggle').addEventListener('click',()=>{
@@ -337,7 +366,7 @@ ul li a:hover {
       const bar=document.createElement('div'); bar.id='sp-bar'; bar.className='sp-bar';
       bar.innerHTML = "<div class='sp-inner'><button id='sp-hide' class='sp-hide' title='Skrýt přehrávač'>▼</button><iframe id='sp-iframe' class='sp-iframe' allow='autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture' loading='lazy'></iframe></div>";
       document.body.appendChild(bar);
-      const min=document.createElement('div'); min.id='sp-min'; min.className='sp-minbar'; min.textContent='▲ Otevřít přehrávač';
+      const min=document.createElement('div'); min.id='sp-min'; min.className='sp-minbar'; min.innerHTML='<i class="fab fa-spotify"></i> Spotify';
       document.body.appendChild(min);
       document.getElementById('sp-hide').addEventListener('click', ()=>closeBar());
       min.addEventListener('click', ()=>openBar());
@@ -353,14 +382,14 @@ ul li a:hover {
     }
     const SP_DEFAULT = 'https://open.spotify.com/embed/artist/5IouXw8U9uKCTwmncG5bUl?utm_source=generator';
     function openBar(){ const bar=ensureSpBar(); const f=document.getElementById('sp-iframe'); if(!f.src){ const saved=localStorage.getItem('sp_src'); f.src=saved||SP_DEFAULT; } bar.style.display='block'; document.getElementById('sp-min').style.display='none'; localStorage.setItem('sp_min','0'); }
-    function closeBar(){ const bar=ensureSpBar(); bar.style.display='none'; const m=document.getElementById('sp-min'); m.style.display='block'; m.textContent='▲ Otevřít přehrávač'; localStorage.setItem('sp_min','1'); }
+    function closeBar(){ const bar=ensureSpBar(); bar.style.display='none'; const m=document.getElementById('sp-min'); m.style.display='block'; m.innerHTML='<i class="fab fa-spotify"></i> Spotify'; localStorage.setItem('sp_min','1'); }
     window.toggleSpotifyBar=function(){ if(ensureSpBar().style.display==='none'){ openBar(); } else { closeBar(); } }
     window.playSpotify=function(src){ const bar=ensureSpBar(); const url=normalizeSrc(src); const f=document.getElementById('sp-iframe'); if(f.src!==url) f.src=url; openBar(); localStorage.setItem('sp_src', url); localStorage.setItem('sp_play','true'); };
 
     // Restore state on every page
     (function(){ const bar=ensureSpBar(); const wasMin=localStorage.getItem('sp_min')==='1'; const saved=localStorage.getItem('sp_src'); const f=document.getElementById('sp-iframe'); if(saved){ f.src=saved; }
       if((saved||SP_DEFAULT) && !wasMin){ f.src=f.src||SP_DEFAULT; bar.style.display='block'; document.getElementById('sp-min').style.display='none'; }
-      else { bar.style.display='none'; document.getElementById('sp-min').style.display='block'; }
+      else { bar.style.display='none'; const m=document.getElementById('sp-min'); m.style.display='block'; m.innerHTML='<i class="fab fa-spotify"></i> Spotify'; }
     })();
 
     // Autowire any element with data-spotify-src
@@ -389,6 +418,7 @@ ul li a:hover {
           newMain.querySelectorAll('script').forEach(old => { const s=document.createElement('script'); if(old.src){ s.src=old.src; } else { s.textContent=old.textContent; } (old.type && (s.type=old.type)); old.replaceWith(s); });
           if(push) history.pushState({url}, '', url);
           window.scrollTo({top:0, behavior:'smooth'});
+          document.dispatchEvent(new CustomEvent('pjax:done', {detail:{url}}));
         }catch(e){ location.assign(url); }
         finally{ document.body.style.cursor=''; }
       }
@@ -405,5 +435,40 @@ ul li a:hover {
       });
       window.addEventListener('popstate', (e)=>{ const url = (e.state && e.state.url) || location.href; navigate(url, false); });
     })();
+
+    // Active navigation highlight
+    function updateActiveNav(){
+      const cur = location.pathname.split('/').pop() || 'index.jsp';
+      document.querySelectorAll('header nav a').forEach(a=>{
+        try{
+          const href = a.getAttribute('href') || '';
+          const normalized = href.split('?')[0];
+          if(!normalized) return;
+          const isActive = ((cur === '' || cur === '/') && (normalized === '/' || normalized === 'index.jsp')) || (cur === normalized || (location.pathname.endsWith('/') && normalized === 'index.jsp'));
+          a.classList.toggle('active', isActive);
+        }catch{}
+      });
+    }
+    updateActiveNav();
+    document.addEventListener('pjax:done', updateActiveNav);
+
+    // Parallax background
+    (function(){
+      let lastY=0, ticking=false;
+      function onScroll(){ lastY=window.scrollY||0; if(!ticking){ requestAnimationFrame(()=>{ document.body.style.backgroundPosition = `center ${Math.round(lastY*0.25)}px`; ticking=false; }); ticking=true; } }
+      window.addEventListener('scroll', onScroll, {passive:true});
+      onScroll();
+    })();
+
+    // Reveal animations
+    (function(){
+      const io = new IntersectionObserver((entries)=>{
+        entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('show'); io.unobserve(e.target); } });
+      }, {threshold:0.1});
+      function bind(root){ (root||document).querySelectorAll('[data-reveal], .reveal').forEach(el=>{ el.classList.add('reveal'); io.observe(el); }); }
+      bind(document);
+      document.addEventListener('pjax:done', (e)=>{ bind(document.querySelector('main')||document); });
+    })();
+
   })();
 </script>

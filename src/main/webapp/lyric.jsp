@@ -136,11 +136,15 @@
                                   <div>
                                     <h3><%= name %><% if (year != null) { %> (<%= year %>)<% } %></h3>
                                     <% if (yt != null && !yt.isEmpty()) { %>
-                                    <div style="position:relative; padding-top:28.125%; margin:10px auto 14px; width:50%; min-width:320px;">
-                                      <iframe style="position:absolute; inset:0; width:100%; height:100%;" src="https://www.youtube.com/embed/<%= yt %>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                                    <div style="background:var(--panel); border:1px solid var(--panel-border); border-radius:12px; padding:8px; box-shadow:0 6px 18px rgba(0,0,0,.20); position:relative; margin:10px auto 14px; width:50%; min-width:320px;">
+                                      <div style="position:relative; padding-top:28.125%;">
+                                        <iframe style="position:absolute; inset:0; width:100%; height:100%; border-radius:8px;" src="https://www.youtube.com/embed/<%= yt %>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                                      </div>
                                     </div>
                                     <% } %>
-                                    <pre style="white-space: pre-wrap; font-family: 'Inter', system-ui, sans-serif; font-size: 1.05em;"><%= words %></pre>
+                                    <div style="background:var(--panel); border:1px solid var(--panel-border); border-radius:12px; padding:14px; box-shadow:0 6px 18px rgba(0,0,0,.20);">
+                                      <pre style="white-space: pre-wrap; font-family: 'Inter', system-ui, sans-serif; font-size: 1.05em; margin:0;"><%= words %></pre>
+                                    </div>
                                   </div>
                                   <div>
 
@@ -250,7 +254,10 @@
                                                     __content = __content.replace("&","&amp;").replace("<","&lt;");
                                                   %>
                                                   <textarea name="content" rows="3" style="width:100%;"><%= __content %></textarea>
-                                                  <button type="submit">Uložit</button>
+                                                    <input type="hidden" name="csrf" value="${csrf}">
+                                                    <button type="submit">Uložit</button>
+                                      <button type="submit">👎</button>
+                                      <button type="submit">👍</button>
                                                 </form>
                                                 <%
                                                   }

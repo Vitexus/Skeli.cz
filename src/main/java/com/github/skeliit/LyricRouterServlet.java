@@ -8,15 +8,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.sql.*;
+
+import com.github.skeliit.service.LyricService;
+import com.github.skeliit.model.LyricView;
 
 public class LyricRouterServlet extends HttpServlet {
-    private Connection getConn() throws SQLException {
-        String mariadbUrl = "jdbc:mariadb://localhost:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
-        String user = "Skeli";
-        String password = "skeli";
-        return DriverManager.getConnection(mariadbUrl, user, password);
-    }
+    private final LyricService svc = new LyricService();
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String path = req.getPathInfo(); // /{id-or-slug}
@@ -24,18 +22,27 @@ public class LyricRouterServlet extends HttpServlet {
         path = URLDecoder.decode(path.substring(1), StandardCharsets.UTF_8);
         Integer id = null;
         try { if (path.matches("^\\d+.*")) id = Integer.parseInt(path.split("-",2)[0]); } catch (Exception ignored) {}
-        try (Connection conn = getConn()) {
-            if (id == null) {
-                // try match by song name slug -> pick MIN(lyric id)
+        // If missing id, try slug match via songs list
+        if (id == null) {
+            try {
                 String slug = path.toLowerCase().replaceAll("[^a-z0-9]+","-").replaceAll("^-|-$","");
-                try (PreparedStatement ps = conn.prepareStatement(
-                        "SELECT MIN(l.id) FROM lyrics l JOIN songs s ON s.id=l.song_id WHERE REPLACE(LOWER(s.name), ' ', '-') LIKE ?")) {
-                    ps.setString(1, slug + "%");
-                    try (ResultSet rs = ps.executeQuery()) { if (rs.next()) id = rs.getInt(1); }
+                var songs = svc.listSongs();
+                for (var s : songs) {
+                    String sslug = s.name.toLowerCase().replaceAll("[^a-z0-9]+","-").replaceAll("^-|-$","");
+                    if (sslug.startsWith(slug) && s.firstLyricId != null) { id = s.firstLyricId; break; }
                 }
-            }
-        } catch (SQLException e) { throw new ServletException(e); }
+            } catch (Exception ignore) {}
+        }
         if (id == null || id == 0) { resp.sendError(404); return; }
-        req.getRequestDispatcher("/lyric.jsp?id=" + id).forward(req, resp);
+        try {
+            String lang = (String) req.getSession().getAttribute("lang");
+            var songs = svc.listSongs();
+            LyricView v = svc.getLyric(id, lang);
+            if (v == null) { resp.sendError(404); return; }
+            req.setAttribute("songs", songs);
+            req.setAttribute("lyric", v);
+            req.setAttribute("comments", svc.comments(id));
+            req.getRequestDispatcher("/WEB-INF/views/lyric.jsp").forward(req, resp);
+        } catch (Exception e) { throw new ServletException(e); }
     }
 }
