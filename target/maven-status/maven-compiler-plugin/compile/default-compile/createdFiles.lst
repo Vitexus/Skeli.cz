@@ -2,6 +2,7 @@ com\github\skeliit\HealthServlet.class
 com\github\skeliit\dao\LyricDao.class
 com\github\skeliit\model\VideoItem.class
 com\github\skeliit\UploadAvatarServlet.class
+com\github\skeliit\UserProfileServlet.class
 com\github\skeliit\AdminFilter.class
 com\github\skeliit\LyricRouterServlet.class
 com\github\skeliit\service\VideoService.class
@@ -16,6 +17,7 @@ com\github\skeliit\LoginServlet.class
 com\github\skeliit\RegisterServlet.class
 com\github\skeliit\YouTubeSyncServlet.class
 com\github\skeliit\ResetPasswordServlet.class
+com\github\skeliit\ChangePasswordServlet.class
 com\github\skeliit\DbInit.class
 com\github\skeliit\ForgotPasswordServlet.class
 com\github\skeliit\model\CommentView.class
