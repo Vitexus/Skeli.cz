@@ -19,10 +19,9 @@
 body.light {
   --bg: #f6f6f6;
   --text: #111;
-  /* lehká, decentní průhlednost pro světlý režim */
-  --panel: rgba(255,255,255,0.96);
-  --panel-strong: rgba(255,255,255,0.98);
-  --panel-border: rgba(0, 0, 0, 0.06);
+  --panel: #ffffff;
+  --panel-strong: #ffffff;
+  --panel-border: rgba(0, 0, 0, 0.18);
   --accent: #a37b00;
 }
 
@@ -123,9 +122,8 @@ nav a:hover {
 /* Main Content Area */
 main {
   flex: 1 0 auto;
-  /* omezíme šířku obsahu tak, aby hlavní přehrávač už nebyl přes celou obrazovku */
-  width: calc(100% - 60px);
-  max-width: 1100px;
+  width: calc(100vw - 60px);
+  max-width: none;
   margin: 30px auto;
   background: var(--panel);
   padding: 30px;
