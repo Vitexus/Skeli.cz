@@ -206,13 +206,13 @@ body.light .sp-minbar { background: rgba(255,255,255,0.9); color:#111; border-co
         <a href="/music.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.music","Music") %></a> |
         <a href="/texty.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.lyrics","Lyrics") %></a>
     </nav>
-    <div class="top-controls" style="position:absolute; top:10px; right:14px; font-size:0.95em; display:flex; gap:10px; align-items:center;">
+    <div class="top-controls" style="position:absolute; top:10px; right:14px; font-size:0.8em; display:flex; gap:6px; align-items:center;">
         <% String currentUser = (String) session.getAttribute("username"); String currentRole = (String) session.getAttribute("role"); %>
-        <a href="/donate.jsp" style="color:var(--accent); font-weight:700;">❤ <%= ((java.util.Properties)request.getAttribute("t")).getProperty("btn.donate","Donate") %></a>
-        <button id="fontToggle" title="Toggle font weight" style="background:transparent;border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 8px;border-radius:6px;cursor:pointer;">Aa</button>
-        <button id="themeToggle" title="Přepnout vzhled" style="background:transparent;border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 8px;border-radius:6px;cursor:pointer;">🌓</button>
+        <a href="/donate.jsp" style="color:var(--accent); font-weight:600; padding:3px 6px;" title="Podpoř">❤</a>
+        <button id="fontToggle" title="Tloušťka textu" style="background:transparent;border:1px solid rgba(255,255,255,0.35);color:white;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:0.9em;">A</button>
+        <button id="themeToggle" title="Přepnout světlý/tmavý" style="background:transparent;border:1px solid rgba(255,255,255,0.35);color:white;padding:3px 6px;border-radius:4px;cursor:pointer;">☀️</button>
         <div class="lang-switch">
-          <button class="lang-btn" title="Jazyk" style="background:transparent;border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 8px;border-radius:6px;cursor:pointer;">🌐</button>
+          <button class="lang-btn" title="Jazyk" style="background:transparent;border:1px solid rgba(255,255,255,0.35);color:white;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:0.9em;">🎬</button>
           <ul class="menu">
              <li><a href="?lang=cs">Čeština 🇨🇿</a></li>
              <li><a href="?lang=en">English 🇬🇧</a></li>
@@ -221,11 +221,12 @@ body.light .sp-minbar { background: rgba(255,255,255,0.9); color:#111; border-co
           </ul>
         </div>
         <% if (currentUser == null) { %>
-            <a href="/login.jsp" style="color:white;"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("btn.login","Login") %></a> |
-            <a href="/register.jsp" style="color:white;"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("btn.register","Register") %></a>
+            <a href="/login.jsp" style="color:white; padding:3px 6px;" title="Přihlásit">🔑</a>
+            <span style="color:rgba(255,255,255,0.5);">|</span>
+            <a href="/register.jsp" style="color:white; padding:3px 6px;" title="Registrace">➕</a>
         <% } else { %>
             <div class="user-menu" style="position:relative; display:inline-block;">
-              <span style="color:white; cursor:pointer;">👤 <%= currentUser %><% if ("ADMIN".equals(currentRole)) { %> (admin)<% } %></span>
+              <span style="color:white; cursor:pointer; padding:3px 6px; font-size:0.95em;">👤 <%= currentUser %><% if ("ADMIN".equals(currentRole)) { %> <span style="color:var(--accent);">★</span><% } %></span>
               <div class="user-dropdown" style="display:none; position:absolute; right:0; top:100%; background:var(--panel-strong); border:1px solid var(--panel-border); border-radius:8px; padding:6px; min-width:140px; z-index:1000;">
                 <a href="/profile.jsp" style="display:block; padding:6px 8px; text-decoration:none;">Profil</a>
                 <a href="/uzivatel.jsp" style="display:block; padding:6px 8px; text-decoration:none;">Nastavení</a>

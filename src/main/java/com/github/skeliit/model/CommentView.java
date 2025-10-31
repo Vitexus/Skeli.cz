@@ -9,4 +9,12 @@ public class CommentView {
     public String avatarUrl;
     public Timestamp createdAt;
     public String content;
+    
+    // Getters for EL expressions
+    public int getId() { return id; }
+    public int getUserId() { return userId; }
+    public String getUsername() { return username; }
+    public String getAvatarUrl() { return avatarUrl; }
+    public Timestamp getCreatedAt() { return createdAt; }
+    public String getContent() { return content; }
 }
