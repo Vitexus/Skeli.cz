@@ -5,18 +5,19 @@
 <main>
     <h2 class="bruno-ace-sc-regular" style="text-align:center;"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.lyrics","Lyrics") %></h2>
     <style>
-      /* Match main navigation menu style */
-      .texts-card { background: rgba(0,0,0,0.65); border-radius:12px; padding:16px; margin-top:12px; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
-      .texts-list { list-style:none; padding:0; margin:0; display:flex; flex-wrap:wrap; gap: 10px 16px; justify-content:center; }
-      .texts-list li { margin: 0; text-align:center; }
-      .texts-list li:not(:last-child)::after { content: " | "; color: rgba(255,255,255,0.5); margin: 0 6px; }
-      .texts-list a { font-weight: 600; text-decoration: none; transition: color .2s ease, text-shadow .2s ease; color: #fff !important; }
+      /* Vertical centered list */
+      .texts-card { background: rgba(0,0,0,0.65); border-radius:12px; padding:24px; margin-top:12px; box-shadow: 0 6px 18px rgba(0,0,0,0.25); max-width:600px; margin-left:auto; margin-right:auto; }
+      .texts-list { list-style:none; padding:0; margin:0; display:block; }
+      .texts-list li { margin: 14px 0; text-align:center; padding:12px 16px; background: rgba(255,255,255,0.04); border-radius:8px; transition: all 0.2s ease; }
+      .texts-list li:hover { background: rgba(255,255,255,0.08); transform: translateX(4px); }
+      .texts-list a { font-weight: 600; font-size:1.1em; text-decoration: none; transition: color .2s ease, text-shadow .2s ease; color: #fff !important; display:block; }
       .texts-list a:visited { color: #fff !important; }
-      .texts-list a:hover, .texts-list a:focus { color: var(--accent) !important; text-shadow: 0 0 8px var(--accent); text-decoration: underline; outline: none; }
-      body.light .texts-card { background: rgba(255,255,255,0.85); border-color: rgba(0,0,0,0.15); }
+      .texts-list a:hover, .texts-list a:focus { color: var(--accent) !important; text-shadow: 0 0 8px var(--accent); outline: none; }
+      body.light .texts-card { background: rgba(255,255,255,0.85); }
+      body.light .texts-list li { background: rgba(0,0,0,0.03); }
+      body.light .texts-list li:hover { background: rgba(0,0,0,0.06); }
       body.light .texts-list a { color: #111 !important; }
       body.light .texts-list a:visited { color: #111 !important; }
-      body.light .texts-list li:not(:last-child)::after { color: rgba(0,0,0,0.4); }
     </style>
     <div class="texts-card">
       <ul class="texts-list">
