@@ -62,32 +62,115 @@ public class YouTubeSyncServlet extends HttpServlet {
     }
 
     private void syncChannel(Connection conn, String apiKey, String channelId) throws Exception {
-        // Fetch latest videos via search endpoint
-        String url = "https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=" +
-                URLEncoder.encode(channelId, StandardCharsets.UTF_8) +
-                "&type=video&maxResults=50&order=date&key=" + URLEncoder.encode(apiKey, StandardCharsets.UTF_8);
+        // Fetch all videos via search endpoint with pagination
+        String nextPageToken = null;
+        ObjectMapper mapper = new ObjectMapper();
+        do {
+            String url = "https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=" +
+                    URLEncoder.encode(channelId, StandardCharsets.UTF_8) +
+                    "&type=video&maxResults=50&order=date&key=" + URLEncoder.encode(apiKey, StandardCharsets.UTF_8);
+            if (nextPageToken != null) {
+                url += "&pageToken=" + URLEncoder.encode(nextPageToken, StandardCharsets.UTF_8);
+            }
+            String json = httpGet(url);
+            JsonNode root = mapper.readTree(json);
+            
+            // Process videos
+            for (JsonNode item : root.path("items")) {
+                String videoId = item.path("id").path("videoId").asText(null);
+                String title = item.path("snippet").path("title").asText("");
+                String publishedAt = item.path("snippet").path("publishedAt").asText("");
+                if (videoId == null || videoId.isEmpty()) continue;
+                
+                // Filter rules
+                if (title.toLowerCase().contains("making of")) continue;
+                if (title.contains("PROTOTYP") || title.contains("🔊")) continue;
+                // Handle JDI duplicate - only accept OFFICIAL VIDEO version
+                if (title.toUpperCase().contains("JDI") && !title.contains("OFFICIAL VIDEO")) continue;
+                
+                // Fetch video details to check if it's a short
+                boolean isShort = isVideoShort(apiKey, videoId);
+                
+                if (isShort) {
+                    upsertShort(conn, videoId, title, publishedAt);
+                } else {
+                    upsertVideo(conn, videoId, title, publishedAt);
+                    // Parse song name and year
+                    String songName = extractSongName(title);
+                    Integer year = extractYear(title);
+                    if (songName != null && !songName.isEmpty()) {
+                        String uuid = java.util.UUID.randomUUID().toString();
+                        Integer songId = ensureSong(conn, songName, year, uuid);
+                        linkVideoToSong(conn, videoId, songId);
+                    }
+                }
+            }
+            
+            nextPageToken = root.path("nextPageToken").asText(null);
+        } while (nextPageToken != null);
+    }
+    
+    private boolean isVideoShort(String apiKey, String videoId) throws IOException {
+        String url = "https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=" +
+                URLEncoder.encode(videoId, StandardCharsets.UTF_8) +
+                "&key=" + URLEncoder.encode(apiKey, StandardCharsets.UTF_8);
         String json = httpGet(url);
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(json);
-        for (JsonNode item : root.path("items")) {
-            String videoId = item.path("id").path("videoId").asText(null);
-            String title = item.path("snippet").path("title").asText("");
-            String publishedAt = item.path("snippet").path("publishedAt").asText("");
-            if (videoId == null || videoId.isEmpty()) continue;
-            upsertVideo(conn, videoId, title, publishedAt);
-            // naive parse: expect "Artist - Name (YYYY)" -> extract name + year
-            String name = title;
-            Integer year = null;
-            int p = title.lastIndexOf('(');
-            int q = title.lastIndexOf(')');
-            if (p != -1 && q != -1 && q > p) {
-                try { year = Integer.parseInt(title.substring(p+1, q).trim()); } catch (Exception ignore) {}
-            }
-            if (name != null && !name.isEmpty()) {
-                Integer songId = ensureSong(conn, name, year);
-                linkVideoToSong(conn, videoId, songId);
-            }
+        JsonNode items = root.path("items");
+        if (items.size() > 0) {
+            String duration = items.get(0).path("contentDetails").path("duration").asText("");
+            // Parse ISO 8601 duration (PT1M30S format)
+            // Shorts are typically under 60 seconds
+            int seconds = parseDuration(duration);
+            return seconds > 0 && seconds <= 60;
         }
+        return false;
+    }
+    
+    private int parseDuration(String isoDuration) {
+        // Parse PT1M30S -> 90 seconds
+        if (!isoDuration.startsWith("PT")) return 0;
+        String time = isoDuration.substring(2);
+        int hours = 0, minutes = 0, seconds = 0;
+        try {
+            if (time.contains("H")) {
+                hours = Integer.parseInt(time.substring(0, time.indexOf("H")));
+                time = time.substring(time.indexOf("H") + 1);
+            }
+            if (time.contains("M")) {
+                minutes = Integer.parseInt(time.substring(0, time.indexOf("M")));
+                time = time.substring(time.indexOf("M") + 1);
+            }
+            if (time.contains("S")) {
+                seconds = Integer.parseInt(time.substring(0, time.indexOf("S")));
+            }
+        } catch (Exception e) { return 0; }
+        return hours * 3600 + minutes * 60 + seconds;
+    }
+    
+    private String extractSongName(String title) {
+        // Remove year in parentheses
+        int p = title.lastIndexOf('(');
+        int q = title.lastIndexOf(')');
+        if (p != -1 && q != -1 && q > p) {
+            try {
+                Integer.parseInt(title.substring(p+1, q).trim());
+                return title.substring(0, p).trim();
+            } catch (Exception ignore) {}
+        }
+        return title.trim();
+    }
+    
+    private Integer extractYear(String title) {
+        int p = title.lastIndexOf('(');
+        int q = title.lastIndexOf(')');
+        if (p != -1 && q != -1 && q > p) {
+            try {
+                return Integer.parseInt(title.substring(p+1, q).trim());
+            } catch (Exception ignore) {}
+        }
+        return null;
     }
 
     private static String httpGet(String sUrl) throws IOException {
@@ -119,17 +202,35 @@ public class YouTubeSyncServlet extends HttpServlet {
         }
     }
 
-    private Integer ensureSong(Connection conn, String name, Integer year) throws SQLException {
+    private void upsertShort(Connection conn, String videoId, String title, String publishedAt) throws SQLException {
+        Timestamp ts = null;
+        try {
+            if (publishedAt != null && !publishedAt.isEmpty()) {
+                ts = Timestamp.valueOf(publishedAt.replace("T"," ").replace("Z", ""));
+            }
+        } catch (Exception ignore) {}
+        try (PreparedStatement ps = conn.prepareStatement(
+                "INSERT INTO shorts (youtube_id, title, published_at) VALUES (?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE title = VALUES(title), published_at = COALESCE(VALUES(published_at), published_at)")) {
+            ps.setString(1, videoId);
+            ps.setString(2, title);
+            if (ts == null) ps.setNull(3, Types.TIMESTAMP); else ps.setTimestamp(3, ts);
+            ps.executeUpdate();
+        }
+    }
+    
+    private Integer ensureSong(Connection conn, String name, Integer year, String uuid) throws SQLException {
         // Try find existing
         try (PreparedStatement sel = conn.prepareStatement("SELECT id FROM songs WHERE name=? AND ((year IS NULL AND ? IS NULL) OR year=?)")) {
             sel.setString(1, name);
             if (year == null) { sel.setNull(2, Types.INTEGER); sel.setNull(3, Types.INTEGER);} else { sel.setInt(2, year); sel.setInt(3, year);} 
             try (ResultSet rs = sel.executeQuery()) { if (rs.next()) return rs.getInt(1); }
         }
-        // Insert
-        try (PreparedStatement ins = conn.prepareStatement("INSERT INTO songs (name, year) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-            ins.setString(1, name);
-            if (year == null) ins.setNull(2, Types.INTEGER); else ins.setInt(2, year);
+        // Insert with UUID
+        try (PreparedStatement ins = conn.prepareStatement("INSERT INTO songs (uuid, name, year) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+            ins.setString(1, uuid);
+            ins.setString(2, name);
+            if (year == null) ins.setNull(3, Types.INTEGER); else ins.setInt(3, year);
             ins.executeUpdate();
             try (ResultSet rs = ins.getGeneratedKeys()) { if (rs.next()) return rs.getInt(1); }
         } catch (SQLException e) {

@@ -37,7 +37,8 @@ public class AdminVideoServlet extends HttpServlet {
             }
             Integer songId = null;
             if (songName != null && !songName.isEmpty()) {
-                songId = ensureSong(conn, songName, year);
+                String uuid = java.util.UUID.randomUUID().toString();
+                songId = ensureSong(conn, songName, year, uuid);
             } else if (lyricIdStr != null && !lyricIdStr.isEmpty()) {
                 try (PreparedStatement ps = conn.prepareStatement("SELECT song_id FROM lyrics WHERE id=?")) {
                     ps.setInt(1, Integer.parseInt(lyricIdStr));
@@ -54,15 +55,16 @@ public class AdminVideoServlet extends HttpServlet {
         } catch (SQLException e) { throw new ServletException(e); }
         resp.sendRedirect("/admin.jsp");
     }
-    private Integer ensureSong(Connection conn, String name, Integer year) throws SQLException {
+    private Integer ensureSong(Connection conn, String name, Integer year, String uuid) throws SQLException {
         try (PreparedStatement sel = conn.prepareStatement("SELECT id FROM songs WHERE name=? AND ((year IS NULL AND ? IS NULL) OR year=?)")) {
             sel.setString(1, name);
             if (year == null) { sel.setNull(2, Types.INTEGER); sel.setNull(3, Types.INTEGER);} else { sel.setInt(2, year); sel.setInt(3, year);} 
             try (ResultSet rs = sel.executeQuery()) { if (rs.next()) return rs.getInt(1); }
         }
-        try (PreparedStatement ins = conn.prepareStatement("INSERT INTO songs (name, year) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-            ins.setString(1, name);
-            if (year == null) ins.setNull(2, Types.INTEGER); else ins.setInt(2, year);
+        try (PreparedStatement ins = conn.prepareStatement("INSERT INTO songs (uuid, name, year) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+            ins.setString(1, uuid);
+            ins.setString(2, name);
+            if (year == null) ins.setNull(3, Types.INTEGER); else ins.setInt(3, year);
             ins.executeUpdate();
             try (ResultSet rs = ins.getGeneratedKeys()) { if (rs.next()) return rs.getInt(1); }
         }

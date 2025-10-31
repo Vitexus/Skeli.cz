@@ -1,5 +1,6 @@
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\AdminCommentServlet.java
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\AdminFilter.java
+C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\AdminSongsServlet.java
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\AdminUserServlet.java
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\AdminVideoServlet.java
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\ChangePasswordServlet.java
@@ -19,6 +20,7 @@ C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\LyricRoute
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\model\CommentView.java
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\model\LyricView.java
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\model\Song.java
+C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\model\SongOverview.java
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\model\VideoItem.java
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\RegisterServlet.java
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\ResetPasswordServlet.java
