@@ -22,6 +22,28 @@
   .action-btn i { font-size:1.1em; }
   body.light .action-btn { background:rgba(0,0,0,0.04); }
   body.light .action-btn:hover { background:rgba(0,0,0,0.08); }
+  .card { background: linear-gradient(180deg, rgba(255,255,255,0.50), rgba(255,255,255,0.40)); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); padding: 16px 20px; backdrop-filter: blur(4px); }
+  .card h3 { margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+  .card pre { background: transparent; margin: 0 auto; max-width: 60ch; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; text-align:center; font-weight: var(--fw); }
+  @media (min-width: 1100px){ .lyric-layout { display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start; } }
+  .accent { border-left: 4px solid #ffd700; padding-left: 16px; }
+  .comments { margin-top:14px; background: rgba(0,0,0,0.70); color: var(--text); border: 1px solid var(--panel-border); border-radius: 12px; padding: 14px 16px; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+  .comments h4 { margin: 0 0 10px; color: #fff; }
+  .comments .comment-item { background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:10px; margin:8px 0; }
+  .comments .comment-item strong { color:#fff; }
+  .comments .comment-item .meta { color: rgba(255,255,255,0.75); }
+  body.light .comments { background: #ffffff; color:#111; border-color: rgba(0,0,0,0.12); }
+  body.light .comments h4 { color:#111; }
+  body.light .comments .comment-item { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.12); }
+  .votes { display:flex; align-items:center; gap:10px; margin-top:12px; }
+  .btn-vote { width:40px; height:40px; border-radius:9999px; border:1px solid var(--panel-border); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; backdrop-filter: blur(2px); transition: transform .12s ease, background-color .2s ease, box-shadow .2s ease; background: rgba(255,255,255,0.06); color:#fff; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+  .btn-vote:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+  .btn-vote.up { border-color: rgba(0,255,170,0.35); }
+  .btn-vote.down { border-color: rgba(255,80,80,0.35); }
+  .btn-vote.up:hover { box-shadow: 0 8px 22px rgba(0,255,170,.25); }
+  .btn-vote.down:hover { box-shadow: 0 8px 22px rgba(255,80,80,.25); }
+  body.light .btn-vote { background: rgba(0,0,0,0.06); color:#111; box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+  body.light .btn-vote:hover { background: rgba(0,0,0,0.12); }
 </style>
 <main class="avoid-footer">
   <h2 style="text-align:center;">${t.getProperty('menu.lyrics','Texty')}</h2>
@@ -69,18 +91,53 @@
         
         <div class="views" style="font-size:0.9em; color:#555; margin-top:12px; text-align:center;">Návštěvy: ${lyric.views}</div>
       </div>
-      <div class="comments">
-        <h4>Komentáře</h4>
-        <c:forEach items="${comments}" var="cmt">
-          <div class="comment-item" style="display:flex; gap:10px; align-items:flex-start;">
-            <img src="${empty cmt.avatarUrl ? '/img/avatar-default.png' : cmt.avatarUrl}" alt="avatar" style="width:36px; height:36px; border-radius:50%; object-fit:cover;"/>
-            <div style="flex:1;">
-              <strong><c:out value="${cmt.username}"/></strong>
-              <span class="meta" style="font-size:0.9em;">(${cmt.createdAt})</span>
-              <div><c:out value="${cmt.content}"/></div>
+      
+      <div>
+        <div class="votes">
+          <form method="post" action="/vote" style="display:inline;">
+            <input type="hidden" name="lyric_id" value="${lyric.id}">
+            <input type="hidden" name="action" value="up">
+            <button type="submit" class="btn-vote up" title="Líbí se mi">
+              <i class="fa-solid fa-thumbs-up"></i>
+            </button>
+          </form>
+          <form method="post" action="/vote" style="display:inline;">
+            <input type="hidden" name="lyric_id" value="${lyric.id}">
+            <input type="hidden" name="action" value="down">
+            <button type="submit" class="btn-vote down" title="Nelíbí se mi">
+              <i class="fa-solid fa-thumbs-down"></i>
+            </button>
+          </form>
+          <span style="margin-left:6px; white-space:nowrap;">
+            <strong>${lyric.votesUp}</strong> / <strong>${lyric.votesDown}</strong>
+          </span>
+        </div>
+        
+        <div class="comments">
+          <h4>Komentáře</h4>
+          <c:forEach items="${comments}" var="cmt">
+            <div class="comment-item" style="display:flex; gap:10px; align-items:flex-start;">
+              <img src="${empty cmt.avatarUrl ? '/img/avatar-default.png' : cmt.avatarUrl}" alt="avatar" style="width:36px; height:36px; border-radius:50%; object-fit:cover;"/>
+              <div style="flex:1;">
+                <strong><c:out value="${cmt.username}"/></strong>
+                <span class="meta" style="font-size:0.9em;">(${cmt.createdAt})</span>
+                <div><c:out value="${cmt.content}"/></div>
+              </div>
             </div>
-          </div>
-        </c:forEach>
+          </c:forEach>
+          
+          <c:if test="${not empty sessionScope.username}">
+            <form method="post" action="/comment" style="margin-top:14px;">
+              <input type="hidden" name="lyric_id" value="${lyric.id}">
+              <input type="hidden" name="csrf" value="${csrf}">
+              <textarea name="content" placeholder="Napiš komentář..." required style="width:100%; min-height:80px; box-sizing:border-box; margin-bottom:8px;"></textarea>
+              <button type="submit" style="background:var(--accent); color:#000; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:600;">Přidat komentář</button>
+            </form>
+          </c:if>
+          <c:if test="${empty sessionScope.username}">
+            <p style="margin-top:14px; text-align:center; opacity:0.7;"><a href="/login.jsp" style="color:var(--accent);">Přihlaš se</a> pro přidání komentáře</p>
+          </c:if>
+        </div>
       </div>
     </section>
   </c:if>
