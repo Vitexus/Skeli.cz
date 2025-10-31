@@ -197,7 +197,7 @@ body.light .sp-minbar { background: rgba(255,255,255,0.9); color:#111; border-co
 %>
 <header>
 
-   <div id="topClock" class="bruno-ace-sc-regular" style="position:absolute; left:14px; top:8px; font-size:0.95em; padding:4px 8px; border-radius:8px; background: rgba(0,0,0,0.35); border:1px solid var(--panel-border); box-shadow: 0 4px 14px rgba(0,0,0,.25);"></div>
+   <div id="topClock" class="bruno-ace-sc-regular" style="position:absolute; left:14px; top:8px; font-size:0.75em; padding:4px 8px; border-radius:8px; background: rgba(0,0,0,0.25); opacity:0.65; box-shadow: 0 2px 8px rgba(0,0,0,.15);"></div>
 
    <h1 class="comforter-brush-regular">SKELOSQUAD</h1>
    <nav class="bruno-ace-sc-regular">
