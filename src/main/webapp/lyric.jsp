@@ -14,7 +14,7 @@
 .active { font-weight:bold; color: gold; }
       .back { margin: 10px 0 20px; display:inline-block; }
       .avoid-footer { padding-bottom: 220px; }
-.nav-top { margin-bottom: 20px; background: rgba(0,0,0,0.65); padding: 12px 16px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.10); overflow-x: auto; border:1px solid var(--panel-border); }
+.nav-top { margin-bottom: 20px; background: rgba(0,0,0,0.65); padding: 12px 16px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.10); overflow-x: auto; }
       .nav-top h3 { color: #fff; margin-top:0; font-size:1em; }
       .nav-top .song-list { display:flex; flex-wrap:wrap; gap: 10px 16px; }
       .nav-top .song-list li { margin: 0; }

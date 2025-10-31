@@ -10,29 +10,50 @@ import java.util.List;
 
 public class LyricDao {
     public LyricView getLyricView(int lyricId, String lang) throws SQLException {
-        String sql = "SELECT s.name AS song_name, s.year AS song_year, l.words, l.song_id, l.id, " +
+        // Default to Czech if no lang specified
+        if (lang == null || lang.isEmpty()) lang = "cs";
+        
+        // First try to find lyric in requested language
+        String sql = "SELECT s.name AS song_name, s.year AS song_year, l.words, l.song_id, l.id, l.lang, " +
                 "(SELECT v.youtube_id FROM videos v WHERE v.song_id = l.song_id ORDER BY v.published_at DESC, v.id DESC LIMIT 1) AS yt " +
-                "FROM lyrics l JOIN songs s ON s.id = l.song_id WHERE l.id = ?";
+                "FROM lyrics l JOIN songs s ON s.id = l.song_id WHERE l.id = ? AND l.lang = ?";
+        
+        LyricView v = null;
         try (Connection c = Db.get(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, lyricId);
+            ps.setString(2, lang);
             try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) return null;
-                LyricView v = new LyricView();
-                v.id = rs.getInt("id");
-                v.songId = rs.getInt("song_id");
-                v.songName = rs.getString("song_name");
-                int y = rs.getInt("song_year"); v.year = rs.wasNull()? null : y;
-                String words = rs.getString("words");
-                // translations
-                if (lang != null && !"cs".equals(lang)) {
-                    try (PreparedStatement tr = c.prepareStatement("SELECT words FROM lyrics_translations WHERE lyric_id=? AND lang=?")) {
-                        tr.setInt(1, lyricId); tr.setString(2, lang);
-                        try (ResultSet rtr = tr.executeQuery()) { if (rtr.next() && rtr.getString(1) != null) words = rtr.getString(1); }
+                if (!rs.next()) {
+                    // Fallback to Czech version if translation not found
+                    try (PreparedStatement ps2 = c.prepareStatement(
+                            "SELECT s.name AS song_name, s.year AS song_year, l.words, l.song_id, l.id, l.lang, " +
+                            "(SELECT v.youtube_id FROM videos v WHERE v.song_id = l.song_id ORDER BY v.published_at DESC, v.id DESC LIMIT 1) AS yt " +
+                            "FROM lyrics l JOIN songs s ON s.id = l.song_id WHERE l.id = ? AND l.lang = 'cs'")) {
+                        ps2.setInt(1, lyricId);
+                        try (ResultSet rs2 = ps2.executeQuery()) {
+                            if (!rs2.next()) return null;
+                            v = mapLyricView(rs2, c, lyricId);
+                        }
                     }
+                } else {
+                    v = mapLyricView(rs, c, lyricId);
                 }
-                v.words = words;
-                v.youtubeId = rs.getString("yt");
-                if (v.youtubeId == null || v.youtubeId.isBlank()) {
+            }
+        }
+        return v;
+    }
+    
+    private LyricView mapLyricView(ResultSet rs, Connection c, int lyricId) throws SQLException {
+        LyricView v = new LyricView();
+        v.id = rs.getInt("id");
+        v.songId = rs.getInt("song_id");
+        v.songName = rs.getString("song_name");
+        int y = rs.getInt("song_year"); v.year = rs.wasNull()? null : y;
+        v.words = rs.getString("words");
+        v.youtubeId = rs.getString("yt");
+        
+        // YouTube fallback logic
+        if (v.youtubeId == null || v.youtubeId.isBlank()) {
                     // Fallback 1: simple LIKE matching on title
                     String q = "SELECT youtube_id FROM videos WHERE LOWER(COALESCE(title,'')) LIKE ? OR LOWER(COALESCE(title,'')) LIKE ? ORDER BY published_at DESC, id DESC LIMIT 1";
                     try (PreparedStatement pv = c.prepareStatement(q)) {
@@ -66,22 +87,20 @@ public class LyricDao {
                         }
                     }
                 }
-                // views
-                try (PreparedStatement inc = c.prepareStatement("INSERT INTO lyric_views (lyric_id, views) VALUES (?,1) ON DUPLICATE KEY UPDATE views=views+1")) {
-                    inc.setInt(1, lyricId); inc.executeUpdate();
-                }
-                try (PreparedStatement sel = c.prepareStatement("SELECT views FROM lyric_views WHERE lyric_id=?")) {
-                    sel.setInt(1, lyricId);
-                    try (ResultSet rv = sel.executeQuery()) { if (rv.next()) v.views = rv.getLong(1); }
-                }
-                // votes
-                try (PreparedStatement vv = c.prepareStatement("SELECT SUM(vote=1) AS up, SUM(vote=-1) AS down FROM lyrics_votes WHERE lyric_id=?")) {
-                    vv.setInt(1, lyricId);
-                    try (ResultSet rv = vv.executeQuery()) { if (rv.next()) { v.votesUp = rv.getInt("up"); v.votesDown = rv.getInt("down"); } }
-                }
-                return v;
-            }
+        // views
+        try (PreparedStatement inc = c.prepareStatement("INSERT INTO lyric_views (lyric_id, views) VALUES (?,1) ON DUPLICATE KEY UPDATE views=views+1")) {
+            inc.setInt(1, lyricId); inc.executeUpdate();
         }
+        try (PreparedStatement sel = c.prepareStatement("SELECT views FROM lyric_views WHERE lyric_id=?")) {
+            sel.setInt(1, lyricId);
+            try (ResultSet rv = sel.executeQuery()) { if (rv.next()) v.views = rv.getLong(1); }
+        }
+        // votes
+        try (PreparedStatement vv = c.prepareStatement("SELECT SUM(vote=1) AS up, SUM(vote=-1) AS down FROM lyrics_votes WHERE lyric_id=?")) {
+            vv.setInt(1, lyricId);
+            try (ResultSet rv = vv.executeQuery()) { if (rv.next()) { v.votesUp = rv.getInt("up"); v.votesDown = rv.getInt("down"); } }
+        }
+        return v;
     }
 
     public List<CommentView> listComments(int lyricId) throws SQLException {
