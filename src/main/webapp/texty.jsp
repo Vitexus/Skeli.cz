@@ -31,9 +31,9 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
                 if (mariaLoaded) {
                     try (Connection conn = DriverManager.getConnection(mariadbUrl, user, password);
                          PreparedStatement ps = conn.prepareStatement(
-                             "SELECT s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id " +
-                             "FROM lyrics l LEFT JOIN songs s ON s.id = l.song_id " +
-                             "GROUP BY s.name, s.year " +
+                             "SELECT s.id AS song_id, s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id " +
+                             "FROM lyrics l JOIN songs s ON s.id = l.song_id " +
+                             "GROUP BY s.id, s.name, s.year " +
                              "ORDER BY s.year DESC, s.name ASC"
                          );
                          ResultSet rs = ps.executeQuery()) {
@@ -65,9 +65,9 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
                 if (!hadRows && mysqlLoaded) {
                     try (Connection conn = DriverManager.getConnection(mysqlUrl, user, password);
                          PreparedStatement ps = conn.prepareStatement(
-                             "SELECT s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id " +
-                             "FROM lyrics l LEFT JOIN songs s ON s.id = l.song_id " +
-                             "GROUP BY s.name, s.year " +
+                             "SELECT s.id AS song_id, s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id " +
+                             "FROM lyrics l JOIN songs s ON s.id = l.song_id " +
+                             "GROUP BY s.id, s.name, s.year " +
                              "ORDER BY s.year DESC, s.name ASC"
                          );
                          ResultSet rs = ps.executeQuery()) {
