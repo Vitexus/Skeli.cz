@@ -1,6 +1,22 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/includes/header.jsp" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<style>
+  .nav-top { margin-bottom: 20px; background: rgba(0,0,0,0.65); padding: 12px 16px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.10); overflow-x: auto; border:1px solid var(--panel-border); }
+  .nav-top h3 { color: #fff; margin-top:0; font-size:1em; }
+  .nav-top .song-list { display:flex; flex-wrap:wrap; gap: 10px 16px; list-style:none; padding:0; margin:0; }
+  .nav-top .song-list li { margin: 0; }
+  .nav-top .song-list a { color: #fff !important; font-weight: 600; text-decoration: none; transition: color .2s, text-shadow .2s; }
+  .nav-top .song-list a:visited { color: #fff !important; }
+  .nav-top .song-list a:hover { color: var(--accent) !important; text-shadow: 0 0 8px var(--accent); text-decoration: underline; }
+  .nav-top .song-list a.active { color: var(--accent) !important; font-weight: bold; text-shadow: 0 0 8px var(--accent); }
+  .nav-top .song-list li:not(:last-child)::after { content: " | "; color: rgba(255,255,255,0.5); margin: 0 6px; }
+  body.light .nav-top { background: rgba(255,255,255,0.85); border-color:rgba(0,0,0,0.15); }
+  body.light .nav-top h3 { color: #111; }
+  body.light .nav-top .song-list a { color: #111 !important; }
+  body.light .nav-top .song-list a:visited { color: #111 !important; }
+  body.light .nav-top .song-list li:not(:last-child)::after { color: rgba(0,0,0,0.4); }
+</style>
 <main class="avoid-footer">
   <h2 style="text-align:center;">${t.getProperty('menu.lyrics','Texty')}</h2>
 

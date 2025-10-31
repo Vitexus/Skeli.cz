@@ -299,7 +299,7 @@
                                     <%
                                       } else {
                                     %>
-                                      <p><a href="login.jsp">Přihlaste se</a> pro přidání komentáře a hlasování.</p>
+                                      <p><a href="/login.jsp">Přihlaste se</a> pro přidání komentáře a hlasování.</p>
                                     <%
                                       }
                                     %>
