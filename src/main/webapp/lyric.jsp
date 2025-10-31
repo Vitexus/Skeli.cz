@@ -56,7 +56,7 @@
             String listSql = "SELECT s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id " +
                              "FROM lyrics l LEFT JOIN songs s ON s.id = l.song_id " +
                              "GROUP BY s.name, s.year " +
-                             "ORDER BY s.name ASC";
+                             "ORDER BY s.year DESC, s.name ASC";
 
             Connection conn = null;
             boolean connected = false;

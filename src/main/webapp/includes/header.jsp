@@ -151,88 +151,10 @@ footer {
     position: static;
     width: 100%;
     border-radius: 3px 3px 0px 0px;
-    margin-top: auto; /* push to bottom when content short */
+    margin-top: auto;
 }
 
-body {
-    margin:0;
-    padding:0;
-    background-color:#333;
-    font-family:verdana;
-}
-
-.smoke {
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-}
-
-.smoke ul {
-    margin:0;
-    padding:0;
-    display:flex;
-
-}
-
-.smoke ul li {
-    list-style:none;
-    font-weight:bold;
-    letter-spacing:10px;
-    filter:blur(1px);
-    color:#fff;
-    font-size:6em;
-    display: inline-block;
-    animation: smoke 2s linear infinite;
-}
-
-@keyframes smoke {
-    0% {
-        transform: rotate(0deg) translateY(0px);
-        opacity: 1;
-        filter:blur(1px);
-    }
-    100% {
-      transform: rotate(45deg) translateY(-200px);
-        opacity: 0;
-        filter:blur(20px);
-    }
-}
-
-.smoke ul li:nth-child(1){
-    animation-delay:0s
-}
-.smoke ul li:nth-child(2){
-    animation-delay:.4s
-}
-.smoke ul li:nth-child(3){
-    animation-delay:.8s
-}
-.smoke ul li:nth-child(4){
-    animation-delay:1.2s
-}
-.smoke ul li:nth-child(5){
-    animation-delay:1.6s
-}
-ul li a {
-    font-family: "Bruno Ace SC", sans-serif;
-    font-weight: bold;
-    color: #222;
-    text-decoration: none;
-    transition: color 0.2s, text-shadow 0.2s;
-}
-
-ul li a:hover {
-    color: var(--accent);
-    text-shadow: 0 0 8px var(--accent);
-    text-decoration: underline;
-}
-
-
-
-</style>
-<style>
-  /* Global inputs styling */
+/* Global inputs styling */
   input[type=text], input[type=password], input[type=email], input[type=number], select, textarea {
     font-family: 'Inter', system-ui, sans-serif; font-size: 1.02em; color: var(--text);
     background: rgba(0,0,0,0.18); border:1px solid var(--panel-border); border-radius:8px; padding:8px 10px;
