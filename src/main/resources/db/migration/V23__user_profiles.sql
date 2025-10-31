@@ -1,0 +1,16 @@
+START TRANSACTION;
+
+CREATE TABLE IF NOT EXISTS user_profiles (
+    user_id INT UNSIGNED NOT NULL PRIMARY KEY,
+    display_name VARCHAR(60),
+    age TINYINT UNSIGNED,
+    city VARCHAR(80),
+    bio TEXT,
+    avatar_url VARCHAR(255),
+    theme VARCHAR(10) DEFAULT 'dark',
+    lang VARCHAR(5) DEFAULT 'cs',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user_profiles_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+COMMIT;

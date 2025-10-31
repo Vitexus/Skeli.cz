@@ -129,6 +129,24 @@
         <url-pattern>/elliptic</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>UserProfileServlet</servlet-name>
+        <servlet-class>com.github.skeliit.UserProfileServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UserProfileServlet</servlet-name>
+        <url-pattern>/profile/update</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ChangePasswordServlet</servlet-name>
+        <servlet-class>com.github.skeliit.ChangePasswordServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ChangePasswordServlet</servlet-name>
+        <url-pattern>/profile/change-password</url-pattern>
+    </servlet-mapping>
+
     <error-page>
         <error-code>404</error-code>
         <location>/error.jsp</location>
