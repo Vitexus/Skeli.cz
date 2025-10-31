@@ -14,10 +14,15 @@
 .active { font-weight:bold; color: gold; }
       .back { margin: 10px 0 20px; display:inline-block; }
       .avoid-footer { padding-bottom: 220px; }
-.nav-top { margin-bottom: 20px; background: rgba(255,255,255,0.35); padding: 12px 16px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.10); overflow-x: auto; }
+.nav-top { margin-bottom: 20px; background: rgba(255,255,255,0.65); padding: 12px 16px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.10); overflow-x: auto; }
       .nav-top .song-list { display:flex; flex-wrap:wrap; gap: 10px 16px; }
 .nav-top .song-list li { margin: 0; }
-      .nav-top .song-list li:not(:last-child)::after { content: " | "; color: #777; margin: 0 6px; }
+      .nav-top .song-list a { color: #111; font-weight: 600; text-decoration: none; transition: color .2s; }
+      .nav-top .song-list a:hover { color: var(--accent); text-decoration: underline; }
+      .nav-top .song-list a.active { color: var(--accent); font-weight: bold; }
+      .nav-top .song-list li:not(:last-child)::after { content: " | "; color: #666; margin: 0 6px; }
+      body.light .nav-top { background: rgba(255,255,255,0.85); }
+      body.light .nav-top .song-list a { color: #111; }
       .card { background: linear-gradient(180deg, rgba(255,255,255,0.50), rgba(255,255,255,0.40)); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); padding: 24px 28px; backdrop-filter: blur(4px); }
       .card h3 { margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,0.06); }
       .card pre { background: transparent; margin: 0 auto; max-width: 60ch; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; text-align:center; font-weight: var(--fw); }
