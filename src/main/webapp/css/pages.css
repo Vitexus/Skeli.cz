@@ -1,0 +1,109 @@
+/* ============================================
+   SKELI.CZ - Page Specific Styles
+   ============================================ */
+
+/* Texty Page - Lyrics Listing */
+.texts-card {
+  background: rgba(0, 0, 0, 0.65);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.texts-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: block;
+}
+
+.texts-list li {
+  margin: 10px 0;
+  text-align: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  min-height: 40px;
+}
+
+.texts-list li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 75%;
+  height: 100%;
+  background-size: contain;
+  background-position: left center;
+  background-repeat: no-repeat;
+  opacity: 0.3;
+  z-index: 0;
+  mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 35%, rgba(0, 0, 0, 0) 70%);
+  -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 35%, rgba(0, 0, 0, 0) 70%);
+}
+
+.texts-list li:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(4px);
+}
+
+.texts-list li:hover::before {
+  opacity: 0.45;
+}
+
+.texts-list a {
+  font-weight: 600;
+  font-size: 1.1em;
+  text-decoration: none;
+  transition: color .2s ease, text-shadow .2s ease;
+  color: #fff !important;
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+.texts-list a:visited {
+  color: #fff !important;
+}
+
+.texts-list a:hover,
+.texts-list a:focus {
+  color: var(--accent) !important;
+  text-shadow: 0 0 8px var(--accent);
+  outline: none;
+}
+
+body.light .texts-card {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+body.light .texts-list li {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+body.light .texts-list li::before {
+  opacity: 0.15;
+}
+
+body.light .texts-list li:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+body.light .texts-list li:hover::before {
+  opacity: 0.22;
+}
+
+body.light .texts-list a {
+  color: #111 !important;
+}
+
+body.light .texts-list a:visited {
+  color: #111 !important;
+}

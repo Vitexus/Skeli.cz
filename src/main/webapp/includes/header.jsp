@@ -21,174 +21,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Bruno+Ace+SC&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Comforter+Brush&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="preload" as="image" href="img/IMG_0090.JPG" fetchpriority="high">
+    <link rel="preload" as="image" href="/img/IMG_0090.JPG" fetchpriority="high">
     <!-- Slick Carousel CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
+    <!-- Skeli.cz CSS -->
+    <link rel="stylesheet" href="/css/base.css?v=1.0.0">
+    <link rel="stylesheet" href="/css/components.css?v=1.0.0">
+    <link rel="stylesheet" href="/css/pages.css?v=1.0.0">
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Slick Carousel JS -->
     <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
-
-<style>
-:root { --bg:#0b0c0d; --text:#e7e9ea; --panel:rgba(0,0,0,0.60); --panel-strong:rgba(0,0,0,0.75); --panel-border:rgba(255,255,255,0.18); --accent:#ffd700; --spotify:#CC2B2B; --youtube:#FF0000; --fw:400; }
-body.light { --bg:#f6f6f6; --text:#111; --panel:#ffffff; --panel-strong:#ffffff; --panel-border:rgba(0,0,0,0.18); --accent:#a37b00; }
-body.dark { --bg:#0b0c0d; --text:#e7e9ea; --panel:rgba(0,0,0,0.60); --panel-strong:rgba(0,0,0,0.75); --panel-border:rgba(255,255,255,0.18); --accent:#ffd700; }
-.comforter-brush-regular {
-  font-family: "Comforter Brush", cursive;
-  font-weight: 800;
-  font-style: normal;
-}
-
-.bruno-ace-sc-regular {
-  font-family: "Bruno Ace SC", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-}
-
-.carousel iframe {
-    display: block;
-    margin: 0 auto;
-}
-
-.cpy {
-    font-family: 'Alumni Sans Pinstripe', Arial, sans-serif;
-    font-size: 1em;
-    color: gold;
-    font-weight: bold;
-}
-p {
-    font-family: 'Inter', 'Alumni Sans Pinstripe', Arial, sans-serif;
-    font-size: 1.05em;
-    color: var(--text);
-    font-weight: var(--fw);
-    line-height: 1.6;
-}
-
-html, body {
-    height: 100%;
-}
-body {
-    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-    background: var(--bg) url('img/IMG_0090.JPG') center center/cover no-repeat fixed;
-    color: var(--text);
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-header {
-    width: 100%;
-    color: gold;
-    padding: 120px 0 40px 0px;
-    text-align: center;
-    border-radius: 0;
-    margin: 0;
-    position: relative;
-    /* průhlednost směrem dolů */
-    background: linear-gradient(
-        to bottom,
-        rgba(34,34,34,0.9) 0%,   /* nahoře jen lehce průhledné */
-        rgba(255,255,255,0) 100%    /* dole úplně průhledné */
-    );
-}
-
-nav a {
-    color: white;
-    text-decoration: none;
-    margin: 0 10px;
-    font-weight: bold;
-}
-nav a.active { color: var(--accent); text-shadow: 0 0 8px var(--accent); position: relative; }
-h3 { font-family: "Bruno Ace SC", sans-serif; letter-spacing: 0.5px; }
-.top-controls { font-family: "Bruno Ace SC", sans-serif; }
-.top-controls a, .top-controls button { font-family: inherit; }
-.lang-switch { position: relative; }
-.lang-switch .menu { display:none; position:absolute; right:0; top:100%; background: var(--panel-strong); border:1px solid var(--panel-border); border-radius:8px; padding:6px; min-width:140px; z-index:1000; }
-.lang-switch.open .menu { display:block; }
-.lang-switch .menu a { display:block; padding:6px 8px; color:#fff; text-decoration:none; }
-body.light .lang-switch .menu a { color:#111; }
-.lang-switch .menu a:hover { background: rgba(0,0,0,0.25); }
-/* Light mode fixes */
-body.light .user-dropdown { background: #fff; border:1px solid var(--panel-border); }
-.user-dropdown a { color:#fff; }
-.user-dropdown a:hover { background: rgba(255,255,255,0.08); }
-body.light .user-dropdown a { color:#111; }
-body.light .user-dropdown a:hover { background: rgba(0,0,0,0.06); }
-body.light .top-controls { color:#111; }
-body.light .top-controls a { color:#111; }
-body.light .top-controls button { color:#111; border-color: rgba(0,0,0,0.35); }
-
-nav a:hover {
-    color: var(--accent);
-    text-shadow: 0 0 8px var(--accent);
-    text-decoration: underline;
-}
-
-main {
-    flex: 1 0 auto;
-    width: calc(100vw - 60px);
-    max-width: none;
-    margin: 30px auto;
-    background: var(--panel);
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 12px 36px rgba(0,0,0,0.35);
-    border: 1px solid var(--panel-border);
-}
-
-footer {
-    background: linear-gradient(
-        to top,
-        rgba(34,34,34,0.9) 0%,
-        rgba(255,255,255,0) 100%
-    );
-    color: white;
-    text-align: center;
-    padding: 80px 0;
-    position: static;
-    width: 100%;
-    border-radius: 3px 3px 0px 0px;
-    margin-top: auto;
-}
-
-/* Global inputs styling */
-  input[type=text], input[type=password], input[type=email], input[type=number], select, textarea {
-    font-family: 'Inter', system-ui, sans-serif; font-size: 1.02em; color: var(--text);
-    background: rgba(0,0,0,0.18); border:1px solid var(--panel-border); border-radius:8px; padding:8px 10px;
-  }
-  body.light input[type=text], body.light input[type=password], body.light input[type=email], body.light input[type=number], body.light select, body.light textarea {
-    background: rgba(0,0,0,0.06); color:#111;
-  }
-</style>
-<style>
-  /* Dropdown admin highlight */
-  .user-dropdown a.admin { color:#ffd700; }
-  body.light .user-dropdown a.admin { color:#a37b00; }
-
-  /* Persistent bottom Spotify bar */
-  .sp-bar { position:fixed; left:0; right:0; bottom:0; z-index:9999; background: rgba(0,0,0,0.85); border-top:1px solid var(--panel-border); box-shadow: 0 -12px 30px rgba(0,0,0,.45); display:none; }
-  .sp-inner { display:flex; align-items:center; gap:10px; padding:8px 10px; position:relative; }
-  .sp-iframe { width:100%; height:152px; border:0; border-radius:12px 12px 0 0; }
-  .sp-hide { position:absolute; right:10px; top:-32px; border-radius:999px; border:1px solid var(--panel-border); background: rgba(0,0,0,0.65); color:#fff; padding:4px 10px; cursor:pointer; box-shadow:0 8px 22px rgba(0,0,0,.35); }
-  .sp-hide:hover { background: rgba(0,0,0,0.8); }
-  .sp-minbar { position:fixed; left:50%; transform:translateX(-50%); bottom:10px; z-index:9998; display:none; background: rgba(0,0,0,0.65); color:#fff; border:1px solid var(--panel-border); border-radius:999px; padding:6px 12px; cursor:pointer; box-shadow:0 8px 22px rgba(0,0,0,.35); display:flex; align-items:center; gap:8px; }
-  .sp-minbar i.fa-spotify { color:#FF0000; }
-  .sp-minbar:hover { background: rgba(0,0,0,0.8); }
-  body.light .sp-bar { background:#ffffff; box-shadow: 0 -12px 30px rgba(0,0,0,.20); }
-body.light .sp-minbar { background: rgba(255,255,255,0.9); color:#111; border-color: rgba(0,0,0,0.15); }
-/* Smoke veil */
-.smoke-veil{position:fixed;left:0;right:0;bottom:0;height:35vh;pointer-events:none;background:radial-gradient(ellipse at bottom, rgba(255,255,255,0.06), transparent 60%);mask-image:linear-gradient(to top, rgba(0,0,0,.9), transparent);opacity:.55;animation:smokeMove 14s ease-in-out infinite alternate;}
-@keyframes smokeMove{0%{transform:translateY(0)}100%{transform:translateY(10px)}}
-  body.light .sp-hide:hover { background: rgba(255,255,255,1); }
-  body.light .sp-minbar { background: rgba(255,255,255,0.9); color:#111; border-color: rgba(0,0,0,0.15); }
-</style>
-<style>
-  .reveal { opacity: 0; transform: translateY(12px); transition: opacity .6s ease, transform .6s ease; will-change: opacity, transform; }
-  .reveal.show { opacity: 1; transform: none; }
-</style>
 <%@ include file="/WEB-INF/i18n/i18n.jspf" %>
 <%
   String __csrf = (String) session.getAttribute("csrf");
@@ -353,6 +197,8 @@ body.light .sp-minbar { background: rgba(255,255,255,0.9); color:#111; border-co
         if(!href || href.startsWith('#')) return;
         // allow full reload for language switch to refresh header/nav strings
         if(href.includes('lang=')) return;
+        // disable PJAX for /lyrics/* routes (they have inline styles in main)
+        if(href.includes('/lyrics/') || href.includes('/texty')) return;
         e.preventDefault();
         navigate(href, true);
       });

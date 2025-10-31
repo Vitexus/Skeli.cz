@@ -47,7 +47,7 @@ public class EllipticPlayerServlet extends HttpServlet {
         List<Vid> vids = new ArrayList<>();
         String sql = "SELECT v.youtube_id, COALESCE(v.title, s.name, v.youtube_id) AS title, s.year " +
                      "FROM videos v LEFT JOIN songs s ON s.id=v.song_id " +
-                     "ORDER BY COALESCE(v.title, s.name, v.youtube_id) ASC";
+                     "ORDER BY s.year DESC, COALESCE(v.title, s.name, v.youtube_id) ASC";
         try (Connection c = getConn(); PreparedStatement ps = c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Vid v = new Vid(); v.id = rs.getString(1); v.title = rs.getString(2); v.year = rs.getString(3);
@@ -65,32 +65,174 @@ public class EllipticPlayerServlet extends HttpServlet {
         } catch (SQLException e) { /* silent -> render empty */ }
 
         PrintWriter out = resp.getWriter();
-        out.println("<div class='player' id='el-player' style='position:relative;border:1px solid var(--panel-border);border-radius:12px;background:rgba(0,0,0,0.7);overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.35);margin-bottom:24px;'>");
-        out.println("  <div class='stage' style='position:relative;padding-top:28.125%;width:60%;min-width:360px;margin:0 auto;'><iframe id='el-frame' style='position:absolute;inset:0;width:100%;height:100%;border:0;' allow='autoplay; encrypted-media; picture-in-picture' allowfullscreen></iframe></div>");
+        // Main video player - original size
+        out.println("<div class='video-player' style='position:relative;border:1px solid var(--panel-border);border-radius:12px;background:#000;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.3);margin-bottom:20px;max-width:800px;width:70%;margin-left:auto;margin-right:auto;'>");
+        out.println("  <div style='position:relative;padding-top:56.25%;'>");
+        out.println("    <iframe id='main-frame' style='position:absolute;inset:0;width:100%;height:100%;border:0;' allow='autoplay; encrypted-media; picture-in-picture' allowfullscreen></iframe>");
+        out.println("  </div>");
         out.println("</div>");
-        out.println("<div class='carousel' style='position:relative;height:240px;margin-top:24px;user-select:none;'>");
-        out.println("  <div class='track' id='el-track' style='position:absolute;inset:0;perspective:1000px;'></div>");
-        out.println("  <div class='nav' style='position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;pointer-events:none;'>"+
-                "<button id='el-prev' style='pointer-events:auto;background:rgba(255,255,255,.08);color:#fff;border:1px solid var(--panel-border);border-radius:50%;width:40px;height:40px;'>◀</button>"+
-                "<button id='el-next' style='pointer-events:auto;background:rgba(255,255,255,.08);color:#fff;border:1px solid var(--panel-border);border-radius:50%;width:40px;height:40px;'>▶</button>"+
-                "</div>");
+        
+        // Thumbnail navigation strip with perspective scaling
+        out.println("<div style='position:relative;background:rgba(0,0,0,0.3);border:1px solid var(--panel-border);border-radius:12px;padding:20px 16px;min-height:140px;'>");
+        out.println("  <div style='display:flex;align-items:center;gap:12px;'>");
+        out.println("    <button id='prev-btn' style='flex-shrink:0;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid var(--panel-border);color:var(--text);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;z-index:100;'>◀</button>");
+        out.println("    <div id='thumbs-container' style='flex:1;overflow:hidden;position:relative;height:120px;'>");
+        out.println("      <div id='thumbs-track' style='display:flex;gap:8px;align-items:center;justify-content:center;position:absolute;left:50%;transform:translateX(-50%);transition:all 0.4s ease;'></div>");
+        out.println("    </div>");
+        out.println("    <button id='next-btn' style='flex-shrink:0;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid var(--panel-border);color:var(--text);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;z-index:100;'>▶</button>");
+        out.println("  </div>");
         out.println("</div>");
 
-        // Data -> JS
+        // JavaScript for thumbnail navigation
         out.println("<script>");
         out.println("(function(){");
-        out.println("const vids = [];");
+        out.println("const videos = [];");
         for (Vid v: vids) {
             String escTitle = v.title == null ? "" : v.title.replace("\\", "\\\\").replace("\"","\\\"");
-            out.printf("vids.push({yt:\"%s\", title:\"%s\"});%n", v.id, escTitle);
+            out.printf("videos.push({id:'%s', title:'%s'});%n", v.id, escTitle);
         }
-        out.println("const frame=document.getElementById('el-frame'); let current=0; let thumbs=[]; let playing=false;\n"+
-                "function ytCmd(cmd){ try{ frame.contentWindow.postMessage(JSON.stringify({event:'command',func:cmd,args:''}),'*'); }catch(_){} }\n"+
-                "function play(i){ current=i; const v=vids[i]; frame.src='https://www.youtube.com/embed/'+v.yt+'?autoplay=1&enablejsapi=1'; playing=true; try{ localStorage.setItem('gp_id', v.yt); localStorage.setItem('gp_title', v.title);}catch(e){} if(window.playVideo) try{ window.playVideo(v.yt, v.title);}catch(e){} layout(); }\n"+
-                "function layout(){ const N=vids.length,R1=360,R2=36; thumbs.forEach((el,i)=>{ let t=(i-current+N)%N; if(t>N/2)t-=N; const ang=(t/(N/2))*Math.PI/2; const x=Math.cos(ang)*R1; const y=Math.sin(ang)*R2; const s=0.55+0.45*Math.cos(ang); const z=Math.cos(ang); el.style.transform=`translate3d(${x}px,${y}px,0) scale(${s})`; el.style.opacity=0.35+0.65*Math.pow(s,1.5); el.style.zIndex=1000+Math.round(z*100); el.classList.toggle('active',t===0);}); }\n"+
-                "const track=document.getElementById('el-track'); function render(){ track.innerHTML=''; thumbs=vids.map((v,i)=>{ const el=document.createElement('div'); el.className='el-thumb'; el.style.cssText='position:absolute;top:55%;left:50%;width:260px;height:146px;margin:-73px 0 0 -130px;border-radius:12px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.35);border:1px solid var(--panel-border);background:#000;transform-origin:center;transition:transform .32s ease,opacity .32s ease,filter .32s ease;cursor:pointer;'; el.innerHTML=`<img data-src='https://img.youtube.com/vi/${v.yt}/hqdefault.jpg' loading='lazy' style='width:100%;height:100%;object-fit:cover;display:block;' alt='${v.title}'><div style='position:absolute;left:8px;right:8px;bottom:6px;font-size:13px;background:linear-gradient(transparent, rgba(0,0,0,.7));padding:36px 6px 6px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);border-radius:10px;'>${v.title}</div>`; el.addEventListener('click',()=>play(i)); track.appendChild(el); return el;}); layout(); if(vids.length) play(0); else frame.src='https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1'; document.querySelectorAll('#el-track img[data-src]').forEach(img=>{ img.src = img.dataset.src; img.removeAttribute('data-src'); }); } render();\n"+
-                "let sx=0, drag=false; track.addEventListener('pointerdown',e=>{drag=true;sx=e.clientX;track.setPointerCapture(e.pointerId)}); track.addEventListener('pointerup',e=>{drag=false;track.releasePointerCapture(e.pointerId)}); track.addEventListener('pointercancel',()=>drag=false); track.addEventListener('pointermove',e=>{ if(!drag)return; const dx=e.clientX-sx; if(Math.abs(dx)>40){ current=(current+(dx<0?1:vids.length-1))%vids.length; sx=e.clientX; play(current);} });\n"+
-                "function prev(){ current=(current+vids.length-1)%vids.length; play(current);} function next(){ current=(current+1)%vids.length; play(current);} document.getElementById('el-prev').onclick=()=>prev(); document.getElementById('el-next').onclick=()=>next(); document.addEventListener('keydown',e=>{ if(e.key==='ArrowLeft') prev(); else if(e.key==='ArrowRight') next();});\n");
+        out.println(
+            "const frame = document.getElementById('main-frame');\n" +
+            "const track = document.getElementById('thumbs-track');\n" +
+            "const container = document.getElementById('thumbs-container');\n" +
+            "let currentIndex = 0;\n" +
+            "let scrollOffset = 0;\n" +
+            "const BASE_WIDTH = 160;\n" +
+            "const BASE_HEIGHT = 90;\n" +
+            "const VISIBLE_SIDES = 3;\n" +
+            "\n" +
+            "// Create thumbnails\n" +
+            "videos.forEach((video, index) => {\n" +
+            "  const thumb = document.createElement('div');\n" +
+            "  thumb.className = 'video-thumb';\n" +
+            "  thumb.dataset.index = index;\n" +
+            "  thumb.style.cssText = `\n" +
+            "    flex-shrink:0;\n" +
+            "    border-radius:8px;\n" +
+            "    overflow:hidden;\n" +
+            "    cursor:pointer;\n" +
+            "    border:2px solid transparent;\n" +
+            "    transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);\n" +
+            "    position:relative;\n" +
+            "    background:#000;\n" +
+            "    transform-origin:center center;\n" +
+            "  `;\n" +
+            "  thumb.innerHTML = `\n" +
+            "    <img src='https://img.youtube.com/vi/${video.id}/mqdefault.jpg' \n" +
+            "         style='width:100%;height:100%;object-fit:cover;display:block;' \n" +
+            "         alt='${video.title}'>\n" +
+            "    <div style='position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.8));padding:20px 4px 4px;font-size:11px;color:#fff;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;'>${video.title}</div>\n" +
+            "  `;\n" +
+            "  thumb.addEventListener('click', () => playVideo(index));\n" +
+            "  track.appendChild(thumb);\n" +
+            "});\n"
+            "\n" +
+            "function playVideo(index) {\n" +
+            "  currentIndex = index;\n" +
+            "  const video = videos[index];\n" +
+            "  frame.src = `https://www.youtube.com/embed/${video.id}?autoplay=1&enablejsapi=1`;\n" +
+            "  updateThumbs();\n" +
+            "  centerThumb(index);\n" +
+            "}\n" +
+            "\n" +
+            "function updateThumbs() {\n" +
+            "  const thumbs = track.querySelectorAll('.video-thumb');\n" +
+            "  thumbs.forEach((thumb, i) => {\n" +
+            "    const distance = Math.abs(i - currentIndex);\n" +
+            "    \n" +
+            "    if (distance === 0) {\n" +
+            "      // Center - largest\n" +
+            "      thumb.style.width = BASE_WIDTH + 'px';\n" +
+            "      thumb.style.height = BASE_HEIGHT + 'px';\n" +
+            "      thumb.style.border = '2px solid var(--accent)';\n" +
+            "      thumb.style.opacity = '1';\n" +
+            "      thumb.style.zIndex = '50';\n" +
+            "      thumb.style.transform = 'scale(1)';\n" +
+            "    } else if (distance === 1) {\n" +
+            "      // 1 step away - 85% size\n" +
+            "      const scale = 0.85;\n" +
+            "      thumb.style.width = (BASE_WIDTH * scale) + 'px';\n" +
+            "      thumb.style.height = (BASE_HEIGHT * scale) + 'px';\n" +
+            "      thumb.style.border = '2px solid rgba(255,215,0,0.3)';\n" +
+            "      thumb.style.opacity = '0.8';\n" +
+            "      thumb.style.zIndex = '40';\n" +
+            "      thumb.style.transform = 'scale(1)';\n" +
+            "    } else if (distance === 2) {\n" +
+            "      // 2 steps away - 70% size\n" +
+            "      const scale = 0.70;\n" +
+            "      thumb.style.width = (BASE_WIDTH * scale) + 'px';\n" +
+            "      thumb.style.height = (BASE_HEIGHT * scale) + 'px';\n" +
+            "      thumb.style.border = '2px solid transparent';\n" +
+            "      thumb.style.opacity = '0.6';\n" +
+            "      thumb.style.zIndex = '30';\n" +
+            "      thumb.style.transform = 'scale(1)';\n" +
+            "    } else {\n" +
+            "      // Far away - 55% size\n" +
+            "      const scale = 0.55;\n" +
+            "      thumb.style.width = (BASE_WIDTH * scale) + 'px';\n" +
+            "      thumb.style.height = (BASE_HEIGHT * scale) + 'px';\n" +
+            "      thumb.style.border = '2px solid transparent';\n" +
+            "      thumb.style.opacity = '0.4';\n" +
+            "      thumb.style.zIndex = '20';\n" +
+            "      thumb.style.transform = 'scale(1)';\n" +
+            "    }\n" +
+            "  });\n" +
+            "}\n"
+            "\n" +
+            "function centerThumb(index) {\n" +
+            "  // Recalculate positions based on scaled widths\n" +
+            "  const thumbs = track.querySelectorAll('.video-thumb');\n" +
+            "  let totalOffset = 0;\n" +
+            "  for (let i = 0; i < index; i++) {\n" +
+            "    const distance = Math.abs(i - index);\n" +
+            "    let scale = 1;\n" +
+            "    if (distance === 1) scale = 0.85;\n" +
+            "    else if (distance === 2) scale = 0.70;\n" +
+            "    else if (distance > 2) scale = 0.55;\n" +
+            "    totalOffset += (BASE_WIDTH * scale) + 8;\n" +
+            "  }\n" +
+            "  track.style.transform = `translateX(calc(-50% - ${totalOffset}px + ${BASE_WIDTH/2}px))`;\n" +
+            "}\n"
+            "\n" +
+            "function scrollThumbs(direction) {\n" +
+            "  const maxIndex = videos.length - 1;\n" +
+            "  if (direction === 'prev' && currentIndex > 0) {\n" +
+            "    playVideo(currentIndex - 1);\n" +
+            "  } else if (direction === 'next' && currentIndex < maxIndex) {\n" +
+            "    playVideo(currentIndex + 1);\n" +
+            "  }\n" +
+            "}\n" +
+            "\n" +
+            "// Button listeners\n" +
+            "document.getElementById('prev-btn').addEventListener('click', () => scrollThumbs('prev'));\n" +
+            "document.getElementById('next-btn').addEventListener('click', () => scrollThumbs('next'));\n" +
+            "\n" +
+            "// Keyboard navigation\n" +
+            "document.addEventListener('keydown', (e) => {\n" +
+            "  if (e.key === 'ArrowLeft') scrollThumbs('prev');\n" +
+            "  else if (e.key === 'ArrowRight') scrollThumbs('next');\n" +
+            "});\n" +
+            "\n" +
+            "// Hover effects for buttons\n" +
+            "['prev-btn', 'next-btn'].forEach(id => {\n" +
+            "  const btn = document.getElementById(id);\n" +
+            "  btn.addEventListener('mouseenter', () => {\n" +
+            "    btn.style.background = 'rgba(255,255,255,0.2)';\n" +
+            "    btn.style.transform = 'scale(1.1)';\n" +
+            "  });\n" +
+            "  btn.addEventListener('mouseleave', () => {\n" +
+            "    btn.style.background = 'rgba(255,255,255,0.1)';\n" +
+            "    btn.style.transform = 'scale(1)';\n" +
+            "  });\n" +
+            "});\n" +
+            "\n" +
+            "// Initialize\n" +
+            "if (videos.length > 0) {\n" +
+            "  playVideo(0);\n" +
+            "} else {\n" +
+            "  frame.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1';\n" +
+            "}\n"
+        );
         out.println("})();");
         out.println("</script>");
     }
