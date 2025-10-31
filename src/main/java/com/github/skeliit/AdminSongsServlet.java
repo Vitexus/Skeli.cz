@@ -42,7 +42,7 @@ public class AdminSongsServlet extends HttpServlet {
         List<SongOverview> songs = new ArrayList<>();
         String sql = "SELECT s.id, s.uuid, s.name, s.year, " +
                 "EXISTS(SELECT 1 FROM videos v WHERE v.song_id = s.id) AS has_video, " +
-                "EXISTS(SELECT 1 FROM lyrics l WHERE l.song_id = s.id) AS has_lyrics, " +
+                "EXISTS(SELECT 1 FROM lyrics l WHERE l.song_id = s.id AND l.lang = 'cs') AS has_lyrics, " +
                 "GROUP_CONCAT(DISTINCT l.lang ORDER BY l.lang SEPARATOR ',') AS languages " +
                 "FROM songs s " +
                 "LEFT JOIN lyrics l ON l.song_id = s.id " +
