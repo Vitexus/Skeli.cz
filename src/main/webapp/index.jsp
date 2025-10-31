@@ -8,15 +8,15 @@
     <p style="margin:6px 0 0;"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("index.hero","Official website – music, lyrics, news.") %></p>
   </section>
   <section style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:16px; margin-top:14px;">
-    <a class="section" href="music.jsp" style="text-decoration:none; color:inherit; background:rgba(255,255,255,0.55); border:1px solid var(--panel-border); border-radius:12px; padding:16px;">
+    <a class="section" href="/music.jsp" style="text-decoration:none; color:inherit; background:rgba(204,43,43,0.25); border:1px solid rgba(204,43,43,0.4); border-radius:12px; padding:16px; transition: all 0.3s ease;">
       <h3><i class="fas fa-music"></i> <%= ((java.util.Properties)request.getAttribute("t")).getProperty("tile.music.title","Music") %></h3>
       <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("tile.music.desc","YouTube videos and Spotify playlist.") %></p>
     </a>
-    <a class="section" href="texty.jsp" style="text-decoration:none; color:inherit; background:rgba(255,255,255,0.55); border:1px solid var(--panel-border); border-radius:12px; padding:16px;">
+    <a class="section" href="/texty.jsp" style="text-decoration:none; color:inherit; background:rgba(0,0,0,0.65); border:1px solid var(--panel-border); border-radius:12px; padding:16px; transition: all 0.3s ease;">
       <h3><i class="fas fa-align-left"></i> <%= ((java.util.Properties)request.getAttribute("t")).getProperty("tile.lyrics.title","Lyrics") %></h3>
       <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("tile.lyrics.desc","Browse lyrics, vote and comment.") %></p>
     </a>
-    <a class="section" href="about.jsp" style="text-decoration:none; color:inherit; background:rgba(255,255,255,0.55); border:1px solid var(--panel-border); border-radius:12px; padding:16px;">
+    <a class="section" href="/about.jsp" style="text-decoration:none; color:inherit; background:rgba(0,0,0,0.65); border:1px solid var(--panel-border); border-radius:12px; padding:16px; transition: all 0.3s ease;">
       <h3><i class="fas fa-user"></i> <%= ((java.util.Properties)request.getAttribute("t")).getProperty("tile.about.title","About") %></h3>
       <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("tile.about.desc","Who I am and how I create.") %></p>
     </a>
@@ -34,6 +34,9 @@
     .newsletter input[type=email]{ width:100%; box-sizing:border-box; margin-bottom:8px; }
     .newsletter button { background:transparent; border:1px solid var(--panel-border); color:var(--text); padding:6px 10px; border-radius:8px; cursor:pointer; }
     .newsletter button:hover { background: rgba(255,255,255,0.08); }
+    .section:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.45) !important; }
+    body.light .section:first-child { background:rgba(204,43,43,0.15) !important; }
+    body.light .section:not(:first-child) { background:rgba(0,0,0,0.06) !important; }
   </style>
 
   <section class="news-grid">
