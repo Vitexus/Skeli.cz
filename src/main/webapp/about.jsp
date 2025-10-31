@@ -4,18 +4,18 @@
 <main>
   <section style="text-align:center; margin-bottom:18px;">
     <h2><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.title","About me") %></h2>
-    <p>Jsem Skeli – rapper, producent a nadšenec do webu. Baví mě tvořit hudbu i aplikace, které něco předají.</p>
+    <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.p1","Jsem Skeli – rapper, producent a nadšenec do webu. Baví mě tvořit hudbu i aplikace, které něco předají.") %></p>
   </section>
   <section style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:16px;">
-    <div class="section" style="background:rgba(255,255,255,0.55); border-radius:12px; padding:16px;">
+    <div class="section" style="background:rgba(255,255,255,0.55); border:1px solid var(--panel-border); border-radius:12px; padding:16px;">
       <h3>Hudební cesta</h3>
       <p>Od prvních tracků až po současnou tvorbu. Na stránce Hudba najdete klipy a playlisty.</p>
     </div>
-    <div class="section" style="background:rgba(255,255,255,0.55); border-radius:12px; padding:16px;">
+    <div class="section" style="background:rgba(255,255,255,0.55); border:1px solid var(--panel-border); border-radius:12px; padding:16px;">
       <h3>Spolupráce</h3>
       <p>Jestli tě baví moje věci, napiš. Ocením rap feature, produkci beatů i vizuál.</p>
     </div>
-    <div class="section" style="background:rgba(255,255,255,0.55); border-radius:12px; padding:16px;">
+    <div class="section" style="background:rgba(255,255,255,0.55); border:1px solid var(--panel-border); border-radius:12px; padding:16px;">
       <h3>Kontakt</h3>
 <p>E-mail: <a href="mailto:skelimc@seznam.cz">skelimc@seznam.cz</a></p>
     </div>

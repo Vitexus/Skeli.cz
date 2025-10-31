@@ -110,4 +110,31 @@
         <servlet-name>LyricRouterServlet</servlet-name>
         <url-pattern>/lyrics/*</url-pattern>
     </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminUserServlet</servlet-name>
+        <servlet-class>com.github.skeliit.AdminUserServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminUserServlet</servlet-name>
+        <url-pattern>/admin/users</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>EllipticPlayerServlet</servlet-name>
+        <servlet-class>com.github.skeliit.EllipticPlayerServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>EllipticPlayerServlet</servlet-name>
+        <url-pattern>/elliptic</url-pattern>
+    </servlet-mapping>
+
+    <error-page>
+        <error-code>404</error-code>
+        <location>/error.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>500</error-code>
+        <location>/error.jsp</location>
+    </error-page>
 </web-app>

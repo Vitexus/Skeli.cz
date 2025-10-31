@@ -12,7 +12,7 @@ import java.sql.*;
 @WebServlet(name = "AdminVideoServlet", urlPatterns = {"/admin/video"})
 public class AdminVideoServlet extends HttpServlet {
     private Connection getConn() throws SQLException {
-        String mariadbUrl = "jdbc:mariadb://localhost:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
+        String mariadbUrl = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
         String user = "Skeli";
         String password = "skeli";
         return DriverManager.getConnection(mariadbUrl, user, password);
@@ -25,15 +25,26 @@ public class AdminVideoServlet extends HttpServlet {
         String title = req.getParameter("title");
         String songName = req.getParameter("song_name");
         String yearStr = req.getParameter("year");
+        String lyricIdStr = req.getParameter("lyric_id");
         Integer year = null; if (yearStr != null && !yearStr.isEmpty()) try { year = Integer.parseInt(yearStr); } catch (Exception ignored) {}
         try (Connection conn = getConn()) {
-            try (PreparedStatement ps = conn.prepareStatement("UPDATE videos SET title=? WHERE youtube_id=?")) {
-                ps.setString(1, title);
-                ps.setString(2, youtubeId);
-                ps.executeUpdate();
+            if (title != null) {
+              try (PreparedStatement ps = conn.prepareStatement("UPDATE videos SET title=? WHERE youtube_id=?")) {
+                  ps.setString(1, title);
+                  ps.setString(2, youtubeId);
+                  ps.executeUpdate();
+              }
             }
+            Integer songId = null;
             if (songName != null && !songName.isEmpty()) {
-                Integer songId = ensureSong(conn, songName, year);
+                songId = ensureSong(conn, songName, year);
+            } else if (lyricIdStr != null && !lyricIdStr.isEmpty()) {
+                try (PreparedStatement ps = conn.prepareStatement("SELECT song_id FROM lyrics WHERE id=?")) {
+                    ps.setInt(1, Integer.parseInt(lyricIdStr));
+                    try (ResultSet rs = ps.executeQuery()) { if (rs.next()) songId = rs.getInt(1); }
+                }
+            }
+            if (songId != null) {
                 try (PreparedStatement ps = conn.prepareStatement("UPDATE videos SET song_id=? WHERE youtube_id=?")) {
                     ps.setInt(1, songId);
                     ps.setString(2, youtubeId);

@@ -1,7 +1,6 @@
 package com.github.skeliit;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,7 +10,6 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
 
-@WebServlet(name = "LyricRouterServlet", urlPatterns = {"/lyrics/*"})
 public class LyricRouterServlet extends HttpServlet {
     private Connection getConn() throws SQLException {
         String mariadbUrl = "jdbc:mariadb://localhost:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";

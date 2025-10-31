@@ -1,1 +1,17 @@
+com\github\skeliit\LoginServlet.class
+com\github\skeliit\RegisterServlet.class
+com\github\skeliit\YouTubeSyncServlet.class
+com\github\skeliit\ResetPasswordServlet.class
 com\github\skeliit\DbInit.class
+com\github\skeliit\ForgotPasswordServlet.class
+com\github\skeliit\UploadAvatarServlet.class
+com\github\skeliit\LyricRouterServlet.class
+com\github\skeliit\AdminUserServlet.class
+com\github\skeliit\VotesServlet.class
+com\github\skeliit\WebUtils.class
+com\github\skeliit\AdminVideoServlet.class
+com\github\skeliit\EllipticPlayerServlet$Vid.class
+com\github\skeliit\LogoutServlet.class
+com\github\skeliit\AdminCommentServlet.class
+com\github\skeliit\CommentsServlet.class
+com\github\skeliit\EllipticPlayerServlet.class
