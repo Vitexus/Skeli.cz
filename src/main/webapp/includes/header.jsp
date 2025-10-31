@@ -208,11 +208,11 @@ body.light .sp-minbar { background: rgba(255,255,255,0.9); color:#111; border-co
     </nav>
     <div class="top-controls" style="position:absolute; top:10px; right:14px; font-size:0.8em; display:flex; gap:6px; align-items:center;">
         <% String currentUser = (String) session.getAttribute("username"); String currentRole = (String) session.getAttribute("role"); %>
-        <a href="/donate.jsp" style="color:var(--accent); font-weight:600; padding:3px 6px;" title="Podpoř">❤</a>
-        <button id="fontToggle" title="Tloušťka textu" style="background:transparent;border:1px solid rgba(255,255,255,0.35);color:white;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:0.9em;">A</button>
-        <button id="themeToggle" title="Přepnout světlý/tmavý" style="background:transparent;border:1px solid rgba(255,255,255,0.35);color:white;padding:3px 6px;border-radius:4px;cursor:pointer;">☀️</button>
+        <a href="/donate.jsp" style="color:#CC2B2B; font-weight:600; padding:3px 6px;" title="Podpoř">❤</a>
+        <button id="fontToggle" title="Tloušťka textu" style="background:transparent;border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:0.9em;">A</button>
+        <button id="themeToggle" title="Přepnout světlý/tmavý" style="background:transparent;border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:3px 6px;border-radius:4px;cursor:pointer;">●</button>
         <div class="lang-switch">
-          <button class="lang-btn" title="Jazyk" style="background:transparent;border:1px solid rgba(255,255,255,0.35);color:white;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:0.9em;">🎬</button>
+          <button class="lang-btn" title="Jazyk" style="background:transparent;border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:0.9em;">♪</button>
           <ul class="menu">
              <li><a href="?lang=cs">Čeština 🇨🇿</a></li>
              <li><a href="?lang=en">English 🇬🇧</a></li>
