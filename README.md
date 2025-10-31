@@ -32,6 +32,18 @@ mvn -q -Dflyway.configFiles=src/main/resources/flyway.conf flyway:migrate
 mvn test
 ```
 
+## Odstranění problémů po čerstvém klonu (IDE/Build)
+- Otevřete projekt přes `pom.xml` (Import as Maven Project), ne jako čistý Java projekt.
+- Nastavte Project SDK/Language level na JDK 17.
+- V IntelliJ: File → Invalidate Caches / Restart, poté Maven → Reload All Projects.
+- Ověřte na CLI:
+  ```bash
+  mvn -q -DskipTests compile
+  mvn -q test
+  ```
+- Pokud se v IDE zobrazuje „cannot find symbol: LyricService/LyricView“, téměř vždy jde o špatně nastavené JDK nebo chybějící Maven import. Po nastavení JDK 17 a reloadu Mavenu chyba zmizí.
+- Ujistěte se, že jste na aktuální větvi (`main`/`master`) a fork je synchronizovaný s upstreamem.
+
 ## Docker (volitelné)
 ```bash
 docker compose up --build
