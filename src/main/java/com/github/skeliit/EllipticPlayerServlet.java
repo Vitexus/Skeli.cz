@@ -125,7 +125,7 @@ public class EllipticPlayerServlet extends HttpServlet {
             "  `;\n" +
             "  thumb.addEventListener('click', () => playVideo(index));\n" +
             "  track.appendChild(thumb);\n" +
-            "});\n"
+            "});\n" +
             "\n" +
             "function playVideo(index) {\n" +
             "  currentIndex = index;\n" +
@@ -177,7 +177,7 @@ public class EllipticPlayerServlet extends HttpServlet {
             "      thumb.style.transform = 'scale(1)';\n" +
             "    }\n" +
             "  });\n" +
-            "}\n"
+            "}\n" +
             "\n" +
             "function centerThumb(index) {\n" +
             "  // Recalculate positions based on scaled widths\n" +
@@ -192,7 +192,7 @@ public class EllipticPlayerServlet extends HttpServlet {
             "    totalOffset += (BASE_WIDTH * scale) + 8;\n" +
             "  }\n" +
             "  track.style.transform = `translateX(calc(-50% - ${totalOffset}px + ${BASE_WIDTH/2}px))`;\n" +
-            "}\n"
+            "}\n" +
             "\n" +
             "function scrollThumbs(direction) {\n" +
             "  const maxIndex = videos.length - 1;\n" +
