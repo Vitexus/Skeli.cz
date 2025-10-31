@@ -14,15 +14,20 @@
 .active { font-weight:bold; color: gold; }
       .back { margin: 10px 0 20px; display:inline-block; }
       .avoid-footer { padding-bottom: 220px; }
-.nav-top { margin-bottom: 20px; background: rgba(255,255,255,0.65); padding: 12px 16px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.10); overflow-x: auto; }
+.nav-top { margin-bottom: 20px; background: rgba(0,0,0,0.65); padding: 12px 16px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.10); overflow-x: auto; border:1px solid var(--panel-border); }
+      .nav-top h3 { color: #fff; margin-top:0; font-size:1em; }
       .nav-top .song-list { display:flex; flex-wrap:wrap; gap: 10px 16px; }
-.nav-top .song-list li { margin: 0; }
-      .nav-top .song-list a { color: #111; font-weight: 600; text-decoration: none; transition: color .2s; }
-      .nav-top .song-list a:hover { color: var(--accent); text-decoration: underline; }
-      .nav-top .song-list a.active { color: var(--accent); font-weight: bold; }
-      .nav-top .song-list li:not(:last-child)::after { content: " | "; color: #666; margin: 0 6px; }
-      body.light .nav-top { background: rgba(255,255,255,0.85); }
-      body.light .nav-top .song-list a { color: #111; }
+      .nav-top .song-list li { margin: 0; }
+      .nav-top .song-list a { color: #fff !important; font-weight: 600; text-decoration: none; transition: color .2s, text-shadow .2s; }
+      .nav-top .song-list a:visited { color: #fff !important; }
+      .nav-top .song-list a:hover { color: var(--accent) !important; text-shadow: 0 0 8px var(--accent); text-decoration: underline; }
+      .nav-top .song-list a.active { color: var(--accent) !important; font-weight: bold; text-shadow: 0 0 8px var(--accent); }
+      .nav-top .song-list li:not(:last-child)::after { content: " | "; color: rgba(255,255,255,0.5); margin: 0 6px; }
+      body.light .nav-top { background: rgba(255,255,255,0.85); border-color:rgba(0,0,0,0.15); }
+      body.light .nav-top h3 { color: #111; }
+      body.light .nav-top .song-list a { color: #111 !important; }
+      body.light .nav-top .song-list a:visited { color: #111 !important; }
+      body.light .nav-top .song-list li:not(:last-child)::after { color: rgba(0,0,0,0.4); }
       .card { background: linear-gradient(180deg, rgba(255,255,255,0.50), rgba(255,255,255,0.40)); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); padding: 24px 28px; backdrop-filter: blur(4px); }
       .card h3 { margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,0.06); }
       .card pre { background: transparent; margin: 0 auto; max-width: 60ch; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; text-align:center; font-weight: var(--fw); }
@@ -216,7 +221,9 @@
                                     %>
                                     Návštěvy: <%= views %>
                                   </div>
+                                  </div>
 
+                                  <div>
                                   <div class="comments">
                                     <h4>Komentáře</h4>
                                     <div>
@@ -282,7 +289,11 @@
                                     %>
                                       <form method="post" action="/comment" style="margin-top:10px;">
                                         <input type="hidden" name="lyric_id" value="<%= activeId %>">
-                                        <textarea name="content" rows="3" style="width:100%; font-family: 'Inter', system-ui, sans-serif; font-size:1.02em; border:1px solid var(--panel-border); border-radius:8px; padding:10px; background:rgba(0,0,0,0.12); color:inherit;" placeholder="Napište komentář..." required></textarea>
+                                        <input type="hidden" name="csrf" value="${csrf}">
+                                        <div style="position:relative;">
+                                          <textarea id="comment-textarea" name="content" rows="3" style="width:100%; font-family: 'Inter', system-ui, sans-serif; font-size:1.02em; border:1px solid var(--panel-border); border-radius:8px; padding:10px; background:rgba(0,0,0,0.12); color:inherit;" placeholder="Napište komentář... 😎" required></textarea>
+                                          <button type="button" id="emoji-btn" style="position:absolute; right:8px; top:8px; background:transparent; border:1px solid var(--panel-border); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:1.2em;">😊</button>
+                                        </div>
                                         <button type="submit" style="margin-top:6px; padding:6px 10px; border:1px solid var(--panel-border); border-radius:8px; background:rgba(0,0,0,0.2); color:inherit;">Odeslat</button>
                                       </form>
                                     <%
@@ -292,6 +303,7 @@
                                     <%
                                       }
                                     %>
+                                  </div>
                                   </div>
                                 </div>
         <%
@@ -308,5 +320,60 @@
         %>
       </section>
 </main>
+
+<script>
+// Emoji picker
+(function(){
+  const emojis = ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','☺️','😚','😙','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾','🙈','🙉','🙊','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','💔','❤️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💯','💢','💥','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','👋','🤚','🖐️','✋','🖖','👌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦵','🦿','🦶','👂','🦻','👃','🧠','🦷','🦴','👀','👁️','👅','👄','🔥','💯','✨','🎉','🎊','🎈','🎁','🏆','🥇','🥈','🥉','⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🏒','🏑','🥍','🏏','🥅','⛳','🪁','🎣','🤿','🎽','🎿','🛷','🥌','🎯','🪃','🪄','🎱'];
+  const btn = document.getElementById('emoji-btn');
+  const textarea = document.getElementById('comment-textarea');
+  if (!btn || !textarea) return;
+  
+  let picker = null;
+  
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (picker) {
+      picker.remove();
+      picker = null;
+      return;
+    }
+    
+    picker = document.createElement('div');
+    picker.style.cssText = 'position:absolute; right:0; top:40px; background:var(--panel-strong); border:1px solid var(--panel-border); border-radius:8px; padding:8px; max-width:280px; max-height:200px; overflow-y:auto; display:grid; grid-template-columns:repeat(8,1fr); gap:4px; z-index:1000; box-shadow:0 8px 24px rgba(0,0,0,0.35);';
+    
+    emojis.forEach(emoji => {
+      const span = document.createElement('span');
+      span.textContent = emoji;
+      span.style.cssText = 'cursor:pointer; font-size:1.5em; text-align:center; padding:4px; border-radius:4px; transition:background .15s;';
+      span.addEventListener('mouseenter', function(){ this.style.background='rgba(255,255,255,0.08)'; });
+      span.addEventListener('mouseleave', function(){ this.style.background='transparent'; });
+      span.addEventListener('click', function(){
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        textarea.value = text.substring(0, start) + emoji + text.substring(end);
+        textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+        textarea.focus();
+        picker.remove();
+        picker = null;
+      });
+      picker.appendChild(span);
+    });
+    
+    btn.parentElement.appendChild(picker);
+    
+    document.addEventListener('click', function closeP(ev){
+      if (!picker.contains(ev.target) && ev.target !== btn) {
+        picker.remove();
+        picker = null;
+        document.removeEventListener('click', closeP);
+      }
+    });
+  });
+})();
+</script>
 
 <%@ include file="includes/footer.jsp" %>
