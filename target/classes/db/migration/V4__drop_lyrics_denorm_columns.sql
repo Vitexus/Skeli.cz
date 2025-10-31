@@ -1,0 +1,7 @@
+START TRANSACTION;
+
+ALTER TABLE `lyrics`
+  DROP COLUMN `name`,
+  DROP COLUMN `relase_year`;
+
+COMMIT;

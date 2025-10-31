@@ -1,0 +1,2 @@
+-- Serve static uploads directory if not already present
+-- No-op for Jetty plugin; files saved under webapp path /uploads
