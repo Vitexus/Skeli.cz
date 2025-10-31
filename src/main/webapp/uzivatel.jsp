@@ -2,7 +2,10 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <main>
   <h2>Nastavení účtu</h2>
-  <section style="background: var(--panel); border: 1px solid var(--panel-border); border-radius: 12px; padding: 16px; box-shadow: 0 6px 18px rgba(0,0,0,0.20);">
+  <div style="background: rgba(255,165,0,0.25); border: 1px solid rgba(255,165,0,0.5); border-radius: 8px; padding: 12px; margin-bottom: 16px; text-align: center;">
+    ⚠️ <strong>Poznámka:</strong> Tato funkce zatím není plně implementována. Uložení profilu nebude fungovat.
+  </div>
+  <section style="background: var(--panel); border: 1px solid var(--panel-border); border-radius: 12px; padding: 16px; box-shadow: 0 6px 18px rgba(0,0,0,0.20); opacity: 0.6; pointer-events: none;">
     <h3>Profil</h3>
 <form method="post" action="uzivatel.jsp?action=update" enctype="multipart/form-data">
       <input type="hidden" name="csrf" value="${csrf}">
