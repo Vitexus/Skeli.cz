@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/includes/header.jsp" %>
-<%@ taglib prefix="c" uri="https://jakarta.ee/jsp/jstl/core" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <main class="avoid-footer">
   <h2 style="text-align:center;">${t.getProperty('menu.lyrics','Texty')}</h2>
 

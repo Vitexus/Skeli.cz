@@ -27,7 +27,8 @@
     @media (max-width: 800px){ .news-grid { grid-template-columns: 1fr; } }
     .card { background: var(--panel); border:1px solid var(--panel-border); border-radius:12px; padding:16px; box-shadow: 0 6px 18px rgba(0,0,0,0.20); }
     .videos { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:12px; }
-    .video { background: rgba(0,0,0,0.55); border:1px solid var(--panel-border); border-radius:10px; overflow:hidden; }
+    .video { background: rgba(0,0,0,0.55); border:1px solid var(--panel-border); border-radius:10px; overflow:hidden; color: var(--text); text-decoration: none; transition: transform .2s ease, box-shadow .2s ease; }
+    .video:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
     .video img { width:100%; height:128px; object-fit:cover; display:block; }
     .video .meta { padding:8px; font-size:0.95em; }
     .newsletter input[type=email]{ width:100%; box-sizing:border-box; margin-bottom:8px; }

@@ -34,14 +34,24 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
                              "SELECT s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id " +
                              "FROM lyrics l LEFT JOIN songs s ON s.id = l.song_id " +
                              "GROUP BY s.name, s.year " +
-                             "ORDER BY s.name ASC"
+                             "ORDER BY s.year DESC, s.name ASC"
                          );
                          ResultSet rs = ps.executeQuery()) {
                         while (rs.next()) {
                             hadRows = true;
                             String name = rs.getString("song_name");
                             if (name != null) name = name.replaceFirst("(?i)^\\s*skeli\\s*-\\s*","" );
-                            Integer y = (Integer) rs.getObject("song_year");
+                            Object yearObj = rs.getObject("song_year");
+                            Integer y = null;
+                            if (yearObj != null) {
+                                if (yearObj instanceof java.sql.Date) {
+                                    y = ((java.sql.Date) yearObj).toLocalDate().getYear();
+                                } else if (yearObj instanceof Number) {
+                                    y = ((Number) yearObj).intValue();
+                                } else {
+                                    y = Integer.parseInt(yearObj.toString());
+                                }
+                            }
                             int lyricId = rs.getInt("lyric_id");
                             if (rs.wasNull() || lyricId <= 0) continue;
         %>
@@ -58,14 +68,24 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
                              "SELECT s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id " +
                              "FROM lyrics l LEFT JOIN songs s ON s.id = l.song_id " +
                              "GROUP BY s.name, s.year " +
-                             "ORDER BY s.name ASC"
+                             "ORDER BY s.year DESC, s.name ASC"
                          );
                          ResultSet rs = ps.executeQuery()) {
                         while (rs.next()) {
                             hadRows = true;
                             String name = rs.getString("song_name");
                             if (name != null) name = name.replaceFirst("(?i)^\\s*skeli\\s*-\\s*","" );
-                            Integer y = (Integer) rs.getObject("song_year");
+                            Object yearObj = rs.getObject("song_year");
+                            Integer y = null;
+                            if (yearObj != null) {
+                                if (yearObj instanceof java.sql.Date) {
+                                    y = ((java.sql.Date) yearObj).toLocalDate().getYear();
+                                } else if (yearObj instanceof Number) {
+                                    y = ((Number) yearObj).intValue();
+                                } else {
+                                    y = Integer.parseInt(yearObj.toString());
+                                }
+                            }
                             int lyricId = rs.getInt("lyric_id");
                             if (rs.wasNull() || lyricId <= 0) continue;
         %>
