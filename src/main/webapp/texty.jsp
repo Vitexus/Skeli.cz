@@ -5,21 +5,25 @@
 <main>
     <h2 style="text-align:center;">Texty</h2>
     <style>
+      /* Vrať původní vzhled navigace; zvýrazni seznam textů */
+      .texts-card { background: rgba(255,255,255,0.55); border:1px solid var(--panel-border); border-radius:12px; padding:16px; margin-top:12px; box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
       .texts-list { list-style:none; padding:0; margin:0; display:block; }
-      .texts-list li { margin:6px 0; text-align:center; }
+.texts-list li { margin:8px 0; text-align:center; }
+      .texts-list a { font-weight: var(--fw); }
     </style>
-    <ul class="texts-list">
+    <div class="texts-card">
+      <ul class="texts-list">
         <%
-            String mysqlUrl = "jdbc:mysql://localhost:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4&useSSL=false&serverTimezone=UTC";
-            String mariadbUrl = "jdbc:mariadb://localhost:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
+            String mysqlUrl = "jdbc:mysql://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4&useSSL=false&serverTimezone=UTC";
+            String mariadbUrl = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
             String user = "Skeli";
             String password = "skeli";
             boolean hadRows = false;
             try {
                 boolean mariaLoaded = false;
                 boolean mysqlLoaded = false;
-try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Throwable th) { out.println("<!-- MariaDB driver not found: " + th.getMessage() + " -->"); }
-                try { Class.forName("com.mysql.cj.jdbc.Driver"); mysqlLoaded = true; } catch (Throwable th) { out.println("<!-- MySQL driver not found: " + th.getMessage() + " -->"); }
+try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Throwable ex1) { out.println("<!-- MariaDB driver not found: " + ex1.getMessage() + " -->"); }
+                try { Class.forName("com.mysql.cj.jdbc.Driver"); mysqlLoaded = true; } catch (Throwable ex2) { out.println("<!-- MySQL driver not found: " + ex2.getMessage() + " -->"); }
 
                 SQLException connError = null;
                 if (mariaLoaded) {
@@ -36,7 +40,7 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
                             String name = rs.getString("song_name");
                             int lyricId = rs.getInt("lyric_id");
         %>
-                            <li><a href="/lyrics/<%= lyricId %>-<%= name.toLowerCase().replaceAll("[^a-z0-9]+","-").replaceAll("^-|-$","") %>"><%= name %></a></li>
+                            <li><a href="lyric.jsp?id=<%= lyricId %>"><%= name %></a></li>
         <%
                         }
                     } catch (SQLException e1) {
@@ -57,7 +61,7 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
                             String name = rs.getString("song_name");
                             int lyricId = rs.getInt("lyric_id");
         %>
-                            <li><a href="/lyrics/<%= lyricId %>-<%= name.toLowerCase().replaceAll("[^a-z0-9]+","-").replaceAll("^-|-$","") %>"><%= name %></a></li>
+                            <li><a href="lyric.jsp?id=<%= lyricId %>"><%= name %></a></li>
         <%
                         }
                     } catch (SQLException e2) {
@@ -78,7 +82,8 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
                 out.println("<li>Chyba při načítání textů: " + e.getMessage() + "</li>");
             }
         %>
-    </ul>
+      </ul>
+    </div>
 </main>
 
 <%@ include file="includes/footer.jsp" %>

@@ -20,16 +20,29 @@
       .nav-top .song-list li:not(:last-child)::after { content: " | "; color: #777; margin: 0 6px; }
       .card { background: linear-gradient(180deg, rgba(255,255,255,0.50), rgba(255,255,255,0.40)); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); padding: 24px 28px; backdrop-filter: blur(4px); }
       .card h3 { margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,0.06); }
-      .card pre { background: transparent; margin: 0; max-width: 25ch; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
+      .card pre { background: transparent; margin: 0 auto; max-width: 60ch; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; text-align:center; font-weight: var(--fw); }
+      @media (min-width: 1100px){ .lyric-layout { display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start; } }
       .accent { border-left: 4px solid #ffd700; padding-left: 16px; }
+      /* Comments: high-contrast panel inside light lyric card */
+      .comments { margin-top:14px; background: rgba(0,0,0,0.70); color: var(--text); border: 1px solid var(--panel-border); border-radius: 12px; padding: 14px 16px; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+      .comments h4 { margin: 0 0 10px; color: #fff; }
+      .comments .comment-item { background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:10px; margin:8px 0; }
+      .comments .comment-item strong { color:#fff; }
+      .comments .comment-item .meta { color: rgba(255,255,255,0.75); }
+      body.light .comments { background: #ffffff; color:#111; border-color: rgba(0,0,0,0.12); }
+      body.light .comments h4 { color:#111; }
+      body.light .comments .comment-item { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.12); }
     </style>
 
+    <% String flash = request.getParameter("msg"); if (flash != null) { %>
+      <div style="background:rgba(0,128,0,0.35); padding:8px 10px; border-radius:8px; margin-bottom:10px; text-align:center;">Komentář <%= ("deleted".equals(flash)?"odstraněn":("updated".equals(flash)?"upraven":"přidán")) %>.</div>
+    <% } %>
     <div class="nav-top">
       <h3>Názvy písní</h3>
       <ul class="song-list">
         <%
-            String mysqlUrl = "jdbc:mysql://localhost:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4&useSSL=false&serverTimezone=UTC";
-            String mariadbUrl = "jdbc:mariadb://localhost:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
+            String mysqlUrl = "jdbc:mysql://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4&useSSL=false&serverTimezone=UTC";
+            String mariadbUrl = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
             String user = "Skeli";
             String password = "skeli";
 
@@ -37,8 +50,8 @@
 
             boolean mariaLoaded = false;
             boolean mysqlLoaded = false;
-            try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Throwable t) { /* ignore */ }
-            try { Class.forName("com.mysql.cj.jdbc.Driver"); mysqlLoaded = true; } catch (Throwable t) { /* ignore */ }
+            try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Throwable ex1) { /* ignore */ }
+            try { Class.forName("com.mysql.cj.jdbc.Driver"); mysqlLoaded = true; } catch (Throwable ex2) { /* ignore */ }
 
             String listSql = "SELECT s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id " +
                              "FROM lyrics l LEFT JOIN songs s ON s.id = l.song_id " +
@@ -85,11 +98,20 @@
 
     <section>
         <%
+            // Support SEO path /lyrics/{id-slug}
+            if (activeId == null) {
+                String pi = request.getPathInfo();
+                if (pi != null && pi.length() > 1) {
+                    String p = pi.substring(1);
+                    try { activeId = Integer.parseInt(p.split("-",2)[0]); } catch (Exception ignore) {}
+                }
+            }
             if (connected) {
                 if (activeId == null) {
                     out.println("<p>Vyberte prosím píseň vlevo.</p>");
                 } else {
-                    String detailSql = "SELECT s.name AS song_name, s.year AS song_year, l.words, l.score " +
+                    String detailSql = "SELECT s.name AS song_name, s.year AS song_year, l.words, l.score, " +
+                                       "(SELECT v.youtube_id FROM videos v WHERE v.song_id = l.song_id ORDER BY v.published_at DESC, v.id DESC LIMIT 1) AS yt " +
                                        "FROM lyrics l JOIN songs s ON s.id = l.song_id " +
                                        "WHERE l.id = ?";
                     try (PreparedStatement ps = conn.prepareStatement(detailSql)) {
@@ -99,25 +121,47 @@
                                 String name = rs.getString("song_name");
                                 String year = rs.getString("song_year");
                                 String words = rs.getString("words");
+                                String yt = rs.getString("yt");
+                                // try translated words if available for selected language
+                                String curLang = (String) session.getAttribute("lang");
+                                if (curLang != null && !curLang.equals("cs")) {
+                                  try (PreparedStatement tr = conn.prepareStatement("SELECT words FROM lyrics_translations WHERE lyric_id=? AND lang=?")) {
+                                    tr.setInt(1, activeId);
+                                    tr.setString(2, curLang);
+                                    try (ResultSet rtr = tr.executeQuery()) { if (rtr.next() && rtr.getString(1) != null) { words = rtr.getString(1); } }
+                                  }
+                                }
         %>
-                                <div class="card accent">
-                                  <h3><%= name %><% if (year != null) { %> (<%= year %>)<% } %></h3>
-                                  <pre style="white-space: pre-wrap; font-family: 'Inter', system-ui, sans-serif; font-size: 1.05em;"><%= words %></pre>
+                                <div class="card accent lyric-layout">
+                                  <div>
+                                    <h3><%= name %><% if (year != null) { %> (<%= year %>)<% } %></h3>
+                                    <% if (yt != null && !yt.isEmpty()) { %>
+                                    <div style="position:relative; padding-top:28.125%; margin:10px auto 14px; width:50%; min-width:320px;">
+                                      <iframe style="position:absolute; inset:0; width:100%; height:100%;" src="https://www.youtube.com/embed/<%= yt %>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                                    </div>
+                                    <% } %>
+                                    <pre style="white-space: pre-wrap; font-family: 'Inter', system-ui, sans-serif; font-size: 1.05em;"><%= words %></pre>
+                                  </div>
+                                  <div>
 
                                   <hr style="border:none; border-top:1px solid rgba(0,0,0,0.08); margin:16px 0;">
 
-                                  <div class="votes" style="margin-bottom:10px;">
+                                  <div class="votes" style="margin-bottom:10px; display:flex; align-items:center; gap:10px;">
                                     <form method="post" action="vote" style="display:inline;">
                                       <input type="hidden" name="lyric_id" value="<%= activeId %>">
                                       <input type="hidden" name="action" value="up">
-                                      <button type="submit">👍</button>
+                                      <button type="submit" class="btn-vote up" title="Líbí se mi">
+                                        <i class="fa-solid fa-thumbs-up"></i>
+                                      </button>
                                     </form>
-                                    <form method="post" action="vote" style="display:inline; margin-left:8px;">
+                                    <form method="post" action="vote" style="display:inline;">
                                       <input type="hidden" name="lyric_id" value="<%= activeId %>">
                                       <input type="hidden" name="action" value="down">
-                                      <button type="submit">👎</button>
+                                      <button type="submit" class="btn-vote down" title="Nelíbí se mi">
+                                        <i class="fa-solid fa-thumbs-down"></i>
+                                      </button>
                                     </form>
-                                    <span style="margin-left:10px;">
+                                    <span style="margin-left:6px; white-space:nowrap;">
                                       <%
                                         int up=0, down=0;
                                         try (PreparedStatement psV = conn.prepareStatement(
@@ -131,6 +175,21 @@
                                       <strong><%= up %></strong> / <strong><%= down %></strong>
                                     </span>
                                   </div>
+                                  <style>
+                                    .btn-vote { width:40px; height:40px; border-radius:9999px; border:1px solid var(--panel-border); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; backdrop-filter: blur(2px); transition: transform .12s ease, background-color .2s ease, box-shadow .2s ease, opacity .2s ease; }
+                                    .btn-vote i { pointer-events:none; }
+                                    /* Dark mode base */
+                                    .btn-vote { background: rgba(255,255,255,0.06); color:#fff; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+                                    .btn-vote:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+                                    .btn-vote:active { transform: translateY(0); opacity: .9; }
+                                    .btn-vote.up { border-color: rgba(0,255,170,0.35); }
+                                    .btn-vote.down { border-color: rgba(255,80,80,0.35); }
+                                    .btn-vote.up:hover { box-shadow: 0 8px 22px rgba(0,255,170,.25); }
+                                    .btn-vote.down:hover { box-shadow: 0 8px 22px rgba(255,80,80,.25); }
+                                    /* Light mode overrides */
+                                    body.light .btn-vote { background: rgba(0,0,0,0.06); color:#111; box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+                                    body.light .btn-vote:hover { background: rgba(0,0,0,0.12); }
+                                  </style>
 
                                   <div class="views" style="font-size:0.9em; color:#555;">
                                     <%
@@ -149,22 +208,56 @@
                                     Návštěvy: <%= views %>
                                   </div>
 
-                                  <div class="comments" style="margin-top:14px;">
+                                  <div class="comments">
                                     <h4>Komentáře</h4>
                                     <div>
                                       <%
                                         try (PreparedStatement psC = conn.prepareStatement(
-                                          "SELECT c.content, c.created_at, u.username FROM comments c JOIN users u ON u.id=c.user_id WHERE c.lyric_id=? ORDER BY c.created_at DESC")) {
+                                          "SELECT c.id, c.user_id, c.content, c.created_at, u.username, u.avatar_url FROM comments c JOIN users u ON u.id=c.user_id WHERE c.lyric_id=? ORDER BY c.created_at DESC")) {
                                           psC.setInt(1, activeId);
-                                          try (ResultSet rsc = psC.executeQuery()) {
-                                            while (rsc.next()) {
-                                      %>
-                                              <div style="padding:8px 0; border-bottom:1px dashed rgba(0,0,0,0.08);">
-                                                <strong><%= rsc.getString("username") %></strong>
-                                                <span style="color:#777; font-size:0.9em;">(<%= rsc.getTimestamp("created_at") %>)</span>
-                                                <div><%= rsc.getString("content") %></div>
+                                        try (ResultSet rsc = psC.executeQuery()) {
+                                          while (rsc.next()) {
+                                            int __cid = rsc.getInt("id");
+                                    %>
+                                              <div class="comment-item" style="display:flex; gap:10px; align-items:flex-start;">
+                                                <img src="<%= rsc.getString("avatar_url") != null ? rsc.getString("avatar_url") : "/img/avatar-default.png" %>" alt="avatar" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                                                <div style="flex:1;">
+                                                  <strong><%= rsc.getString("username") %></strong>
+                                                  <span class="meta" style="font-size:0.9em;">(<%= rsc.getTimestamp("created_at") %>)</span>
+                                                  <div id="c-body-<%= __cid %>"><%= rsc.getString("content") %></div>
+                                                <%
+                                                  Integer uid2 = (Integer) session.getAttribute("userId");
+                                                  String role2 = (String) session.getAttribute("role");
+                                                  boolean canEdit = (uid2 != null && (uid2 == rsc.getInt("user_id") || "ADMIN".equals(role2)));
+                                                  if (canEdit) {
+                                                %>
+                                                <div style="margin-top:6px;">
+                                                  <form method="post" action="/comment" style="display:inline;">
+                                                    <input type="hidden" name="lyric_id" value="<%= activeId %>">
+                                                    <input type="hidden" name="comment_id" value="<%= __cid %>">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <button type="submit" style="background:#7b1e1e;color:#fff;border:none;padding:4px 8px;border-radius:6px;">Smazat</button>
+                                                  </form>
+                                                  <button type="button" onclick="(function(){ var f=document.getElementById('edit-<%= __cid %>'); f.style.display = f.style.display==='none'?'block':'none'; })()" style="margin-left:6px;">Upravit</button>
+                                                </div>
+                                                <form id="edit-<%= __cid %>" method="post" action="/comment" style="display:none; margin-top:6px;">
+                                                  <input type="hidden" name="lyric_id" value="<%= activeId %>">
+                                                  <input type="hidden" name="comment_id" value="<%= __cid %>">
+                                                  <input type="hidden" name="action" value="update">
+                                                  <%
+                                                    String __content = rsc.getString("content");
+                                                    if (__content == null) __content = "";
+                                                    __content = __content.replace("&","&amp;").replace("<","&lt;");
+                                                  %>
+                                                  <textarea name="content" rows="3" style="width:100%;"><%= __content %></textarea>
+                                                  <button type="submit">Uložit</button>
+                                                </form>
+                                                <%
+                                                  }
+                                                %>
                                               </div>
-                                      <%
+                                            </div>
+                                    <%
                                             }
                                           }
                                         }
@@ -175,10 +268,10 @@
                                       Integer uid = (Integer) session.getAttribute("userId");
                                       if (uid != null) {
                                     %>
-                                      <form method="post" action="comment" style="margin-top:10px;">
+                                      <form method="post" action="/comment" style="margin-top:10px;">
                                         <input type="hidden" name="lyric_id" value="<%= activeId %>">
-                                        <textarea name="content" rows="3" style="width:100%;" placeholder="Napište komentář..." required></textarea>
-                                        <button type="submit">Odeslat</button>
+                                        <textarea name="content" rows="3" style="width:100%; font-family: 'Inter', system-ui, sans-serif; font-size:1.02em; border:1px solid var(--panel-border); border-radius:8px; padding:10px; background:rgba(0,0,0,0.12); color:inherit;" placeholder="Napište komentář..." required></textarea>
+                                        <button type="submit" style="margin-top:6px; padding:6px 10px; border:1px solid var(--panel-border); border-radius:8px; background:rgba(0,0,0,0.2); color:inherit;">Odeslat</button>
                                       </form>
                                     <%
                                       } else {

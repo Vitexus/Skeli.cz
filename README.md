@@ -32,6 +32,16 @@ mvn -q -Dflyway.cleanDisabled=true flyway:migrate
 ## Music page
 - `music.jsp`: Spotify embed, now-playing, 3-column video grid, modal player
 - Titles z DB (`videos.title`), fallback oEmbed
+- Spotify sekce má červeno-oranžové zvýraznění (`--spotify`), ne zelené
+
+## UI/Theme
+- Tmavý režim: zesílený kontrast, panely výrazně tmavší (`--panel` rgba(0,0,0,0.60))
+- Světlý režim: přidané okraje panelů pro lepší čitelnost (`--panel-border`)
+
+## I18n
+- Překlady se načítají ze souborů `WEB-INF/i18n/messages_*.properties`
+- Současně se načítají/ukládají i do DB tabulky `translations` (Flyway `V13__i18n_translations_table.sql`)
+- Chování: soubory -> doplnění chybějících klíčů do DB -> DB hodnoty přepíší souborové
 
 ## Texty
 - `texty.jsp` vertikální seznam; `lyric.jsp` komentáře, hlasování, návštěvy, moderní font

@@ -38,8 +38,19 @@ public class YouTubeSyncServlet extends HttpServlet {
         String apiKey = System.getenv("YOUTUBE_API_KEY");
         String channelId = System.getenv("YOUTUBE_CHANNEL_ID");
         if (apiKey == null || channelId == null) {
+            // fallback to WEB-INF/youtube.properties
+            try (java.io.InputStream in = getServletContext().getResourceAsStream("/WEB-INF/youtube.properties")) {
+                if (in != null) {
+                    java.util.Properties p = new java.util.Properties();
+                    p.load(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+                    if (apiKey == null) apiKey = p.getProperty("apiKey");
+                    if (channelId == null) channelId = p.getProperty("channelId");
+                }
+            }
+        }
+        if (apiKey == null || channelId == null) {
             resp.setStatus(500);
-            resp.getWriter().write("Missing YOUTUBE_API_KEY or YOUTUBE_CHANNEL_ID env variables");
+            resp.getWriter().write("YouTube sync missing configuration (env or /WEB-INF/youtube.properties)");
             return;
         }
         try (Connection conn = getConn()) {
