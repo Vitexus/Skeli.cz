@@ -9,18 +9,26 @@
     </div>
     <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.p1","Jsem Skeli – rapper, producent a nadšenec do webu. Baví mě tvořit hudbu i aplikace, které něco předají.") %></p>
   </section>
+  <style>
+    .about-card { background:rgba(0,0,0,0.65); border:1px solid var(--panel-border); border-radius:12px; padding:16px; transition: all 0.3s ease; }
+    .about-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.45); }
+    .about-card h3 { color: var(--accent); }
+    .about-card a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .about-card a:hover { text-shadow: 0 0 8px var(--accent); text-decoration: underline; }
+    body.light .about-card { background:rgba(255,255,255,0.85); border-color: rgba(0,0,0,0.15); }
+  </style>
   <section style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:16px;">
-    <div class="section" style="background:rgba(255,255,255,0.55); border:1px solid var(--panel-border); border-radius:12px; padding:16px;">
+    <div class="about-card">
       <h3><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.music.title","Music journey") %></h3>
       <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.music.text","From the first tracks to the current work. Find clips and playlists on the Music page.") %></p>
     </div>
-    <div class="section" style="background:rgba(255,255,255,0.55); border:1px solid var(--panel-border); border-radius:12px; padding:16px;">
+    <div class="about-card">
       <h3><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.collab.title","Collaboration") %></h3>
       <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.collab.text","If you enjoy my work, get in touch. I welcome rap features, beat production and visuals.") %></p>
     </div>
-    <div class="section" style="background:rgba(255,255,255,0.55); border:1px solid var(--panel-border); border-radius:12px; padding:16px;">
+    <div class="about-card">
       <h3><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.contact.title","Contact") %></h3>
-<p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.contact.email","E-mail") %>: <a href="mailto:skelimc@seznam.cz">skelimc@seznam.cz</a></p>
+      <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.contact.email","E-mail") %>: <a href="mailto:skelimc@seznam.cz">skelimc@seznam.cz</a></p>
     </div>
   </section>
   <section style="text-align:center; margin-top:18px;">

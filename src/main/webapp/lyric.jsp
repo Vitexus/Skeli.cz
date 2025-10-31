@@ -153,7 +153,7 @@
                                     </div>
                                     <% } %>
                                     <div style="background:var(--panel); border:1px solid var(--panel-border); border-radius:12px; padding:14px; box-shadow:0 6px 18px rgba(0,0,0,.20);">
-                                      <pre style="white-space: pre-wrap; font-family: 'Inter', system-ui, sans-serif; font-size: 1.05em; margin:0;"><%= words %></pre>
+                                      <pre style="white-space: pre-wrap; font-family: 'Inter', system-ui, sans-serif; font-size: 1.05em; margin:0; text-align:center;"><%= words %></pre>
                                     </div>
                                   </div>
                                   <div>

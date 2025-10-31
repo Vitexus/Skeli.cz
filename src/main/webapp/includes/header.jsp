@@ -201,14 +201,14 @@ body.light .sp-minbar { background: rgba(255,255,255,0.9); color:#111; border-co
 
    <h1 class="comforter-brush-regular">SKELOSQUAD</h1>
    <nav class="bruno-ace-sc-regular">
-        <a href="index.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.home","Home") %></a> |
-        <a href="bio.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.about","About") %></a> |
-        <a href="music.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.music","Music") %></a> |
-        <a href="texty.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.lyrics","Lyrics") %></a>
+        <a href="/index.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.home","Home") %></a> |
+        <a href="/bio.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.about","About") %></a> |
+        <a href="/music.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.music","Music") %></a> |
+        <a href="/texty.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.lyrics","Lyrics") %></a>
     </nav>
     <div class="top-controls" style="position:absolute; top:10px; right:14px; font-size:0.95em; display:flex; gap:10px; align-items:center;">
         <% String currentUser = (String) session.getAttribute("username"); String currentRole = (String) session.getAttribute("role"); %>
-        <a href="donate.jsp" style="color:var(--accent); font-weight:700;">❤ <%= ((java.util.Properties)request.getAttribute("t")).getProperty("btn.donate","Donate") %></a>
+        <a href="/donate.jsp" style="color:var(--accent); font-weight:700;">❤ <%= ((java.util.Properties)request.getAttribute("t")).getProperty("btn.donate","Donate") %></a>
         <button id="fontToggle" title="Toggle font weight" style="background:transparent;border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 8px;border-radius:6px;cursor:pointer;">Aa</button>
         <button id="themeToggle" title="Přepnout vzhled" style="background:transparent;border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 8px;border-radius:6px;cursor:pointer;">🌓</button>
         <div class="lang-switch">
@@ -221,8 +221,8 @@ body.light .sp-minbar { background: rgba(255,255,255,0.9); color:#111; border-co
           </ul>
         </div>
         <% if (currentUser == null) { %>
-            <a href="login.jsp" style="color:white;"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("btn.login","Login") %></a> |
-            <a href="register.jsp" style="color:white;"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("btn.register","Register") %></a>
+            <a href="/login.jsp" style="color:white;"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("btn.login","Login") %></a> |
+            <a href="/register.jsp" style="color:white;"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("btn.register","Register") %></a>
         <% } else { %>
             <div class="user-menu" style="position:relative; display:inline-block;">
               <span style="color:white; cursor:pointer;">👤 <%= currentUser %><% if ("ADMIN".equals(currentRole)) { %> (admin)<% } %></span>

@@ -17,8 +17,4 @@ CREATE TABLE `shorts` (
   CONSTRAINT `fk_shorts_song_id` FOREIGN KEY (`song_id`) REFERENCES `songs`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Add title and published_at columns to videos table if not exists
-ALTER TABLE `videos` ADD COLUMN `title` varchar(255) DEFAULT NULL AFTER `song_id`;
-ALTER TABLE `videos` ADD COLUMN `published_at` timestamp NULL DEFAULT NULL AFTER `title`;
-
 COMMIT;
