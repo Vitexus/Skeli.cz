@@ -63,9 +63,9 @@
             try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Throwable ex1) { /* ignore */ }
             try { Class.forName("com.mysql.cj.jdbc.Driver"); mysqlLoaded = true; } catch (Throwable ex2) { /* ignore */ }
 
-            String listSql = "SELECT s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id " +
-                             "FROM lyrics l LEFT JOIN songs s ON s.id = l.song_id " +
-                             "GROUP BY s.name, s.year " +
+            String listSql = "SELECT s.id AS song_id, s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id " +
+                             "FROM lyrics l JOIN songs s ON s.id = l.song_id " +
+                             "GROUP BY s.id, s.name, s.year " +
                              "ORDER BY s.year DESC, s.name ASC";
 
             Connection conn = null;
