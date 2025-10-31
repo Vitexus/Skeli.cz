@@ -16,6 +16,12 @@
   body.light .nav-top .song-list a { color: #111 !important; }
   body.light .nav-top .song-list a:visited { color: #111 !important; }
   body.light .nav-top .song-list li:not(:last-child)::after { color: rgba(0,0,0,0.4); }
+  .action-bar { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; justify-content:center; }
+  .action-btn { padding:8px 14px; background:rgba(255,255,255,0.06); border:1px solid var(--panel-border); border-radius:8px; color:var(--text); text-decoration:none; font-size:0.9em; transition:all 0.2s ease; display:inline-flex; align-items:center; gap:6px; }
+  .action-btn:hover { background:rgba(255,255,255,0.12); transform:translateY(-1px); color:var(--accent); }
+  .action-btn i { font-size:1.1em; }
+  body.light .action-btn { background:rgba(0,0,0,0.04); }
+  body.light .action-btn:hover { background:rgba(0,0,0,0.08); }
 </style>
 <main class="avoid-footer">
   <h2 style="text-align:center;">${t.getProperty('menu.lyrics','Texty')}</h2>
@@ -46,7 +52,22 @@
         <div style="background:var(--panel); border:1px solid var(--panel-border); border-radius:12px; padding:14px; box-shadow:0 6px 18px rgba(0,0,0,.20);">
           <pre style="white-space: pre-wrap; font-family: 'Inter', system-ui, sans-serif; font-size: 1.05em; margin:0; text-align:center;"><c:out value="${lyric.words}"/></pre>
         </div>
-        <div class="views" style="font-size:0.9em; color:#555; margin-top:8px;">Návštěvy: ${lyric.views}</div>
+        
+        <div class="action-bar">
+          <button class="action-btn" onclick="navigator.clipboard.writeText(window.location.href); alert('⚡ Odkaz zkopírován!')" title="Sdílet odkaz">
+            <i class="fas fa-share-alt"></i> Sdílet
+          </button>
+          <a class="action-btn" href="https://open.spotify.com/search/${encodeURIComponent(lyric.songName)}" target="_blank" rel="noopener" title="Najít na Spotify">
+            <i class="fab fa-spotify" style="color:#1DB954;"></i> Spotify
+          </a>
+          <c:if test="${not empty lyric.youtubeId}">
+            <a class="action-btn" href="https://www.youtube.com/watch?v=${lyric.youtubeId}" target="_blank" rel="noopener" title="Otevřít na YouTube">
+              <i class="fab fa-youtube" style="color:#FF0000;"></i> YouTube
+            </a>
+          </c:if>
+        </div>
+        
+        <div class="views" style="font-size:0.9em; color:#555; margin-top:12px; text-align:center;">Návštěvy: ${lyric.views}</div>
       </div>
       <div class="comments">
         <h4>Komentáře</h4>
