@@ -109,8 +109,11 @@ public class CommentsServlet extends HttpServlet {
                 }
             }
         } catch (SQLException e) { throw new ServletException(e); }
-        String msg = (action==null?"added":("delete".equalsIgnoreCase(action)?"deleted":("update".equalsIgnoreCase(action)?"updated":"ok")));
-        String redir = (lyricIdStr==null||lyricIdStr.isBlank())?"texty.jsp":("lyric.jsp?id="+lyricIdStr);
-        resp.sendRedirect(redir + "&msg=" + msg);
+        // Redirect back to the lyrics page
+        if (lyricIdStr != null && !lyricIdStr.isBlank()) {
+            resp.sendRedirect(req.getContextPath() + "/lyrics/" + lyricIdStr);
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/texty.jsp");
+        }
     }
 }

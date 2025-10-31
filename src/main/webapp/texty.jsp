@@ -4,21 +4,6 @@
 
 <main>
     <h2 class="bruno-ace-sc-regular" style="text-align:center;"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.lyrics","Lyrics") %></h2>
-    <style>
-      /* Vertical centered list */
-      .texts-card { background: rgba(0,0,0,0.65); border-radius:12px; padding:24px; margin-top:12px; box-shadow: 0 6px 18px rgba(0,0,0,0.25); max-width:600px; margin-left:auto; margin-right:auto; }
-      .texts-list { list-style:none; padding:0; margin:0; display:block; }
-      .texts-list li { margin: 14px 0; text-align:center; padding:12px 16px; background: rgba(255,255,255,0.04); border-radius:8px; transition: all 0.2s ease; }
-      .texts-list li:hover { background: rgba(255,255,255,0.08); transform: translateX(4px); }
-      .texts-list a { font-weight: 600; font-size:1.1em; text-decoration: none; transition: color .2s ease, text-shadow .2s ease; color: #fff !important; display:block; }
-      .texts-list a:visited { color: #fff !important; }
-      .texts-list a:hover, .texts-list a:focus { color: var(--accent) !important; text-shadow: 0 0 8px var(--accent); outline: none; }
-      body.light .texts-card { background: rgba(255,255,255,0.85); }
-      body.light .texts-list li { background: rgba(0,0,0,0.03); }
-      body.light .texts-list li:hover { background: rgba(0,0,0,0.06); }
-      body.light .texts-list a { color: #111 !important; }
-      body.light .texts-list a:visited { color: #111 !important; }
-    </style>
     <div class="texts-card">
       <ul class="texts-list">
         <%
@@ -37,7 +22,8 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
                 if (mariaLoaded) {
                     try (Connection conn = DriverManager.getConnection(mariadbUrl, user, password);
                          PreparedStatement ps = conn.prepareStatement(
-                             "SELECT s.id AS song_id, s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id " +
+                             "SELECT s.id AS song_id, s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id, " +
+                             "(SELECT v.youtube_id FROM videos v WHERE v.song_id = s.id LIMIT 1) AS youtube_id " +
                              "FROM lyrics l JOIN songs s ON s.id = l.song_id " +
                              "GROUP BY s.id, s.name, s.year " +
                              "ORDER BY s.year DESC, s.name ASC"
@@ -60,8 +46,13 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
                             }
                             int lyricId = rs.getInt("lyric_id");
                             if (rs.wasNull() || lyricId <= 0) continue;
+                            String youtubeId = rs.getString("youtube_id");
+                            String dataAttr = "";
+                            if (youtubeId != null && !youtubeId.isEmpty()) {
+                                dataAttr = " data-thumb=\"https://img.youtube.com/vi/" + youtubeId + "/mqdefault.jpg\"";
+                            }
         %>
-                            <li><a href="/lyrics/<%= lyricId %>"><%= name %></a><% if (y != null) { %> (<%= y %>)<% } %></li>
+                            <li<%= dataAttr %>><a href="/lyrics/<%= lyricId %>"><%= name %></a><% if (y != null) { %> (<%= y %>)<% } %></li>
         <%
                         }
                     } catch (SQLException e1) {
@@ -71,7 +62,8 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
                 if (!hadRows && mysqlLoaded) {
                     try (Connection conn = DriverManager.getConnection(mysqlUrl, user, password);
                          PreparedStatement ps = conn.prepareStatement(
-                             "SELECT s.id AS song_id, s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id " +
+                             "SELECT s.id AS song_id, s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id, " +
+                             "(SELECT v.youtube_id FROM videos v WHERE v.song_id = s.id LIMIT 1) AS youtube_id " +
                              "FROM lyrics l JOIN songs s ON s.id = l.song_id " +
                              "GROUP BY s.id, s.name, s.year " +
                              "ORDER BY s.year DESC, s.name ASC"
@@ -94,8 +86,13 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
                             }
                             int lyricId = rs.getInt("lyric_id");
                             if (rs.wasNull() || lyricId <= 0) continue;
+                            String youtubeId = rs.getString("youtube_id");
+                            String dataAttr = "";
+                            if (youtubeId != null && !youtubeId.isEmpty()) {
+                                dataAttr = " data-thumb=\"https://img.youtube.com/vi/" + youtubeId + "/mqdefault.jpg\"";
+                            }
         %>
-                            <li><a href="/lyrics/<%= lyricId %>"><%= name %></a><% if (y != null) { %> (<%= y %>)<% } %></li>
+                            <li<%= dataAttr %>><a href="/lyrics/<%= lyricId %>"><%= name %></a><% if (y != null) { %> (<%= y %>)<% } %></li>
         <%
                         }
                     } catch (SQLException e2) {
@@ -118,6 +115,20 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
         %>
       </ul>
     </div>
+    <script>
+      // Apply YouTube thumbnails to list items
+      document.querySelectorAll('.texts-list li[data-thumb]').forEach(li => {
+        const thumb = li.getAttribute('data-thumb');
+        if(thumb) {
+          li.style.setProperty('--thumb-bg', `url("${thumb}")`);
+          const style = document.createElement('style');
+          const id = 'thumb-' + Math.random().toString(36).substr(2, 9);
+          li.classList.add(id);
+          style.textContent = `.${id}::before { background-image: url("${thumb}") !important; }`;
+          document.head.appendChild(style);
+        }
+      });
+    </script>
 </main>
 
 <%@ include file="includes/footer.jsp" %>

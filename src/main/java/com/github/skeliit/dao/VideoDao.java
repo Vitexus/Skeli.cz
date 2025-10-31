@@ -11,7 +11,7 @@ public class VideoDao {
     public List<VideoItem> listVideos() throws SQLException {
         String sql = "SELECT v.youtube_id, COALESCE(v.title, s.name, v.youtube_id) AS title, s.year " +
                      "FROM videos v LEFT JOIN songs s ON s.id=v.song_id " +
-                     "ORDER BY COALESCE(v.title, s.name, v.youtube_id) ASC";
+                     "ORDER BY s.year DESC, COALESCE(v.title, s.name, v.youtube_id) ASC";
         try (Connection c = Db.get(); PreparedStatement ps = c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             List<VideoItem> out = new ArrayList<>();
             while (rs.next()) {
