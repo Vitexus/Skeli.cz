@@ -32,6 +32,11 @@
     <h3>Uživatelé</h3>
     <p><a href="/admin_users.jsp">Správa uživatelů</a></p>
   </section>
+  
+  <section class="section">
+    <h3>Přehled písní</h3>
+    <p><a href="/admin/songs">Zobrazit tabulku písní</a> - status textů (jazyky) a videí</p>
+  </section>
 </main>
 
 <%@ include file="includes/footer.jsp" %>

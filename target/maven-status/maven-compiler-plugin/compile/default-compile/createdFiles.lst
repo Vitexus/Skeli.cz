@@ -9,6 +9,8 @@ com\github\skeliit\service\VideoService.class
 com\github\skeliit\AdminUserServlet.class
 com\github\skeliit\model\LyricView.class
 com\github\skeliit\dao\SongDao.class
+com\github\skeliit\AdminSongsServlet.class
+com\github\skeliit\model\SongOverview.class
 com\github\skeliit\AdminVideoServlet.class
 com\github\skeliit\EllipticPlayerServlet$Vid.class
 com\github\skeliit\AdminCommentServlet.class
