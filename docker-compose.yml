@@ -1,0 +1,18 @@
+services:
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: skeliweb
+      MARIADB_USER: Skeli
+      MARIADB_PASSWORD: skeli
+      MARIADB_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+  app:
+    build: .
+    environment:
+      - JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
