@@ -57,7 +57,7 @@
           <button class="action-btn" onclick="navigator.clipboard.writeText(window.location.href); alert('⚡ Odkaz zkopírován!')" title="Sdílet odkaz">
             <i class="fas fa-share-alt"></i> Sdílet
           </button>
-          <a class="action-btn" href="https://open.spotify.com/search/${encodeURIComponent(lyric.songName)}" target="_blank" rel="noopener" title="Najít na Spotify">
+          <a class="action-btn" href="https://open.spotify.com/search/<c:out value='${lyric.songName}'/>" target="_blank" rel="noopener" title="Najít na Spotify">
             <i class="fab fa-spotify" style="color:#1DB954;"></i> Spotify
           </a>
           <c:if test="${not empty lyric.youtubeId}">
