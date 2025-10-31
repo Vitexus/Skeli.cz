@@ -17,11 +17,11 @@
   body.light .nav-top .song-list a:visited { color: #111 !important; }
   body.light .nav-top .song-list li:not(:last-child)::after { color: rgba(0,0,0,0.4); }
   .action-bar { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; justify-content:center; }
-  .action-btn { padding:8px 14px; background:rgba(255,255,255,0.06); border:1px solid var(--panel-border); border-radius:8px; color:var(--text); text-decoration:none; font-size:0.9em; transition:all 0.2s ease; display:inline-flex; align-items:center; gap:6px; }
-  .action-btn:hover { background:rgba(255,255,255,0.12); transform:translateY(-1px); color:var(--accent); }
+  .action-btn { padding:8px 14px; background:transparent; border:none; border-radius:8px; color:var(--text); text-decoration:none; font-size:0.9em; transition:all 0.2s ease; display:inline-flex; align-items:center; gap:6px; font-weight:600; }
+  .action-btn:hover { color:var(--accent); text-shadow: 0 0 8px var(--accent); text-decoration:underline; }
   .action-btn i { font-size:1.1em; }
-  body.light .action-btn { background:rgba(0,0,0,0.04); }
-  body.light .action-btn:hover { background:rgba(0,0,0,0.08); }
+  body.light .action-btn { color:#111; }
+  body.light .action-btn:hover { color:var(--accent); }
   .card { background: linear-gradient(180deg, rgba(255,255,255,0.50), rgba(255,255,255,0.40)); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); padding: 16px 20px; backdrop-filter: blur(4px); }
   .card h3 { margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,0.06); }
   .card pre { background: transparent; margin: 0 auto; max-width: 60ch; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; text-align:center; font-weight: var(--fw); }
@@ -119,9 +119,24 @@
             <div class="comment-item" style="display:flex; gap:10px; align-items:flex-start;">
               <img src="${empty cmt.avatarUrl ? '/img/avatar-default.png' : cmt.avatarUrl}" alt="avatar" style="width:36px; height:36px; border-radius:50%; object-fit:cover;"/>
               <div style="flex:1;">
-                <strong><c:out value="${cmt.username}"/></strong>
-                <span class="meta" style="font-size:0.9em;">(${cmt.createdAt})</span>
-                <div><c:out value="${cmt.content}"/></div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <div>
+                    <strong><c:out value="${cmt.username}"/></strong>
+                    <span class="meta" style="font-size:0.9em; margin-left:6px;">${cmt.createdAt}</span>
+                  </div>
+                  <c:if test="${not empty sessionScope.userId && (sessionScope.userId == cmt.userId || sessionScope.role == 'ADMIN')}">
+                    <div style="display:flex; gap:6px;">
+                      <form method="post" action="/comment" style="display:inline;">
+                        <input type="hidden" name="comment_id" value="${cmt.id}">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="lyric_id" value="${lyric.id}">
+                        <input type="hidden" name="csrf" value="${csrf}">
+                        <button type="submit" style="background:transparent; border:none; color:#ff4444; cursor:pointer; padding:2px 6px; font-size:0.85em;" onclick="return confirm('Opravdu smazat komentář?')" title="Smazat">❌</button>
+                      </form>
+                    </div>
+                  </c:if>
+                </div>
+                <div style="margin-top:6px;"><c:out value="${cmt.content}"/></div>
               </div>
             </div>
           </c:forEach>
