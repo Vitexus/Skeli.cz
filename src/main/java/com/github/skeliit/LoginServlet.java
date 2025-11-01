@@ -41,7 +41,9 @@ public class LoginServlet extends HttpServlet {
                     String hash = rs.getString("password_hash");
                     if (hash != null && BCrypt.checkpw(password, hash)) {
                         HttpSession session = req.getSession(true);
-                        session.setAttribute("userId", rs.getInt("id"));
+                        int uid = rs.getInt("id");
+                        session.setAttribute("userId", uid);
+                        session.setAttribute("user_id", uid); // for legacy JSP/servlets expecting user_id
                         session.setAttribute("username", username);
                         session.setAttribute("role", rs.getString("role"));
                         // remember me (persistent JSESSIONID)
