@@ -21,8 +21,8 @@
           <button id="btn-zoom-in" type="button" class="bruno-ace-sc-regular" style="border:1px solid var(--panel-border);border-radius:8px;padding:6px 10px;">+</button>
           <button id="btn-zoom-out" type="button" class="bruno-ace-sc-regular" style="border:1px solid var(--panel-border);border-radius:8px;padding:6px 10px;">−</button>
           <span style="flex:1"></span>
-          <button id="btn-crop-save" type="button" class="bruno-ace-sc-regular" style="border:1px solid var(--panel-border);border-radius:8px;padding:6px 10px;display:inline-flex;align-items:center;gap:6px;background:transparent;"><i class="fa-solid fa-floppy-disk"></i> Uložit</button>
-          <button id="btn-cancel" type="button" class="bruno-ace-sc-regular" style="border:1px solid var(--panel-border);border-radius:8px;padding:6px 10px;background:transparent;">Zrušit</button>
+          <button id="btn-crop-save" type="button" class="bruno-ace-sc-regular" style="border:1px solid var(--panel-border);border-radius:8px;padding:6px 10px;display:inline-flex;align-items:center;gap:6px;background:transparent;color:#fff;"><i class="fa-solid fa-floppy-disk"></i> Uložit</button>
+          <button id="btn-cancel" type="button" class="bruno-ace-sc-regular" style="border:1px solid var(--panel-border);border-radius:8px;padding:6px 10px;background:transparent;color:#fff;">Zrušit</button>
         </div>
         <small style="opacity:.8; display:block; margin-top:6px;">Tip: Zoom kolečkem myši, tažení myší pro posun. Výstup 512×512 JPG.</small>
       </div>
@@ -80,7 +80,7 @@
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="csrf" value="${csrf}">
                 <textarea name="content" rows="2" style="flex:1; width:100%; border:1px solid var(--panel-border); border-radius:6px; background:rgba(0,0,0,0.12); color:inherit;"><%= ctext %></textarea>
-                <button type="submit" class="bruno-ace-sc-regular" style="border:1px solid var(--panel-border); border-radius:6px; background:transparent; padding:6px 10px;">Uložit</button>
+                <button type=\"submit\" class=\"bruno-ace-sc-regular\" style=\"border:1px solid var(--panel-border); border-radius:6px; background:transparent; padding:6px 10px; color:var(--text);\">Uložit</button>
               </form>
             </td>
             <td style="padding:6px; text-align:center;">
