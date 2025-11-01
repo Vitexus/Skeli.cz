@@ -201,12 +201,13 @@
         const a = e.target.closest('a');
         if(!a) return;
         if(!isInternal(a)) return;
-        const href = a.getAttribute('href');
+        const href = a.getAttribute('href') || '';
         if(!href || href.startsWith('#')) return;
         // allow full reload for language switch to refresh header/nav strings
         if(href.includes('lang=')) return;
-        // disable PJAX for /lyrics/* routes (they have inline styles in main)
-        if(href.includes('/lyrics/') || href.includes('/texty')) return;
+        // disable PJAX for pages that need full refresh or include page-scoped styles/scripts
+        const noPjax = ['/lyrics/', '/texty', '/admin', '/logout', '/login.jsp', '/register.jsp', '/uzivatel.jsp', '/profile.jsp'];
+        if (noPjax.some(p => href.includes(p))) return;
         e.preventDefault();
         navigate(href, true);
       });
