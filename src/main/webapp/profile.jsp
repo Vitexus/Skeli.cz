@@ -7,7 +7,7 @@
     <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;">
       <div>
         <div id="avatar-preview" style="width:120px; height:120px; border-radius:50%; overflow:hidden; border:1px solid var(--panel-border); background:rgba(0,0,0,0.2);">
-          <img id="avatar-preview-img" src="<%= (request.getSession().getAttribute("avatar_url")!=null)?request.getSession().getAttribute("avatar_url").toString():"/img/avatar-default.png" %>" alt="preview" style="width:100%;height:100%;object-fit:cover;display:block;">
+          <img id="avatar-preview-img" src="<%= (request.getSession().getAttribute("avatar_url")!=null)?request.getSession().getAttribute("avatar_url").toString():"/img/avatar-default.png" %>" alt="preview" style="width:100%;height:100%;object-fit:cover;object-position:center center;display:block;">
         </div>
       </div>
       <div style="flex:1; min-width:280px;">
@@ -32,6 +32,75 @@
       <input id="avatar-file-hidden" type="file" name="avatar" accept="image/*">
     </form>
   </section>
+
+  <section style="background: var(--panel); border: 1px solid var(--panel-border); border-radius: 12px; padding: 16px; box-shadow: 0 6px 18px rgba(0,0,0,0.20); margin-top:14px;">
+    <h3 class="bruno-ace-sc-regular">Moje příspěvky</h3>
+    <div style="overflow:auto;">
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th style="border-bottom:1px solid var(--panel-border); text-align:left; padding:6px;">Datum</th>
+            <th style="border-bottom:1px solid var(--panel-border); text-align:left; padding:6px;">Píseň</th>
+            <th style="border-bottom:1px solid var(--panel-border); text-align:left; padding:6px;">Komentář</th>
+            <th style="border-bottom:1px solid var(--panel-border); padding:6px;">Akce</th>
+          </tr>
+        </thead>
+        <tbody>
+        <%
+          Object __uidObj = session.getAttribute("userId");
+          if (__uidObj == null) __uidObj = session.getAttribute("user_id");
+          if (__uidObj != null) {
+            int __uid2 = (Integer) __uidObj;
+            try (java.sql.Connection c = java.sql.DriverManager.getConnection("jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4","Skeli","skeli");
+                 java.sql.PreparedStatement ps = c.prepareStatement(
+                   "SELECT c.id, c.content, c.created_at, c.lyric_id, s.name " +
+                   "FROM comments c JOIN lyrics l ON l.id=c.lyric_id JOIN songs s ON s.id=l.song_id " +
+                   "WHERE c.user_id=? ORDER BY c.created_at DESC LIMIT 50")
+            ) {
+              ps.setInt(1, __uid2);
+              try (java.sql.ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                  int cid = rs.getInt(1);
+                  String ctext = rs.getString(2);
+                  java.sql.Timestamp ts = rs.getTimestamp(3);
+                  int lid = rs.getInt(4);
+                  String sname = rs.getString(5);
+        %>
+          <tr>
+            <td style="padding:6px; opacity:.8;"><%= ts %></td>
+            <td style="padding:6px;"><a href="/lyric.jsp?id=<%= lid %>"><%= sname %></a></td>
+            <td style="padding:6px; max-width:420px;">
+              <form method="post" action="/comment" style="display:flex; gap:6px; align-items:flex-start;">
+                <input type="hidden" name="lyric_id" value="<%= lid %>">
+                <input type="hidden" name="comment_id" value="<%= cid %>">
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="csrf" value="${csrf}">
+                <textarea name="content" rows="2" style="flex:1; width:100%; border:1px solid var(--panel-border); border-radius:6px; background:rgba(0,0,0,0.12); color:inherit;"><%= ctext %></textarea>
+                <button type="submit" class="bruno-ace-sc-regular" style="border:1px solid var(--panel-border); border-radius:6px; background:transparent; padding:6px 10px;">Uložit</button>
+              </form>
+            </td>
+            <td style="padding:6px; text-align:center;">
+              <form method="post" action="/comment" onsubmit="return confirm('Smazat komentář?');">
+                <input type="hidden" name="lyric_id" value="<%= lid %>">
+                <input type="hidden" name="comment_id" value="<%= cid %>">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="csrf" value="${csrf}">
+                <button type="submit" style="background:#7b1e1e;color:#fff;border:none;padding:6px 10px;border-radius:8px;">Smazat</button>
+              </form>
+            </td>
+          </tr>
+        <%
+                }
+              }
+            } catch (Exception ignore) {}
+          } else { %>
+          <tr><td colspan="4" style="padding:6px; opacity:.8;">Pro zobrazení obsahu se přihlas.</td></tr>
+        <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
   <link href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
   <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js"></script>
   <script>
