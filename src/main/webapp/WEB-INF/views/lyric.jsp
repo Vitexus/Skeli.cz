@@ -12,9 +12,9 @@
     box-shadow: 0 4px 12px rgba(204, 43, 43, 0.1);
   }
   body.light .lyric-header-box {
-    background: rgba(204, 43, 43, 0.08);
-    border-color: rgba(204, 43, 43, 0.25);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    background: rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.18);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
   }

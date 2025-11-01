@@ -65,174 +65,107 @@ public class EllipticPlayerServlet extends HttpServlet {
         } catch (SQLException e) { /* silent -> render empty */ }
 
         PrintWriter out = resp.getWriter();
-        // Main video player - original size
-        out.println("<div class='video-player' style='position:relative;border:1px solid var(--panel-border);border-radius:12px;background:#000;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.3);margin-bottom:20px;max-width:800px;width:70%;margin-left:auto;margin-right:auto;'>");
-        out.println("  <div style='position:relative;padding-top:56.25%;'>");
-        out.println("    <iframe id='main-frame' style='position:absolute;inset:0;width:100%;height:100%;border:0;' allow='autoplay; encrypted-media; picture-in-picture' allowfullscreen></iframe>");
+        // Styles + layout for new EllipticPlayer carousel (responsive, percentage-based)
+        out.println("<style>");
+        out.println(".ep-wrap{width:100%;max-width:800px;margin:0 auto;}");
+        out.println(".ep-frame-wrap{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;box-shadow:0 8px 24px rgba(0,0,0,.3);}");
+        out.println(".ep-frame-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}");
+        out.println(".ep-carousel{position:relative;margin-top:2%;padding:3% 14%;background:rgba(0,0,0,0.3);border:1px solid var(--panel-border);border-radius:12px;}");
+        out.println(".ep-viewport{position:relative;width:100%;height:0;padding-top:30%;overflow:hidden;}");
+        out.println(".ep-item{position:absolute;top:50%;transform:translate(-50%,-50%);transition:transform .45s ease, opacity .45s ease, box-shadow .45s ease, filter .45s ease;border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.28);opacity:0;width:40%;aspect-ratio:16/9;background:#000;border:2px solid transparent;}");
+        out.println(".ep-item img{width:100%;height:100%;object-fit:cover;display:block;}");
+        out.println(".ep-title{position:absolute;left:0;right:0;bottom:0;padding:3% 3%;background:linear-gradient(transparent,rgba(0,0,0,0.7));color:#fff;font-size:90%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}");
+        out.println(".ep-item.is-active{left:50%;opacity:1;border-color:var(--accent, rgba(255,215,0,0.6));filter:none;z-index:3;}");
+        out.println(".ep-item.is-prev{left:26%;opacity:0.9;width:30%;filter:grayscale(.1);z-index:2;}");
+        out.println(".ep-item.is-next{left:74%;opacity:0.9;width:30%;filter:grayscale(.1);z-index:2;}");
+        out.println(".ep-item.is-prev2{left:14%;opacity:0.8;width:24%;filter:grayscale(.2);z-index:1;-webkit-mask-image:linear-gradient(to right,rgba(0,0,0,0) 0%, rgba(0,0,0,1) 70%);mask-image:linear-gradient(to right,rgba(0,0,0,0) 0%, rgba(0,0,0,1) 70%);}");
+        out.println(".ep-item.is-next2{left:86%;opacity:0.8;width:24%;filter:grayscale(.2);z-index:1;-webkit-mask-image:linear-gradient(to right,rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);mask-image:linear-gradient(to right,rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);}");
+        out.println(".ep-item.is-hidden{display:none;z-index:0;}");
+        out.println(".ep-arrow{position:absolute;top:50%;transform:translateY(-50%);width:5%;aspect-ratio:1/1;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid var(--panel-border);color:var(--text, #fff);cursor:pointer;font-size:150%;display:flex;align-items:center;justify-content:center;transition:all .25s;z-index:4;}");
+        out.println("#ep-prev{left:2%;}");
+        out.println("#ep-next{right:2%;}");
+        out.println(".ep-arrow:hover{background:rgba(255,255,255,0.2);transform:translateY(-50%) scale(1.05);}");
+        out.println("</style>");
+
+        // HTML structure
+        out.println("<div class='ep-wrap'>");
+        out.println("  <div class='ep-frame-wrap'>");
+        out.println("    <iframe id='ep-main' allow='autoplay; encrypted-media; picture-in-picture' allowfullscreen></iframe>");
         out.println("  </div>");
-        out.println("</div>");
-        
-        // Thumbnail navigation strip with perspective scaling
-        out.println("<div style='position:relative;background:rgba(0,0,0,0.3);border:1px solid var(--panel-border);border-radius:12px;padding:20px 16px;min-height:140px;'>");
-        out.println("  <div style='display:flex;align-items:center;gap:12px;'>");
-        out.println("    <button id='prev-btn' style='flex-shrink:0;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid var(--panel-border);color:var(--text);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;z-index:100;'>◀</button>");
-        out.println("    <div id='thumbs-container' style='flex:1;overflow:hidden;position:relative;height:120px;'>");
-        out.println("      <div id='thumbs-track' style='display:flex;gap:8px;align-items:center;justify-content:center;position:absolute;left:50%;transform:translateX(-50%);transition:all 0.4s ease;'></div>");
-        out.println("    </div>");
-        out.println("    <button id='next-btn' style='flex-shrink:0;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid var(--panel-border);color:var(--text);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;z-index:100;'>▶</button>");
+        out.println("  <div class='ep-carousel'>");
+        out.println("    <button class='ep-arrow' id='ep-prev' aria-label='Previous'>‹</button>");
+        out.println("    <div class='ep-viewport' id='ep-viewport'></div>");
+        out.println("    <button class='ep-arrow' id='ep-next' aria-label='Next'>›</button>");
         out.println("  </div>");
         out.println("</div>");
 
-        // JavaScript for thumbnail navigation
+        // JavaScript logic
         out.println("<script>");
         out.println("(function(){");
         out.println("const videos = [];");
         for (Vid v: vids) {
-            String escTitle = v.title == null ? "" : v.title.replace("\\", "\\\\").replace("\"","\\\"");
+            String escTitle = v.title == null ? "" : v.title.replace("\\", "\\\\").replace("\"","\\\"").replace("'","\\'");
             out.printf("videos.push({id:'%s', title:'%s'});%n", v.id, escTitle);
         }
-        out.println(
-            "const frame = document.getElementById('main-frame');\n" +
-            "const track = document.getElementById('thumbs-track');\n" +
-            "const container = document.getElementById('thumbs-container');\n" +
-            "let currentIndex = 0;\n" +
-            "let scrollOffset = 0;\n" +
-            "const BASE_WIDTH = 160;\n" +
-            "const BASE_HEIGHT = 90;\n" +
-            "const VISIBLE_SIDES = 3;\n" +
-            "\n" +
-            "// Create thumbnails\n" +
-            "videos.forEach((video, index) => {\n" +
-            "  const thumb = document.createElement('div');\n" +
-            "  thumb.className = 'video-thumb';\n" +
-            "  thumb.dataset.index = index;\n" +
-            "  thumb.style.cssText = `\n" +
-            "    flex-shrink:0;\n" +
-            "    border-radius:8px;\n" +
-            "    overflow:hidden;\n" +
-            "    cursor:pointer;\n" +
-            "    border:2px solid transparent;\n" +
-            "    transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);\n" +
-            "    position:relative;\n" +
-            "    background:#000;\n" +
-            "    transform-origin:center center;\n" +
-            "  `;\n" +
-            "  thumb.innerHTML = `\n" +
-            "    <img src='https://img.youtube.com/vi/${video.id}/mqdefault.jpg' \n" +
-            "         style='width:100%;height:100%;object-fit:cover;display:block;' \n" +
-            "         alt='${video.title}'>\n" +
-            "    <div style='position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.8));padding:20px 4px 4px;font-size:11px;color:#fff;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;'>${video.title}</div>\n" +
-            "  `;\n" +
-            "  thumb.addEventListener('click', () => playVideo(index));\n" +
-            "  track.appendChild(thumb);\n" +
-            "});\n"
-            "\n" +
-            "function playVideo(index) {\n" +
-            "  currentIndex = index;\n" +
-            "  const video = videos[index];\n" +
-            "  frame.src = `https://www.youtube.com/embed/${video.id}?autoplay=1&enablejsapi=1`;\n" +
-            "  updateThumbs();\n" +
-            "  centerThumb(index);\n" +
-            "}\n" +
-            "\n" +
-            "function updateThumbs() {\n" +
-            "  const thumbs = track.querySelectorAll('.video-thumb');\n" +
-            "  thumbs.forEach((thumb, i) => {\n" +
-            "    const distance = Math.abs(i - currentIndex);\n" +
-            "    \n" +
-            "    if (distance === 0) {\n" +
-            "      // Center - largest\n" +
-            "      thumb.style.width = BASE_WIDTH + 'px';\n" +
-            "      thumb.style.height = BASE_HEIGHT + 'px';\n" +
-            "      thumb.style.border = '2px solid var(--accent)';\n" +
-            "      thumb.style.opacity = '1';\n" +
-            "      thumb.style.zIndex = '50';\n" +
-            "      thumb.style.transform = 'scale(1)';\n" +
-            "    } else if (distance === 1) {\n" +
-            "      // 1 step away - 85% size\n" +
-            "      const scale = 0.85;\n" +
-            "      thumb.style.width = (BASE_WIDTH * scale) + 'px';\n" +
-            "      thumb.style.height = (BASE_HEIGHT * scale) + 'px';\n" +
-            "      thumb.style.border = '2px solid rgba(255,215,0,0.3)';\n" +
-            "      thumb.style.opacity = '0.8';\n" +
-            "      thumb.style.zIndex = '40';\n" +
-            "      thumb.style.transform = 'scale(1)';\n" +
-            "    } else if (distance === 2) {\n" +
-            "      // 2 steps away - 70% size\n" +
-            "      const scale = 0.70;\n" +
-            "      thumb.style.width = (BASE_WIDTH * scale) + 'px';\n" +
-            "      thumb.style.height = (BASE_HEIGHT * scale) + 'px';\n" +
-            "      thumb.style.border = '2px solid transparent';\n" +
-            "      thumb.style.opacity = '0.6';\n" +
-            "      thumb.style.zIndex = '30';\n" +
-            "      thumb.style.transform = 'scale(1)';\n" +
-            "    } else {\n" +
-            "      // Far away - 55% size\n" +
-            "      const scale = 0.55;\n" +
-            "      thumb.style.width = (BASE_WIDTH * scale) + 'px';\n" +
-            "      thumb.style.height = (BASE_HEIGHT * scale) + 'px';\n" +
-            "      thumb.style.border = '2px solid transparent';\n" +
-            "      thumb.style.opacity = '0.4';\n" +
-            "      thumb.style.zIndex = '20';\n" +
-            "      thumb.style.transform = 'scale(1)';\n" +
-            "    }\n" +
-            "  });\n" +
-            "}\n"
-            "\n" +
-            "function centerThumb(index) {\n" +
-            "  // Recalculate positions based on scaled widths\n" +
-            "  const thumbs = track.querySelectorAll('.video-thumb');\n" +
-            "  let totalOffset = 0;\n" +
-            "  for (let i = 0; i < index; i++) {\n" +
-            "    const distance = Math.abs(i - index);\n" +
-            "    let scale = 1;\n" +
-            "    if (distance === 1) scale = 0.85;\n" +
-            "    else if (distance === 2) scale = 0.70;\n" +
-            "    else if (distance > 2) scale = 0.55;\n" +
-            "    totalOffset += (BASE_WIDTH * scale) + 8;\n" +
-            "  }\n" +
-            "  track.style.transform = `translateX(calc(-50% - ${totalOffset}px + ${BASE_WIDTH/2}px))`;\n" +
-            "}\n"
-            "\n" +
-            "function scrollThumbs(direction) {\n" +
-            "  const maxIndex = videos.length - 1;\n" +
-            "  if (direction === 'prev' && currentIndex > 0) {\n" +
-            "    playVideo(currentIndex - 1);\n" +
-            "  } else if (direction === 'next' && currentIndex < maxIndex) {\n" +
-            "    playVideo(currentIndex + 1);\n" +
-            "  }\n" +
-            "}\n" +
-            "\n" +
-            "// Button listeners\n" +
-            "document.getElementById('prev-btn').addEventListener('click', () => scrollThumbs('prev'));\n" +
-            "document.getElementById('next-btn').addEventListener('click', () => scrollThumbs('next'));\n" +
-            "\n" +
-            "// Keyboard navigation\n" +
-            "document.addEventListener('keydown', (e) => {\n" +
-            "  if (e.key === 'ArrowLeft') scrollThumbs('prev');\n" +
-            "  else if (e.key === 'ArrowRight') scrollThumbs('next');\n" +
-            "});\n" +
-            "\n" +
-            "// Hover effects for buttons\n" +
-            "['prev-btn', 'next-btn'].forEach(id => {\n" +
-            "  const btn = document.getElementById(id);\n" +
-            "  btn.addEventListener('mouseenter', () => {\n" +
-            "    btn.style.background = 'rgba(255,255,255,0.2)';\n" +
-            "    btn.style.transform = 'scale(1.1)';\n" +
-            "  });\n" +
-            "  btn.addEventListener('mouseleave', () => {\n" +
-            "    btn.style.background = 'rgba(255,255,255,0.1)';\n" +
-            "    btn.style.transform = 'scale(1)';\n" +
-            "  });\n" +
-            "});\n" +
-            "\n" +
-            "// Initialize\n" +
-            "if (videos.length > 0) {\n" +
-            "  playVideo(0);\n" +
-            "} else {\n" +
-            "  frame.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1';\n" +
-            "}\n"
-        );
+        out.println("const frame = document.getElementById('ep-main');");
+        out.println("const viewport = document.getElementById('ep-viewport');");
+        out.println("let currentIndex = 0;");
+
+        out.println("function build(){");
+        out.println("  videos.forEach((video, index) => {");
+        out.println("    const item = document.createElement('div');");
+        out.println("    item.className = 'ep-item';");
+        out.println("    item.dataset.index = index;");
+        out.println("    item.innerHTML = `");
+        out.println("      <img src='https://img.youtube.com/vi/${video.id}/hqdefault.jpg' alt='${video.title}'>");
+        out.println("      <div class='ep-title'>${video.title}</div>");
+        out.println("    `;");
+        out.println("    item.addEventListener('click', () => goTo(index, true));");
+        out.println("    viewport.appendChild(item);");
+        out.println("  });");
+        out.println("}");
+
+        out.println("function updateUI(){");
+        out.println("  const items = viewport.querySelectorAll('.ep-item');");
+        out.println("  items.forEach((el, i) => {");
+        out.println("    el.classList.remove('is-prev2','is-prev','is-active','is-next','is-next2','is-hidden');");
+        out.println("    if (i === currentIndex) el.classList.add('is-active');");
+        out.println("    else if (i === (currentIndex - 1 + videos.length) % videos.length) el.classList.add('is-prev');");
+        out.println("    else if (i === (currentIndex + 1) % videos.length) el.classList.add('is-next');");
+        out.println("    else if (i === (currentIndex - 2 + videos.length) % videos.length) el.classList.add('is-prev2');");
+        out.println("    else if (i === (currentIndex + 2) % videos.length) el.classList.add('is-next2');");
+        out.println("    else el.classList.add('is-hidden');");
+        out.println("  });");
+        out.println("}");
+
+        out.println("function play(id, autoplay){");
+        out.println("  const ap = autoplay ? 1 : 0;");
+        out.println("  frame.src = `https://www.youtube.com/embed/${id}?autoplay=${ap}&rel=0&playsinline=1&enablejsapi=1`;");
+        out.println("}");
+
+        out.println("function goTo(index, autoplay){");
+        out.println("  currentIndex = (index + videos.length) % videos.length;");
+        out.println("  updateUI();");
+        out.println("  play(videos[currentIndex].id, autoplay);");
+        out.println("}");
+
+        out.println("document.getElementById('ep-prev').addEventListener('click', () => goTo(currentIndex - 1, true));");
+        out.println("document.getElementById('ep-next').addEventListener('click', () => goTo(currentIndex + 1, true));");
+
+        out.println("// Keyboard navigation");
+        out.println("document.addEventListener('keydown', (e) => {");
+        out.println("  if (e.key === 'ArrowLeft') goTo(currentIndex - 1, true);");
+        out.println("  else if (e.key === 'ArrowRight') goTo(currentIndex + 1, true);");
+        out.println("});");
+
+        out.println("// Initialize");
+        out.println("if (videos.length > 0) {");
+        out.println("  build();");
+        out.println("  goTo(0, false);");
+        out.println("} else {");
+        out.println("  frame.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1';");
+        out.println("}");
+
         out.println("})();");
         out.println("</script>");
     }

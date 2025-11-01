@@ -19,8 +19,9 @@
 body.light {
   --bg: #f6f6f6;
   --text: #111;
-  --panel: #ffffff;
-  --panel-strong: #ffffff;
+  /* soften whites in light theme to blend with red background */
+  --panel: rgba(255, 255, 255, 0.88);
+  --panel-strong: rgba(255, 255, 255, 0.94);
   --panel-border: rgba(0, 0, 0, 0.18);
   --accent: #a37b00;
 }

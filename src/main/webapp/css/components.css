@@ -103,7 +103,7 @@ body.light .lang-switch .menu a {
 }
 
 body.light .user-dropdown {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.95);
   border: 1px solid var(--panel-border);
 }
 
@@ -192,7 +192,7 @@ body.light .user-dropdown a.admin {
 }
 
 body.light .sp-bar {
-  background: #ffffff;
+  background: rgba(255,255,255,0.92);
   box-shadow: 0 -12px 30px rgba(0, 0, 0, .20);
 }
 

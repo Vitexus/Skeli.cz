@@ -29,6 +29,13 @@
     <link rel="stylesheet" href="/css/base.css?v=1.0.0">
     <link rel="stylesheet" href="/css/components.css?v=1.0.0">
     <link rel="stylesheet" href="/css/pages.css?v=1.0.0">
+    <!-- Light theme extra transparency overrides -->
+    <style>
+      body.light{ --panel: rgba(255,255,255,0.68); --panel-strong: rgba(255,255,255,0.82); }
+      body.light .user-dropdown{ background: rgba(255,255,255,0.86); }
+      body.light .sp-bar{ background: rgba(255,255,255,0.80); }
+      body.light .sp-minbar{ background: rgba(255,255,255,0.75); }
+    </style>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Slick Carousel JS -->
@@ -48,15 +55,16 @@
         <a href="/index.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.home","Home") %></a> |
         <a href="/bio.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.about","About") %></a> |
         <a href="/music.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.music","Music") %></a> |
+        <a href="/aktuality.jsp">Aktuality</a> |
         <a href="/texty.jsp"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.lyrics","Lyrics") %></a>
     </nav>
     <div class="top-controls" style="position:absolute; top:10px; right:14px; font-size:0.8em; display:flex; gap:6px; align-items:center;">
         <% String currentUser = (String) session.getAttribute("username"); String currentRole = (String) session.getAttribute("role"); %>
-        <a href="/donate.jsp" style="color:#CC2B2B; font-weight:600; padding:3px 6px;" title="Podpoř">❤</a>
-        <button id="fontToggle" title="Tloušťka textu" style="background:transparent;border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:0.9em;">A</button>
-        <button id="themeToggle" title="Přepnout světlý/tmavý" style="background:transparent;border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:3px 6px;border-radius:4px;cursor:pointer;">●</button>
+        <a href="/donate.jsp" class="bruno-ace-sc-regular" style="color:#CC2B2B; font-weight:600; padding:3px 8px; display:inline-flex; align-items:center; gap:6px; text-decoration:none;" title="Donate"><i class="fa-solid fa-heart"></i><span style="font-size:0.95em; letter-spacing:.3px;">Donate</span></a>
+        <button id="fontToggle" title="Tloušťka textu" class="bruno-ace-sc-regular" style="background:transparent;border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:3px 8px;border-radius:6px;cursor:pointer;font-size:0.95em;display:inline-flex;align-items:center;gap:6px;"><i class="fa-solid fa-bold"></i></button>
+        <button id="themeToggle" title="Přepnout světlý/tmavý" class="bruno-ace-sc-regular" style="background:transparent;border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:3px 8px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><i class="fa-solid fa-circle-half-stroke"></i></button>
         <div class="lang-switch">
-          <button class="lang-btn" title="Jazyk" style="background:transparent;border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:0.9em;">♪</button>
+          <button class="lang-btn bruno-ace-sc-regular" title="Jazyk" style="background:transparent;border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:3px 8px;border-radius:6px;cursor:pointer;font-size:0.95em;display:inline-flex;align-items:center;gap:6px;"><i class="fa-solid fa-language"></i></button>
           <ul class="menu">
              <li><a href="?lang=cs">Čeština 🇨🇿</a></li>
              <li><a href="?lang=en">English 🇬🇧</a></li>
@@ -65,9 +73,9 @@
           </ul>
         </div>
         <% if (currentUser == null) { %>
-            <a href="/login.jsp" style="color:white; padding:3px 6px;" title="Přihlásit">🔑</a>
+            <a href="/login.jsp" class="bruno-ace-sc-regular" style="color:white; padding:3px 8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;" title="Přihlásit"><i class="fa-solid fa-right-to-bracket"></i><span style="font-size:0.95em; letter-spacing:.3px;">Login</span></a>
             <span style="color:rgba(255,255,255,0.5);">|</span>
-            <a href="/register.jsp" style="color:white; padding:3px 6px;" title="Registrace">➕</a>
+            <a href="/register.jsp" class="bruno-ace-sc-regular" style="color:white; padding:3px 8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;" title="Registrace"><i class="fa-solid fa-user-plus"></i><span style="font-size:0.95em; letter-spacing:.3px;">Register</span></a>
         <% } else { %>
             <div class="user-menu" style="position:relative; display:inline-block;">
               <span style="color:white; cursor:pointer; padding:3px 6px; font-size:0.95em;">👤 <%= currentUser %><% if ("ADMIN".equals(currentRole)) { %> <span style="color:var(--accent);">★</span><% } %></span>

@@ -106,3 +106,28 @@ mvn -q -Dflyway.cleanDisabled=true flyway:migrate
 ## Poznámky
 - DB přístup je zatím v kódu (JSP/Servlety); pro produkci použít konfiguraci/env
 - Admin: `UPDATE users SET role='ADMIN' WHERE username='...';`
+
+---
+
+## What's new (social feed, carousel, auth cards)
+- EllipticPlayer carousel: 5 náhledů (prev2, prev, active, next, next2) + fade na okrajích.
+- Light theme: snížená bělost panelů, lepší čitelnost na červeném pozadí.
+- Login/Register: sjednocené "card" panely, centrováno vertikálně.
+- Sdílení: tlačítko Share u videí a textů (Web Share API / clipboard fallback).
+- Sociální feed: /aktuality.jsp + widget na domovské.
+
+### Social feed API
+Tabulka: `social_posts` (viz Flyway `V26__social_posts.sql`).
+
+- GET `/api/social-posts?limit=10` → poslední příspěvky (IG/FB).
+- POST `/api/social-posts?token=$SOCIAL_TOKEN` → ingest z webhooku (Make/Zapier).
+  - JSON body:
+    ```json
+    {"source":"instagram","postId":"1789","permalink":"https://instagram.com/p/...","image":"https://...jpg","caption":"New drop","createdAt":"2025-11-01T00:00:00Z"}
+    ```
+  - Nastav env `SOCIAL_TOKEN` pro autorizaci POSTu.
+
+### Dev run (DB + server)
+```sh
+mvn flyway:migrate jetty:run
+```
