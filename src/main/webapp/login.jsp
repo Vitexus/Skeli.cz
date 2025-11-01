@@ -7,6 +7,9 @@
       <form method="post" action="login">
         <label>Uživatel<br><input type="text" name="username" required></label>
         <label>Heslo<br><input type="password" name="password" required></label>
+        <label style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+          <input type="checkbox" name="remember" value="1"> Zapamatovat na tomto zařízení
+        </label>
         <button type="submit">Přihlásit</button>
       </form>
     </section>
