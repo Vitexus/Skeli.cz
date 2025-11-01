@@ -157,6 +157,15 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>VideoCommentServlet</servlet-name>
+        <servlet-class>com.github.skeliit.VideoCommentServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>VideoCommentServlet</servlet-name>
+        <url-pattern>/video-comment</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>ChangePasswordServlet</servlet-name>
         <servlet-class>com.github.skeliit.ChangePasswordServlet</servlet-class>
     </servlet>
