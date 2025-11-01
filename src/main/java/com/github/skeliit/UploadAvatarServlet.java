@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.sql.*;
 import java.util.UUID;
 
-@WebServlet(name = "UploadAvatarServlet", urlPatterns = {"/profile/avatar"})
+@WebServlet(name = "UploadAvatarServlet", urlPatterns = {"/profile/avatar-legacy"})
 @MultipartConfig(maxFileSize = 10 * 1024 * 1024, maxRequestSize = 15 * 1024 * 1024)
 public class UploadAvatarServlet extends HttpServlet {
     private Connection getConn() throws SQLException {

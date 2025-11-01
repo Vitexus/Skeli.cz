@@ -1,4 +1,5 @@
 com\github\skeliit\HealthServlet.class
+com\github\skeliit\SocialPostsApiServlet.class
 com\github\skeliit\dao\LyricDao.class
 com\github\skeliit\model\VideoItem.class
 com\github\skeliit\UploadAvatarServlet.class
@@ -15,6 +16,7 @@ com\github\skeliit\AdminVideoServlet.class
 com\github\skeliit\EllipticPlayerServlet$Vid.class
 com\github\skeliit\AdminCommentServlet.class
 com\github\skeliit\model\Song.class
+com\github\skeliit\ProfileAvatarServlet.class
 com\github\skeliit\LoginServlet.class
 com\github\skeliit\RegisterServlet.class
 com\github\skeliit\YouTubeSyncServlet.class
