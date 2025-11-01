@@ -65,15 +65,18 @@ public class EllipticPlayerServlet extends HttpServlet {
         } catch (SQLException e) { /* silent -> render empty */ }
 
         PrintWriter out = resp.getWriter();
+        // CSRF token for JS
+        String __csrfToken = "";
+        try { Object __tmp = (req.getSession(false) != null) ? req.getSession(false).getAttribute("csrf") : null; if (__tmp != null) __csrfToken = __tmp.toString(); } catch (Exception ignore) {}
         // Styles + layout for new EllipticPlayer carousel (responsive, percentage-based)
         out.println("<style>");
         out.println(".ep-wrap{width:100%;max-width:980px;margin:0 auto;}");
-        out.println(".ep-layout{display:grid;grid-template-columns:2fr 1fr;grid-auto-rows:auto;gap:10px;align-items:start;}");
+        out.println(".ep-layout{display:grid;grid-template-columns:2fr 1fr;grid-template-rows:auto auto;gap:10px;align-items:start;}");
         out.println("@media (max-width: 900px){ .ep-layout{ grid-template-columns:1fr; } }");
         out.println(".ep-left{}\n");
         out.println(".ep-frame-wrap{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;box-shadow:0 8px 24px rgba(0,0,0,.3);grid-column:1;grid-row:1;}");
         out.println(".ep-frame-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}");
-        out.println(".ep-carousel{position:relative;margin-top:10px;padding:3% 14%;background:rgba(0,0,0,0.3);border:1px solid var(--panel-border);border-radius:12px;grid-column:1;grid-row:2;}");
+        out.println(".ep-carousel{position:relative;padding:3% 14%;background:rgba(0,0,0,0.3);border:1px solid var(--panel-border);border-radius:12px;grid-column:1;grid-row:2;}");
         out.println(".ep-viewport{position:relative;width:100%;height:0;padding-top:30%;overflow:hidden;}");
         out.println(".ep-item{position:absolute;top:50%;transform:translate(-50%,-50%);transition:transform .45s ease, opacity .45s ease, box-shadow .45s ease, filter .45s ease;border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.28);opacity:0;width:40%;aspect-ratio:16/9;background:#000;border:2px solid transparent;}");
         out.println(".ep-item img{width:100%;height:100%;object-fit:cover;display:block;}");
@@ -94,6 +97,23 @@ public class EllipticPlayerServlet extends HttpServlet {
         out.println(".ep-comment{background:rgba(0,0,0,0.18);border:1px solid var(--panel-border);border-radius:8px;padding:8px;}");
         out.println("body.light .ep-comment{background:rgba(0,0,0,0.06);}");
         out.println(".ep-comment .act{display:flex;gap:8px;align-items:center;}");
+        out.println(".ep-comments textarea{background:rgba(255,255,255,0.08);color:var(--text);}");
+        out.println("body.light .ep-comments textarea{background:rgba(0,0,0,0.04);color:#111;}");
+        out.println(".ep-comments button{background:rgba(255,255,255,0.12);color:var(--text);border:1px solid var(--panel-border);}");
+        out.println("body.light .ep-comments button{background:rgba(0,0,0,0.06);color:#111;}");
+        out.println(".ep-comment .act button{border:1px solid var(--panel-border);border-radius:6px;padding:6px 10px;}");
+        out.println(".ep-comment .act button[disabled]{opacity:.5;cursor:not-allowed;}");
+        out.println(".btn-vote{ width:36px; height:36px; border-radius:9999px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; backdrop-filter: blur(2px); transition: transform .12s ease, background-color .2s ease, box-shadow .2s ease, opacity .2s ease; }");
+        out.println(".btn-vote{ background: rgba(255,255,255,0.08); color:#fff; box-shadow: 0 6px 18px rgba(0,0,0,.25); }");
+        out.println(".btn-vote:hover { background: rgba(255,255,255,0.16); transform: translateY(-1px); }");
+        out.println(".btn-vote.up { border-color: rgba(0,255,170,0.35); }");
+        out.println(".btn-vote.down { border-color: rgba(255,80,80,0.35); }");
+        out.println(".btn-vote.up:hover { box-shadow: 0 8px 22px rgba(0,255,170,.25); }");
+        out.println(".btn-vote.down:hover { box-shadow: 0 8px 22px rgba(255,80,80,.25); }");
+        out.println("body.light .btn-vote { background: rgba(0,0,0,0.06); color:#111; box-shadow: 0 6px 18px rgba(0,0,0,.12); }");
+        out.println("body.light .btn-vote:hover { background: rgba(0,0,0,0.12); }");
+        out.println(".vote-sum{ margin-left:6px; white-space:nowrap; }");
+        out.println("/* ensure exact alignment of aside with left area */ .ep-frame-wrap, .ep-carousel, .ep-comments{ box-sizing:border-box; }");
         out.println("</style>");
 
         // HTML structure
@@ -113,8 +133,8 @@ public class EllipticPlayerServlet extends HttpServlet {
         out.println("      <h4 class='bruno-ace-sc-regular' style='margin:0 0 8px 0;text-align:center;'>Komentáře</h4>");
         out.println("      <div id='ep-comments-list' class='ep-comments-list'></div>");
         out.println("      <form id='ep-comment-form' style='display:flex; gap:6px; align-items:flex-start;'>");
-        out.println("        <textarea id='ep-comment-text' rows='3' style='flex:1; width:100%; border:1px solid var(--panel-border); border-radius:8px; padding:8px; background:rgba(0,0,0,0.12); color:var(--text);' placeholder='Napiš komentář...'></textarea>");
-        out.println("        <button type='submit' class='bruno-ace-sc-regular' style='border:1px solid var(--panel-border);border-radius:8px;background:transparent;padding:6px 10px;'>Odeslat</button>");
+        out.println("        <textarea id='ep-comment-text' rows='3' style='flex:1; width:100%; border:1px solid var(--panel-border); border-radius:8px; padding:8px;' placeholder='Napiš komentář...'></textarea>");
+        out.println("        <button type='submit' class='bruno-ace-sc-regular' style='border:1px solid var(--panel-border);border-radius:8px;padding:6px 10px;'>Odeslat</button>");
         out.println("      </form>");
         out.println("    </aside>");
         out.println("  </div>");
@@ -134,6 +154,7 @@ public class EllipticPlayerServlet extends HttpServlet {
         out.println("const commentForm = document.getElementById('ep-comment-form');");
         out.println("const commentText = document.getElementById('ep-comment-text');");
         out.println("const isAuthed = " + (req.getSession(false)!=null && req.getSession(false).getAttribute("userId")!=null ? "true" : "false") + ";");
+        out.println("const CSRF = '" + __csrfToken.replace("\\", "\\\\").replace("\"","\\\"").replace("'","\\'") + "';");
         out.println("let currentIndex = 0;");
 
         out.println("function build(){");
@@ -173,10 +194,13 @@ public class EllipticPlayerServlet extends HttpServlet {
         out.println("  updateUI();");
         out.println("  play(videos[currentIndex].id, autoplay);");
         out.println("  loadComments(videos[currentIndex].id);");
+        out.println("  syncAsideHeight();");
         out.println("}");
 
         out.println("document.getElementById('ep-prev').addEventListener('click', () => goTo(currentIndex - 1, true));");
         out.println("document.getElementById('ep-next').addEventListener('click', () => goTo(currentIndex + 1, true));");
+        out.println("function syncAsideHeight(){ try{ const layout=document.querySelector('.ep-layout'); const frame=document.querySelector('.ep-frame-wrap'); const car=document.querySelector('.ep-carousel'); const aside=document.querySelector('.ep-comments'); if(!layout||!frame||!car||!aside) return; const cs=getComputedStyle(layout); const g=parseFloat(cs.rowGap||cs.gap||'0')||0; const h = frame.getBoundingClientRect().height + car.getBoundingClientRect().height + g; aside.style.height = Math.round(h) + 'px'; }catch(e){} }");
+        out.println("window.addEventListener('resize', syncAsideHeight);");
 
         out.println("// Keyboard navigation");
         out.println("document.addEventListener('keydown', (e) => {");
@@ -184,7 +208,7 @@ public class EllipticPlayerServlet extends HttpServlet {
         out.println("  else if (e.key === 'ArrowRight') goTo(currentIndex + 1, true);");
         out.println("});");
 
-        out.println("function renderComments(items){\n  commentsList.innerHTML = items.map(c => `\n    <div class=\"ep-comment\">\n      <div style=\"display:flex;justify-content:space-between;gap:8px;\">\n        <strong>${c.user||'user'}</strong> <span style=\"opacity:.7;\">${c.createdAt||''}</span>\n      </div>\n      <div style=\"margin:6px 0;\">${(c.content||'').replace(/</g,'&lt;')}</div>\n      <div class=\"act\">\n        <button data-action=\"vote\" data-v=\"up\" data-id=\"${c.id}\" title=\"Like\">👍 ${c.up||0}</button>\n        <button data-action=\"vote\" data-v=\"down\" data-id=\"${c.id}\" title=\"Dislike\">👎 ${c.down||0}</button>\n        ${c.mine?`<button data-action=\"delete\" data-id=\"${c.id}\" style=\"margin-left:auto;background:#7b1e1e;color:#fff;border:none;padding:4px 8px;border-radius:6px;\">Smazat</button>`:''}\n      </div>\n    </div>`).join('');\n}\n\nasync function loadComments(yt){\n  try{ const r = await fetch('/video-comment?yt='+encodeURIComponent(yt)); if(!r.ok) return; const items = await r.json(); renderComments(items); }catch(e){}\n}\n\nif (commentForm){\n  commentForm.addEventListener('submit', async (e)=>{ e.preventDefault(); const yt = videos[currentIndex]?.id; const content = (commentText.value||'').trim(); if(!content) return; try{ const fd = new FormData(); fd.append('action','add'); fd.append('yt', yt); fd.append('content', content); fd.append('csrf','" + (String.valueOf(req.getSession().getAttribute("csrf"))==null?"":String.valueOf(req.getSession().getAttribute("csrf"))) + "'); const r = await fetch('/video-comment', {method:'POST', body:fd}); if(r.ok){ commentText.value=''; loadComments(yt); } }catch(e){} });\n  commentsList.addEventListener('click', async (e)=>{ const b=e.target.closest('button'); if(!b) return; const id=b.getAttribute('data-id'); const act=b.getAttribute('data-action'); const v=b.getAttribute('data-v'); const fd = new FormData(); fd.append('comment_id', id); fd.append('action', act==='vote'?'vote':act); if(v) fd.append('vote', v); fd.append('csrf','" + (String.valueOf(req.getSession().getAttribute("csrf"))==null?"":String.valueOf(req.getSession().getAttribute("csrf"))) + "'); const r=await fetch('/video-comment',{method:'POST', body:fd}); if(r.ok){ loadComments(videos[currentIndex].id); } });\n}\n");
+        out.println("function renderComments(items){\n  commentsList.innerHTML = items.map(c => `\n    <div class=\"ep-comment\">\n      <div style=\"display:flex;justify-content:space-between;gap:8px;\">\n        <strong>${c.user||'user'}</strong> <span style=\"opacity:.7;\">${c.createdAt||''}</span>\n      </div>\n      <div style=\"margin:6px 0;\">${(c.content||'').replace(/</g,'&lt;')}</div>\n      <div class=\"act\">\n        <button class=\"btn-vote up\" data-action=\"vote\" data-v=\"up\" data-id=\"${c.id}\" title=\"Like\" ${!isAuthed?'disabled':''}><i class=\"fa-solid fa-thumbs-up\"></i></button>\n        <button class=\"btn-vote down\" data-action=\"vote\" data-v=\"down\" data-id=\"${c.id}\" title=\"Dislike\" ${!isAuthed?'disabled':''}><i class=\"fa-solid fa-thumbs-down\"></i></button>\n        <span class=\"vote-sum\"><strong>${c.up||0}</strong> / <strong>${c.down||0}</strong></span>\n        ${c.mine?`<button data-action=\"delete\" data-id=\"${c.id}\" style=\"margin-left:auto;background:#7b1e1e;color:#fff;border:none;padding:4px 8px;border-radius:6px;\">Smazat</button>`:''}\n      </div>\n    </div>`).join('');\n}\n\nasync function loadComments(yt){\n  try{ const r = await fetch('/video-comment?yt='+encodeURIComponent(yt)); if(!r.ok) return; const items = await r.json(); renderComments(items); }catch(e){}\n}\n\nif (commentForm){\n  commentForm.addEventListener('submit', async (e)=>{ e.preventDefault(); const yt = videos[currentIndex]?.id; const content = (commentText.value||'').trim(); if(!content) return; try{ const body = new URLSearchParams(); body.set('action','add'); body.set('yt', yt); body.set('content', content); body.set('csrf', CSRF); const r = await fetch('/video-comment', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body.toString()}); if(r.ok){ commentText.value=''; loadComments(yt); } }catch(e){} });\n  commentsList.addEventListener('click', async (e)=>{ const b=e.target.closest('button'); if(!b) return; if(b.disabled) return; const id=b.getAttribute('data-id'); const act=b.getAttribute('data-action'); const v=b.getAttribute('data-v'); const body = new URLSearchParams(); body.set('comment_id', id); body.set('action', act==='vote'?'vote':act); if(v) body.set('vote', v); body.set('csrf', CSRF); const r=await fetch('/video-comment',{method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body.toString()}); if(r.ok){ loadComments(videos[currentIndex].id); } });\n}\n");
         out.println("// Initialize");
         out.println("if (!isAuthed && commentForm){ commentText.disabled=true; commentText.placeholder='Přihlas se pro přidání komentáře'; commentForm.querySelector('button').disabled=true; }\n");
         out.println("if (videos.length > 0) {");
