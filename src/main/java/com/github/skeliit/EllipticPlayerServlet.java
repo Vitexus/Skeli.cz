@@ -68,11 +68,12 @@ public class EllipticPlayerServlet extends HttpServlet {
         // Styles + layout for new EllipticPlayer carousel (responsive, percentage-based)
         out.println("<style>");
         out.println(".ep-wrap{width:100%;max-width:980px;margin:0 auto;}");
-        out.println(".ep-layout{display:grid;grid-template-columns:2fr 1fr;gap:10px;align-items:start;}");
+        out.println(".ep-layout{display:grid;grid-template-columns:2fr 1fr;grid-auto-rows:auto;gap:10px;align-items:start;}");
         out.println("@media (max-width: 900px){ .ep-layout{ grid-template-columns:1fr; } }");
-        out.println(".ep-frame-wrap{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;box-shadow:0 8px 24px rgba(0,0,0,.3);}");
+        out.println(".ep-left{}\n");
+        out.println(".ep-frame-wrap{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;box-shadow:0 8px 24px rgba(0,0,0,.3);grid-column:1;grid-row:1;}");
         out.println(".ep-frame-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}");
-        out.println(".ep-carousel{position:relative;margin-top:10px;padding:3% 14%;background:rgba(0,0,0,0.3);border:1px solid var(--panel-border);border-radius:12px;}");
+        out.println(".ep-carousel{position:relative;margin-top:10px;padding:3% 14%;background:rgba(0,0,0,0.3);border:1px solid var(--panel-border);border-radius:12px;grid-column:1;grid-row:2;}");
         out.println(".ep-viewport{position:relative;width:100%;height:0;padding-top:30%;overflow:hidden;}");
         out.println(".ep-item{position:absolute;top:50%;transform:translate(-50%,-50%);transition:transform .45s ease, opacity .45s ease, box-shadow .45s ease, filter .45s ease;border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.28);opacity:0;width:40%;aspect-ratio:16/9;background:#000;border:2px solid transparent;}");
         out.println(".ep-item img{width:100%;height:100%;object-fit:cover;display:block;}");
@@ -87,9 +88,9 @@ public class EllipticPlayerServlet extends HttpServlet {
         out.println("#ep-prev{left:2%;}");
         out.println("#ep-next{right:2%;}");
         out.println(".ep-arrow:hover{background:rgba(255,255,255,0.2);transform:translateY(-50%) scale(1.05);}");
-        out.println(".ep-comments{background:rgba(255,255,255,0.06);border:1px solid var(--panel-border);border-radius:12px;padding:10px;}");
+        out.println(".ep-comments{background:rgba(255,255,255,0.06);border:1px solid var(--panel-border);border-radius:12px;padding:10px;grid-column:2;grid-row:1 / span 2;height:100%;display:flex;flex-direction:column;}");
         out.println("body.light .ep-comments{background:rgba(0,0,0,0.04);}");
-        out.println(".ep-comments-list{display:flex;flex-direction:column;gap:8px;max-height:400px;overflow:auto;margin-bottom:8px;}");
+        out.println(".ep-comments-list{display:flex;flex-direction:column;gap:8px;overflow:auto;margin-bottom:8px;flex:1;}");
         out.println(".ep-comment{background:rgba(0,0,0,0.18);border:1px solid var(--panel-border);border-radius:8px;padding:8px;}");
         out.println("body.light .ep-comment{background:rgba(0,0,0,0.06);}");
         out.println(".ep-comment .act{display:flex;gap:8px;align-items:center;}");
@@ -98,7 +99,7 @@ public class EllipticPlayerServlet extends HttpServlet {
         // HTML structure
         out.println("<div class='ep-wrap'>");
         out.println("  <div class='ep-layout'>");
-        out.println("    <div>");
+        out.println("    <div class='ep-left'>");
         out.println("      <div class='ep-frame-wrap'>");
         out.println("        <iframe id='ep-main' allow='autoplay; encrypted-media; picture-in-picture' allowfullscreen></iframe>");
         out.println("      </div>");
@@ -132,6 +133,7 @@ public class EllipticPlayerServlet extends HttpServlet {
         out.println("const commentsList = document.getElementById('ep-comments-list');");
         out.println("const commentForm = document.getElementById('ep-comment-form');");
         out.println("const commentText = document.getElementById('ep-comment-text');");
+        out.println("const isAuthed = " + (req.getSession(false)!=null && req.getSession(false).getAttribute("userId")!=null ? "true" : "false") + ";");
         out.println("let currentIndex = 0;");
 
         out.println("function build(){");
@@ -184,6 +186,7 @@ public class EllipticPlayerServlet extends HttpServlet {
 
         out.println("function renderComments(items){\n  commentsList.innerHTML = items.map(c => `\n    <div class=\"ep-comment\">\n      <div style=\"display:flex;justify-content:space-between;gap:8px;\">\n        <strong>${c.user||'user'}</strong> <span style=\"opacity:.7;\">${c.createdAt||''}</span>\n      </div>\n      <div style=\"margin:6px 0;\">${(c.content||'').replace(/</g,'&lt;')}</div>\n      <div class=\"act\">\n        <button data-action=\"vote\" data-v=\"up\" data-id=\"${c.id}\" title=\"Like\">👍 ${c.up||0}</button>\n        <button data-action=\"vote\" data-v=\"down\" data-id=\"${c.id}\" title=\"Dislike\">👎 ${c.down||0}</button>\n        ${c.mine?`<button data-action=\"delete\" data-id=\"${c.id}\" style=\"margin-left:auto;background:#7b1e1e;color:#fff;border:none;padding:4px 8px;border-radius:6px;\">Smazat</button>`:''}\n      </div>\n    </div>`).join('');\n}\n\nasync function loadComments(yt){\n  try{ const r = await fetch('/video-comment?yt='+encodeURIComponent(yt)); if(!r.ok) return; const items = await r.json(); renderComments(items); }catch(e){}\n}\n\nif (commentForm){\n  commentForm.addEventListener('submit', async (e)=>{ e.preventDefault(); const yt = videos[currentIndex]?.id; const content = (commentText.value||'').trim(); if(!content) return; try{ const fd = new FormData(); fd.append('action','add'); fd.append('yt', yt); fd.append('content', content); fd.append('csrf','" + (String.valueOf(req.getSession().getAttribute("csrf"))==null?"":String.valueOf(req.getSession().getAttribute("csrf"))) + "'); const r = await fetch('/video-comment', {method:'POST', body:fd}); if(r.ok){ commentText.value=''; loadComments(yt); } }catch(e){} });\n  commentsList.addEventListener('click', async (e)=>{ const b=e.target.closest('button'); if(!b) return; const id=b.getAttribute('data-id'); const act=b.getAttribute('data-action'); const v=b.getAttribute('data-v'); const fd = new FormData(); fd.append('comment_id', id); fd.append('action', act==='vote'?'vote':act); if(v) fd.append('vote', v); fd.append('csrf','" + (String.valueOf(req.getSession().getAttribute("csrf"))==null?"":String.valueOf(req.getSession().getAttribute("csrf"))) + "'); const r=await fetch('/video-comment',{method:'POST', body:fd}); if(r.ok){ loadComments(videos[currentIndex].id); } });\n}\n");
         out.println("// Initialize");
+        out.println("if (!isAuthed && commentForm){ commentText.disabled=true; commentText.placeholder='Přihlas se pro přidání komentáře'; commentForm.querySelector('button').disabled=true; }\n");
         out.println("if (videos.length > 0) {");
         out.println("  build();");
         out.println("  goTo(0, false);");
