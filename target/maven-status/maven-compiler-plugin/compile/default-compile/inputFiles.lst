@@ -23,6 +23,8 @@ C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\model\Song
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\model\SongOverview.java
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\model\VideoItem.java
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\ProfileAvatarServlet.java
+C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\ProfileDeleteServlet.java
+C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\ProfileExportServlet.java
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\RegisterServlet.java
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\ResetPasswordServlet.java
 C:\Users\skele\Desktop\work\Skeli.cz\src\main\java\com\github\skeliit\service\LyricService.java

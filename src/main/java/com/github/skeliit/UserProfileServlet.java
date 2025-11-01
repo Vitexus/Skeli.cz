@@ -26,6 +26,7 @@ public class UserProfileServlet extends HttpServlet {
         String bio = req.getParameter("bio");
         String theme = req.getParameter("theme");
         String lang = req.getParameter("lang");
+        boolean visible = "1".equals(req.getParameter("public_profile")) || "on".equalsIgnoreCase(req.getParameter("public_profile"));
         
         Integer age = null;
         if (ageStr != null && !ageStr.trim().isEmpty()) {
@@ -40,11 +41,11 @@ public class UserProfileServlet extends HttpServlet {
         String url = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
         try (Connection conn = DriverManager.getConnection(url, "Skeli", "skeli")) {
             // Insert or update
-            String sql = "INSERT INTO user_profiles (user_id, display_name, age, city, bio, theme, lang) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?) " +
+            String sql = "INSERT INTO user_profiles (user_id, display_name, age, city, bio, theme, lang, visible) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
                         "ON DUPLICATE KEY UPDATE " +
                         "display_name=VALUES(display_name), age=VALUES(age), city=VALUES(city), " +
-                        "bio=VALUES(bio), theme=VALUES(theme), lang=VALUES(lang)";
+                        "bio=VALUES(bio), theme=VALUES(theme), lang=VALUES(lang), visible=VALUES(visible)";
             
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setInt(1, userId);
@@ -58,6 +59,7 @@ public class UserProfileServlet extends HttpServlet {
                 ps.setString(5, bio);
                 ps.setString(6, theme != null ? theme : "dark");
                 ps.setString(7, lang != null ? lang : "cs");
+                ps.setBoolean(8, visible);
                 ps.executeUpdate();
             }
             
