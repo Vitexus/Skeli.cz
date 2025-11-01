@@ -27,15 +27,18 @@
     @media (max-width: 800px){ .news-grid { grid-template-columns: 1fr; } }
     .card { background: var(--panel); border:1px solid var(--panel-border); border-radius:12px; padding:16px; box-shadow: 0 6px 18px rgba(0,0,0,0.20); }
     .videos { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:12px; }
-    .video { background: rgba(0,0,0,0.55); border:1px solid var(--panel-border); border-radius:10px; overflow:hidden; color: var(--text); text-decoration: none; transition: transform .2s ease, box-shadow .2s ease; }
+    .video { position:relative; background: rgba(0,0,0,0.55); border:1px solid var(--panel-border); border-radius:10px; overflow:hidden; color: var(--text); text-decoration: none; transition: transform .2s ease, box-shadow .2s ease; }
     .video:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
     .video img { width:100%; height:128px; object-fit:cover; display:block; }
     .video .meta { padding:8px; font-size:0.95em; }
+    .video .share-btn { position:absolute; right:8px; top:8px; border-radius:999px; border:1px solid var(--panel-border); background: rgba(0,0,0,0.35); color:#fff; padding:6px 10px; cursor:pointer; font-size:0.9em; }
+    .video .share-btn:hover { background: rgba(0,0,0,0.5); }
+    body.light .video .share-btn { background: rgba(0,0,0,0.10); color:#111; }
     .newsletter input[type=email]{ width:100%; box-sizing:border-box; margin-bottom:8px; }
     .newsletter button { background:transparent; border:1px solid var(--panel-border); color:var(--text); padding:6px 10px; border-radius:8px; cursor:pointer; }
     .newsletter button:hover { background: rgba(255,255,255,0.08); }
     .section:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.45) !important; }
-    body.light .section:first-child { background:rgba(204,43,43,0.15) !important; }
+    body.light .section:first-child { background:rgba(0,0,0,0.08) !important; border-color: var(--panel-border) !important; }
     body.light .section:not(:first-child) { background:rgba(0,0,0,0.06) !important; }
   </style>
 
@@ -67,6 +70,7 @@
                       <div style="font-weight:600;"><%= title %></div>
                       <div style="font-size:0.85em; opacity:0.8;"><%= dateStr %></div>
                     </div>
+                    <button type="button" class="share-btn" data-url="https://www.youtube.com/watch?v=<%= vid %>" title="Sdílet">Share</button>
                   </a>
         <%
                 }
@@ -83,6 +87,23 @@
           }
         %>
       </div>
+      <hr style="border-color:var(--panel-border); opacity:.4; margin:12px 0;">
+      <h4 class="bruno-ace-sc-regular" style="margin:6px 0 8px;">📣 Sociální sítě</h4>
+      <div id="home-social" style="display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:12px;"></div>
+      <script>
+        (async function(){
+          try{
+            const res = await fetch('/api/social-posts?limit=6'); if(!res.ok) return; const posts = await res.json();
+            const el = document.getElementById('home-social'); if(!el) return;
+            el.innerHTML = posts.map(p=>{
+              const img = p.image?`<img src="${p.image}" style='width:100%;height:120px;object-fit:cover;display:block;'>`:'';
+              const cap = (p.caption||'').slice(0,120);
+              const badge = p.source==='instagram'?'IG':'FB';
+              return `<a href='${p.permalink}' target='_blank' rel='noopener' style='text-decoration:none;color:inherit;border:1px solid var(--panel-border);border-radius:10px;overflow:hidden;background:rgba(0,0,0,0.55);display:block;position:relative;'>${img}<span style='position:absolute;left:8px;top:8px;background:rgba(0,0,0,0.5);padding:2px 6px;border-radius:6px;font-size:.85em;'>${badge}</span><div style='padding:8px;font-size:.95em;'>${cap}</div></a>`;
+            }).join('');
+          }catch(e){}
+        })();
+      </script>
     </div>
     <div class="card">
       <h3 class="bruno-ace-sc-regular" style="margin-top:0;">🎤 <%= ((java.util.Properties)request.getAttribute("t")).getProperty("home.concerts","Koncerty") %></h3>
@@ -100,6 +121,19 @@
       </div>
     </div>
   </section>
+<script>
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('.share-btn');
+    if(!btn) return;
+    e.preventDefault(); e.stopPropagation();
+    const url = btn.getAttribute('data-url');
+    if (navigator.share) {
+      navigator.share({ title: document.title, url }).catch(()=>{});
+    } else {
+      navigator.clipboard.writeText(url).then(()=>{ btn.textContent='Copied'; setTimeout(()=>btn.textContent='Share',1200); });
+    }
+  });
+</script>
 </main>
 
 <%@ include file="includes/footer.jsp" %>
