@@ -15,10 +15,18 @@
 <main>
   <h2>Moje Hudba!</h2>
 
+  <style>
+    .player-shell{border:1px solid var(--panel-border); border-radius:14px; padding:10px; margin: 8px 0; background: radial-gradient(120% 120% at 50% 0%, rgba(204,43,43,0.15), rgba(0,0,0,0.20));}
+    body.light .player-shell{ background: radial-gradient(120% 120% at 50% 0%, rgba(0,0,0,0.06), rgba(204,43,43,0.08)); }
+    .player-shell .section-title{ text-align:center; margin: 6px 0 10px; display:flex; align-items:center; justify-content:center; gap:8px; }
+    .player-shell .ep-wrap{ padding:10px; border-radius:10px; }
+  </style>
   <div class="media-columns">
     <section class="section youtube">
-      <h3 class="section-title"><span class="ico"><i class="fab fa-youtube" style="color:#FF0000"></i></span> ${t.getProperty('section.youtube','YouTube')}</h3>
-      <jsp:include page="/elliptic" flush="true" />
+      <div class="player-shell">
+        <h3 class="section-title"><span class="ico"><i class="fab fa-youtube" style="color:#FF0000"></i></span> ${t.getProperty('section.youtube','YouTube')}</h3>
+        <jsp:include page="/elliptic" flush="true" />
+      </div>
     </section>
   </div>
 </main>

@@ -139,6 +139,33 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>ProfileExportServlet</servlet-name>
+        <servlet-class>com.github.skeliit.ProfileExportServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProfileExportServlet</servlet-name>
+        <url-pattern>/profile/export</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ProfileDeleteServlet</servlet-name>
+        <servlet-class>com.github.skeliit.ProfileDeleteServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProfileDeleteServlet</servlet-name>
+        <url-pattern>/profile/delete</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>VideoCommentServlet</servlet-name>
+        <servlet-class>com.github.skeliit.VideoCommentServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>VideoCommentServlet</servlet-name>
+        <url-pattern>/video-comment</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>ChangePasswordServlet</servlet-name>
         <servlet-class>com.github.skeliit.ChangePasswordServlet</servlet-class>
     </servlet>
