@@ -5,7 +5,7 @@
   <%-- Načti profil z DB --%>
   <%
     Integer uid = (Integer) session.getAttribute("user_id");
-    String displayName = null, city = null, bio = null, theme = "dark", lang = (String) session.getAttribute("lang");
+    String displayName = null, city = null, bio = null, theme = "dark", prefLang = (String) session.getAttribute("lang");
     Integer age = null;
     if (uid != null) {
       try (java.sql.Connection c = java.sql.DriverManager.getConnection("jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4","Skeli","skeli");
@@ -18,7 +18,7 @@
             city = r.getString(3);
             bio = r.getString(4);
             theme = r.getString(5);
-            String l = r.getString(6); if (l != null) lang = l;
+            String l = r.getString(6); if (l != null) prefLang = l;
           }
         }
       } catch (Exception ignore) {}
@@ -36,10 +36,10 @@
     <h3>Profil</h3>
     <form method="post" action="/profile/update" enctype="application/x-www-form-urlencoded">
       <input type="hidden" name="csrf" value="${csrf}">
-      <label>Zobrazované jméno: <input name="display_name" maxlength="60" value="<%= displayName!=null?displayName:""></label><br>
-      <label>Věk: <input type="number" name="age" min="1" max="120" style="width:80px" value="<%= age!=null?age:""></label><br>
-      <label>Město: <input name="city" maxlength="80" value="<%= city!=null?city:""></label><br>
-      <label>Bio:<br><textarea name="bio" rows="4" style="width:100%"><%= bio!=null?bio:""></textarea></label><br>
+      <label>Zobrazované jméno: <input name="display_name" maxlength="60" value="<%= (displayName!=null?displayName:"") %>"></label><br>
+      <label>Věk: <input type="number" name="age" min="1" max="120" style="width:80px" value="<%= (age!=null?age:"") %>"></label><br>
+      <label>Město: <input name="city" maxlength="80" value="<%= (city!=null?city:"") %>"></label><br>
+      <label>Bio:<br><textarea name="bio" rows="4" style="width:100%"><%= (bio!=null?bio:"") %></textarea></label><br>
       <label>Téma:
         <select name="theme">
           <option value="dark" <%= "dark".equals(theme)?"selected":"" %>>Dark</option>
@@ -48,10 +48,10 @@
       </label>
       <label>Jazyk:
         <select name="lang">
-          <option value="cs" <%= "cs".equals(lang)?"selected":"" %>>Čeština</option>
-          <option value="en" <%= "en".equals(lang)?"selected":"" %>>English</option>
-          <option value="de" <%= "de".equals(lang)?"selected":"" %>>Deutsch</option>
-          <option value="uk" <%= "uk".equals(lang)?"selected":"" %>>Українська</option>
+          <option value="cs" <%= "cs".equals(prefLang)?"selected":"" %>>Čeština</option>
+          <option value="en" <%= "en".equals(prefLang)?"selected":"" %>>English</option>
+          <option value="de" <%= "de".equals(prefLang)?"selected":"" %>>Deutsch</option>
+          <option value="uk" <%= "uk".equals(prefLang)?"selected":"" %>>Українська</option>
         </select>
       </label>
       <div style="margin-top:8px"><button type="submit">Uložit</button></div>

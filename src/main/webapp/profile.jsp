@@ -17,12 +17,12 @@
           <div id="cropper-overlay" style="position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at center, rgba(0,0,0,0) 46%, rgba(0,0,0,0.45) 48%, rgba(0,0,0,0.55) 100%);"></div>
         </div>
         <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
-          <button id="btn-auto-face" type="button">Auto center</button>
-          <button id="btn-zoom-in" type="button">+</button>
-          <button id="btn-zoom-out" type="button">−</button>
+          <button id="btn-auto-face" type="button" class="bruno-ace-sc-regular" style="border:1px solid var(--panel-border);border-radius:8px;padding:6px 10px;display:inline-flex;align-items:center;gap:6px;"><i class="fa-solid fa-user"></i> Auto center</button>
+          <button id="btn-zoom-in" type="button" class="bruno-ace-sc-regular" style="border:1px solid var(--panel-border);border-radius:8px;padding:6px 10px;">+</button>
+          <button id="btn-zoom-out" type="button" class="bruno-ace-sc-regular" style="border:1px solid var(--panel-border);border-radius:8px;padding:6px 10px;">−</button>
           <span style="flex:1"></span>
-          <button id="btn-crop-save" type="button">Oříznout a uložit</button>
-          <button id="btn-cancel" type="button">Zrušit</button>
+          <button id="btn-crop-save" type="button" class="bruno-ace-sc-regular" style="border:1px solid var(--panel-border);border-radius:8px;padding:6px 10px;display:inline-flex;align-items:center;gap:6px;background:transparent;"><i class="fa-solid fa-floppy-disk"></i> Uložit</button>
+          <button id="btn-cancel" type="button" class="bruno-ace-sc-regular" style="border:1px solid var(--panel-border);border-radius:8px;padding:6px 10px;background:transparent;">Zrušit</button>
         </div>
         <small style="opacity:.8; display:block; margin-top:6px;">Tip: Zoom kolečkem myši, tažení myší pro posun. Výstup 512×512 JPG.</small>
       </div>

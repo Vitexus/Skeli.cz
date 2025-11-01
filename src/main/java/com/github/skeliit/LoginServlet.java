@@ -44,6 +44,15 @@ public class LoginServlet extends HttpServlet {
                         session.setAttribute("userId", rs.getInt("id"));
                         session.setAttribute("username", username);
                         session.setAttribute("role", rs.getString("role"));
+                        // remember me (persistent JSESSIONID)
+                        if ("1".equals(req.getParameter("remember"))) {
+                            session.setMaxInactiveInterval(60*60*24*30); // 30 dní
+                            jakarta.servlet.http.Cookie c = new jakarta.servlet.http.Cookie("JSESSIONID", session.getId());
+                            c.setHttpOnly(true);
+                            c.setPath(req.getContextPath().isEmpty() ? "/" : req.getContextPath());
+                            c.setMaxAge(60*60*24*30);
+                            resp.addCookie(c);
+                        }
                         resp.sendRedirect("index.jsp");
                         return;
                     }
