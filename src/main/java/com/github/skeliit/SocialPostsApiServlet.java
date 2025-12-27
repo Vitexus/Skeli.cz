@@ -31,8 +31,10 @@ public class SocialPostsApiServlet extends HttpServlet {
         try { limit = Math.max(1, Math.min(50, Integer.parseInt(req.getParameter("limit")))); } catch (Exception ignore) {}
 
         // Get language from session, default to 'cs'
-        String lang = (String) req.getSession(false) != null ? 
-                      (String) req.getSession().getAttribute("lang") : null;
+        String lang = null;
+        if (req.getSession(false) != null) {
+            lang = (String) req.getSession().getAttribute("lang");
+        }
         if (lang == null || lang.isEmpty()) lang = "cs";
         System.out.println("[SocialPostsApi] Language from session: " + lang);
 
