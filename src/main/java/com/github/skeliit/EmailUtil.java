@@ -1,5 +1,6 @@
 package com.github.skeliit;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.mail.Message;
 import jakarta.mail.Session;
 import jakarta.mail.Transport;
@@ -12,6 +13,28 @@ import java.util.Properties;
  * Utility class for sending emails using SMTP configuration from environment variables.
  */
 public class EmailUtil {
+    private static final Dotenv dotenv;
+    
+    static {
+        // Try to load .env file, with fallback to system environment variables
+        Dotenv env = null;
+        try {
+            env = Dotenv.configure().ignoreIfMissing().load();
+        } catch (Exception e) {
+            // Fallback: will use system environment
+        }
+        dotenv = env;
+    }
+    
+    private static String getEnv(String key, String defaultValue) {
+        if (dotenv != null) {
+            String val = dotenv.get(key);
+            if (val != null) return val;
+        }
+        String val = System.getenv(key);
+        if (val != null) return val;
+        return defaultValue;
+    }
 
     /**
      * Sends an email using the SMTP configuration from environment variables.
@@ -24,20 +47,13 @@ public class EmailUtil {
     public static void sendMail(String to, String subject, String text) throws Exception {
         if (to == null || to.isBlank()) return;
         
-        String host = System.getenv("SMTP_HOST");
-        String user = System.getenv("SMTP_USERNAME");
-        String pass = System.getenv("SMTP_PASSWORD");
-        String port = System.getenv("SMTP_PORT");
-        if (port == null) port = "587";
-        
-        String from = System.getenv("SMTP_FROM");
-        if (from == null) from = user;
-        
-        String fromName = System.getenv("SMTP_FROM_NAME");
-        if (fromName == null) fromName = "Skeli";
-        
-        String encryption = System.getenv("SMTP_ENCRYPTION");
-        if (encryption == null) encryption = "tls";
+        String host = getEnv("SMTP_HOST", null);
+        String user = getEnv("SMTP_USERNAME", null);
+        String pass = getEnv("SMTP_PASSWORD", null);
+        String port = getEnv("SMTP_PORT", "587");
+        String from = getEnv("SMTP_FROM", user);
+        String fromName = getEnv("SMTP_FROM_NAME", "Skeli");
+        String encryption = getEnv("SMTP_ENCRYPTION", "tls");
         
         // Not configured - skip sending
         if (host == null || user == null || pass == null) return;
