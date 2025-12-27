@@ -12,6 +12,11 @@
         </label>
         <button type="submit">Přihlásit</button>
       </form>
+      <p style="margin-top:12px; text-align:center; font-size:0.9em;">
+        <a href="/forgot.jsp" style="color:var(--accent); text-decoration:none;">
+          <%= ((java.util.Properties)request.getAttribute("t")).getProperty("login.forgot","Forgot your password?") %>
+        </a>
+      </p>
     </section>
   </div>
 </main>

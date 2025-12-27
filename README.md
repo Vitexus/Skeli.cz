@@ -19,6 +19,21 @@ mvn -q -Dflyway.configFiles=src/main/resources/flyway.conf flyway:migrate
 ```
 (Flyway je také volán přes plugin v `pom.xml`.)
 
+## Email konfigurace
+1. Nastavte SMTP parametry v souboru `.env` (podle `.env.example`):
+   ```
+   SMTP_HOST=mail.example.com
+   SMTP_PORT=587
+   SMTP_USERNAME=robot@example.com
+   SMTP_PASSWORD=your_password
+   SMTP_FROM=robot@example.com
+   SMTP_FROM_NAME=Skeli Robot
+   SMTP_ENCRYPTION=tls
+   ```
+2. E-maily se odesílají při:
+   - Nové registraci uživatele (potvrzovací e-mail)
+   - Žádosti o obnovení hesla (reset link)
+
 ## YouTube sync
 1. Vytvoř `src/main/webapp/WEB-INF/youtube.properties` podle šablony:
    ```

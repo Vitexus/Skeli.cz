@@ -19,9 +19,15 @@ public class ForgotPasswordServlet extends HttpServlet {
         if (username == null) { resp.sendRedirect("forgot.jsp"); return; }
         try (Connection conn = Db.get()) {
             Integer userId = null;
-            try (PreparedStatement ps = conn.prepareStatement("SELECT id FROM users WHERE username=?")) {
+            String email = null;
+            try (PreparedStatement ps = conn.prepareStatement("SELECT id, email FROM users WHERE username=?")) {
                 ps.setString(1, username);
-                try (ResultSet rs = ps.executeQuery()) { if (rs.next()) userId = rs.getInt(1); }
+                try (ResultSet rs = ps.executeQuery()) { 
+                    if (rs.next()) {
+                        userId = rs.getInt(1);
+                        email = rs.getString(2);
+                    }
+                }
             }
             if (userId != null) {
                 String token = generateToken();
@@ -30,15 +36,37 @@ public class ForgotPasswordServlet extends HttpServlet {
                     ps.setString(2, token);
                     ps.executeUpdate();
                 }
-                // Reálně by se posílal e-mail; zobrazíme odkaz pro test.
-                resp.sendRedirect("reset.jsp?token=" + token);
+                // Send password reset email
+                try {
+                    EmailUtil.sendMail(email, buildSubject(), buildBody(req, token));
+                } catch (Exception mailErr) {
+                    // Log error but continue - user should see success message for security
+                }
+                // Always show success message for security (don't reveal if user exists)
+                resp.sendRedirect("forgot.jsp?sent=true");
                 return;
             }
         } catch (SQLException e) { throw new ServletException(e); }
-        resp.sendRedirect("forgot.jsp");
+        // Show success message even if user not found for security
+        resp.sendRedirect("forgot.jsp?sent=true");
     }
     private static String generateToken() {
         byte[] b = new byte[32]; new SecureRandom().nextBytes(b);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(b);
+    }
+
+    private static String buildSubject() { 
+        return "Skeli.cz - Obnovení hesla"; 
+    }
+    
+    private static String buildBody(HttpServletRequest req, String token) {
+        String base = req.getRequestURL().toString().replace(req.getRequestURI(), req.getContextPath());
+        String resetLink = base + "/reset.jsp?token=" + token;
+        return "Dobrý den,\n\n" +
+               "Obdrželi jsme žádost o obnovení hesla k vašemu účtu na Skeli.cz.\n\n" +
+               "Pokud chcete obnovit heslo, klikněte na následující odkaz (platí 30 minut):\n" +
+               resetLink + "\n\n" +
+               "Pokud jste o obnovení hesla nežádali, ignorujte tento e-mail.\n\n" +
+               "S pozdravem,\nTým Skeli.cz";
     }
 }

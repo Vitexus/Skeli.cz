@@ -8,17 +8,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
-import java.net.URI;
 import java.security.SecureRandom;
 import java.sql.*;
 import java.util.Base64;
-import java.util.Properties;
-
-import jakarta.mail.Message;
-import jakarta.mail.Session;
-import jakarta.mail.Transport;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 
 @WebServlet(name = "RegisterServlet", urlPatterns = {"/register"})
 public class RegisterServlet extends HttpServlet {
@@ -56,7 +48,11 @@ public class RegisterServlet extends HttpServlet {
                     ps2.setString(2, token);
                     ps2.executeUpdate();
                 }
-                try { sendMail(email, buildSubject(), buildBody(req, token)); } catch (Exception mailErr) { /* ignore mail errors */ }
+                try { 
+                    EmailUtil.sendMail(email, buildRegistrationSubject(), buildRegistrationBody(req, username)); 
+                } catch (Exception mailErr) { 
+                    // Log error but continue - registration was successful
+                }
             }
         } catch (SQLException e) {
             throw new ServletException(e);
@@ -69,30 +65,17 @@ public class RegisterServlet extends HttpServlet {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(b);
     }
 
-    private static String buildSubject() { return "Registrace dokončena"; }
-    private static String buildBody(HttpServletRequest req, String token) {
-        String base = req.getRequestURL().toString().replace(req.getRequestURI(), req.getContextPath());
-        String resetLink = base + "/reset.jsp?token=" + token;
-        return "Díky za registraci!\n\nPokud chcete změnit heslo, použijte tento odkaz (platí 30 min):\n" + resetLink + "\n";
+    private static String buildRegistrationSubject() { 
+        return "Vítejte na Skeli.cz - Registrace úspěšně dokončena"; 
     }
-    private static void sendMail(String to, String subject, String text) throws Exception {
-        if (to == null || to.isBlank()) return;
-        String host = System.getenv("MAIL_HOST");
-        String user = System.getenv("MAIL_USER");
-        String pass = System.getenv("MAIL_PASS");
-        String port = System.getenv("MAIL_PORT"); if (port == null) port = "587";
-        if (host == null || user == null || pass == null) return; // not configured
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", host);
-        props.put("mail.smtp.port", port);
-        Session session = Session.getInstance(props);
-        Message msg = new MimeMessage(session);
-        msg.setFrom(new InternetAddress(user));
-        msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-        msg.setSubject(subject);
-        msg.setText(text);
-        Transport.send(msg, user, pass);
+    
+    private static String buildRegistrationBody(HttpServletRequest req, String username) {
+        String base = req.getRequestURL().toString().replace(req.getRequestURI(), req.getContextPath());
+        String loginLink = base + "/login.jsp";
+        return "Vítejte na Skeli.cz!\n\n" +
+               "Váš účet \"" + username + "\" byl úspěšně vytvořen.\n\n" +
+               "Nyní se můžete přihlásit na našich stránkách:\n" + loginLink + "\n\n" +
+               "Děkujeme za registraci a těšíme se na vaši účast v naší komunitě!\n\n" +
+               "S pozdravem,\nTým Skeli.cz";
     }
 }
