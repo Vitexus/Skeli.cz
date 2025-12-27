@@ -280,11 +280,19 @@
       <div class="content-box">
         <!-- Votes -->
         <div class="votes-section">
-          <form method="post" action="/vote" style="display:inline;">
-            <input type="hidden" name="lyric_id" value="${lyric.id}">
-            <input type="hidden" name="action" value="up">
-            <button type="submit" class="vote-btn up" title="Líbí se mi">👍</button>
-          </form>
+          <c:choose>
+            <c:when test="${not empty sessionScope.username}">
+              <form method="post" action="/vote" style="display:inline;">
+                <input type="hidden" name="lyric_id" value="${lyric.id}">
+                <input type="hidden" name="action" value="up">
+                <input type="hidden" name="csrf" value="${csrf}">
+                <button type="submit" class="vote-btn up" title="Líbí se mi">👍</button>
+              </form>
+            </c:when>
+            <c:otherwise>
+              <a href="/login.jsp" class="vote-btn up" style="text-decoration:none; display:inline-block;" title="Přihlaš se pro hlasování">👍</a>
+            </c:otherwise>
+          </c:choose>
           
           <span style="font-size:1.1em; font-weight:600;">
             <strong style="color:#00ffaa;">${lyric.votesUp}</strong>
@@ -292,11 +300,19 @@
             <strong style="color:#ff5050;">${lyric.votesDown}</strong>
           </span>
           
-          <form method="post" action="/vote" style="display:inline;">
-            <input type="hidden" name="lyric_id" value="${lyric.id}">
-            <input type="hidden" name="action" value="down">
-            <button type="submit" class="vote-btn down" title="Nelíbí se mi">👎</button>
-          </form>
+          <c:choose>
+            <c:when test="${not empty sessionScope.username}">
+              <form method="post" action="/vote" style="display:inline;">
+                <input type="hidden" name="lyric_id" value="${lyric.id}">
+                <input type="hidden" name="action" value="down">
+                <input type="hidden" name="csrf" value="${csrf}">
+                <button type="submit" class="vote-btn down" title="Nelíbí se mi">👎</button>
+              </form>
+            </c:when>
+            <c:otherwise>
+              <a href="/login.jsp" class="vote-btn down" style="text-decoration:none; display:inline-block;" title="Přihlaš se pro hlasování">👎</a>
+            </c:otherwise>
+          </c:choose>
         </div>
         
         <hr style="border:none; border-top:1px solid var(--panel-border); margin:20px 0;">

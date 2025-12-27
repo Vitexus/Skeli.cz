@@ -1,4 +1,5 @@
 <%@ page import="java.sql.*" %>
+<%@ page import="com.github.skeliit.Db" %>
 <%@ include file="includes/header.jsp" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
@@ -16,15 +17,6 @@
 </style>
 
 <%
-    String mysqlUrl = "jdbc:mysql://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4&useSSL=false&serverTimezone=UTC";
-    String mariadbUrl = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
-    String user = "Skeli";
-    String password = "skeli";
-    boolean mariaLoaded = false;
-    boolean mysqlLoaded = false;
-try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Throwable th) { /* ignore */ }
-    try { Class.forName("com.mysql.cj.jdbc.Driver"); mysqlLoaded = true; } catch (Throwable th) { /* ignore */ }
-
     String sql = "SELECT v.youtube_id, COALESCE(v.title, s.name, v.youtube_id) AS title, s.year " +
                  "FROM videos v LEFT JOIN songs s ON s.id = v.song_id " +
                  "ORDER BY COALESCE(v.title, s.name, v.youtube_id) ASC";
@@ -33,17 +25,14 @@ try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Thr
     java.util.List<String> names = new java.util.ArrayList<>();
     java.util.List<String> years = new java.util.ArrayList<>();
 
-    try (Connection conn = mariaLoaded ? java.sql.DriverManager.getConnection(mariadbUrl, user, password)
-                                       : (mysqlLoaded ? java.sql.DriverManager.getConnection(mysqlUrl, user, password) : null)) {
-        if (conn != null) {
-            try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+    try (Connection conn = Db.get()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     ids.add(rs.getString(1));
                     names.add(rs.getString(2));
                     years.add(rs.getString(3));
                 }
             }
-        }
     } catch (SQLException e) {
         // fallback empty, handled below
     }

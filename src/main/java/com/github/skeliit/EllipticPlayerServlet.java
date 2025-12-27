@@ -19,8 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 @WebServlet(name = "EllipticPlayerServlet", urlPatterns = {"/elliptic"})
 public class EllipticPlayerServlet extends HttpServlet {
     private Connection getConn() throws SQLException {
-        String url = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
-        return DriverManager.getConnection(url, "Skeli", "skeli");
+        return Db.get();
     }
 
     private String fetchYtTitle(String ytId) {

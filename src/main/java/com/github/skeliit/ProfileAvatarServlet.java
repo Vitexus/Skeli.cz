@@ -24,8 +24,7 @@ import java.util.Iterator;
 @MultipartConfig(maxFileSize = 5 * 1024 * 1024) // 5 MB
 public class ProfileAvatarServlet extends HttpServlet {
     private Connection getConn() throws SQLException {
-        String url = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
-        return DriverManager.getConnection(url, "Skeli", "skeli");
+        return Db.get();
     }
 
     @Override

@@ -1,4 +1,5 @@
 <%@ page import="java.sql.*" %>
+<%@ page import="com.github.skeliit.Db" %>
 <%@ include file="includes/header.jsp" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
@@ -51,17 +52,7 @@
       <h3>Názvy písní</h3>
       <ul class="song-list">
         <%
-            String mysqlUrl = "jdbc:mysql://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4&useSSL=false&serverTimezone=UTC";
-            String mariadbUrl = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
-            String user = "Skeli";
-            String password = "skeli";
-
             String idParam = request.getParameter("id");
-
-            boolean mariaLoaded = false;
-            boolean mysqlLoaded = false;
-            try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded = true; } catch (Throwable ex1) { /* ignore */ }
-            try { Class.forName("com.mysql.cj.jdbc.Driver"); mysqlLoaded = true; } catch (Throwable ex2) { /* ignore */ }
 
             String listSql = "SELECT s.id AS song_id, s.name AS song_name, s.year AS song_year, MIN(l.id) AS lyric_id " +
                              "FROM lyrics l JOIN songs s ON s.id = l.song_id " +
@@ -71,13 +62,8 @@
             Connection conn = null;
             boolean connected = false;
             try {
-                if (mariaLoaded) {
-                    conn = DriverManager.getConnection(mariadbUrl, user, password);
-                    connected = true;
-                } else if (mysqlLoaded) {
-                    conn = DriverManager.getConnection(mysqlUrl, user, password);
-                    connected = true;
-                }
+                conn = Db.get();
+                connected = true;
             } catch (SQLException ce) {
                 // keep connected=false
             }
@@ -164,6 +150,7 @@
                                     <form method="post" action="vote" style="display:inline;">
                                       <input type="hidden" name="lyric_id" value="<%= activeId %>">
                                       <input type="hidden" name="action" value="up">
+                                      <input type="hidden" name="csrf" value="${csrf}">
                                       <button type="submit" class="btn-vote up" title="Líbí se mi">
                                         <i class="fa-solid fa-thumbs-up"></i>
                                       </button>
@@ -171,6 +158,7 @@
                                     <form method="post" action="vote" style="display:inline;">
                                       <input type="hidden" name="lyric_id" value="<%= activeId %>">
                                       <input type="hidden" name="action" value="down">
+                                      <input type="hidden" name="csrf" value="${csrf}">
                                       <button type="submit" class="btn-vote down" title="Nelíbí se mi">
                                         <i class="fa-solid fa-thumbs-down"></i>
                                       </button>
@@ -252,6 +240,7 @@
                                                     <input type="hidden" name="lyric_id" value="<%= activeId %>">
                                                     <input type="hidden" name="comment_id" value="<%= __cid %>">
                                                     <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="csrf" value="${csrf}">
                                                     <button type="submit" style="background:#7b1e1e;color:#fff;border:none;padding:4px 8px;border-radius:6px;">Smazat</button>
                                                   </form>
                                                   <button type="button" onclick="(function(){ var f=document.getElementById('edit-<%= __cid %>'); f.style.display = f.style.display==='none'?'block':'none'; })()" style="margin-left:6px;">Upravit</button>

@@ -13,8 +13,7 @@ import java.sql.*;
 @WebServlet(name = "AdminUserServlet", urlPatterns = {"/admin/users"})
 public class AdminUserServlet extends HttpServlet {
     private Connection getConn() throws SQLException {
-        String mariadbUrl = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
-        return DriverManager.getConnection(mariadbUrl, "Skeli", "skeli");
+        return Db.get();
     }
     private boolean isAdmin(HttpSession s){ return s!=null && "ADMIN".equals(s.getAttribute("role")); }
     @Override protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

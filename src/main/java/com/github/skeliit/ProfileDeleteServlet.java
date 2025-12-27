@@ -14,8 +14,7 @@ import java.util.UUID;
 @WebServlet(name = "ProfileDeleteServlet", urlPatterns = {"/profile/delete"})
 public class ProfileDeleteServlet extends HttpServlet {
     private Connection getConn() throws SQLException {
-        String url = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
-        return DriverManager.getConnection(url, "Skeli", "skeli");
+        return Db.get();
     }
 
     @Override protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

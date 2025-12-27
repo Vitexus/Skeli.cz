@@ -15,10 +15,7 @@ import java.util.List;
 @WebServlet(name = "AdminSongsServlet", urlPatterns = {"/admin/songs"})
 public class AdminSongsServlet extends HttpServlet {
     private Connection getConn() throws SQLException {
-        String mariadbUrl = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
-        String user = "Skeli";
-        String password = "skeli";
-        return DriverManager.getConnection(mariadbUrl, user, password);
+        return Db.get();
     }
 
     @Override

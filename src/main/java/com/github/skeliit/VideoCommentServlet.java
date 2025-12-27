@@ -16,8 +16,7 @@ import java.sql.*;
 @WebServlet(name = "VideoCommentServlet", urlPatterns = {"/video-comment"})
 public class VideoCommentServlet extends HttpServlet {
     private Connection getConn() throws SQLException {
-        String url = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
-        return DriverManager.getConnection(url, "Skeli", "skeli");
+        return Db.get();
     }
 
     @Override protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

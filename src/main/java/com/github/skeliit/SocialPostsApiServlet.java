@@ -21,8 +21,7 @@ import java.time.format.DateTimeFormatter;
 @WebServlet(name = "SocialPostsApiServlet", urlPatterns = {"/api/social-posts"})
 public class SocialPostsApiServlet extends HttpServlet {
     private Connection getConn() throws SQLException {
-        String url = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
-        return DriverManager.getConnection(url, "Skeli", "skeli");
+        return Db.get();
     }
 
     @Override
@@ -31,22 +30,30 @@ public class SocialPostsApiServlet extends HttpServlet {
         int limit = 10;
         try { limit = Math.max(1, Math.min(50, Integer.parseInt(req.getParameter("limit")))); } catch (Exception ignore) {}
 
-        String sql = "SELECT id, source, post_id, permalink, image_url, caption, created_at " +
-                "FROM social_posts ORDER BY created_at DESC, id DESC LIMIT ?";
+        // Get language from session, default to 'cs'
+        String lang = (String) req.getSession(false) != null ? 
+                      (String) req.getSession().getAttribute("lang") : null;
+        if (lang == null || lang.isEmpty()) lang = "cs";
+        System.out.println("[SocialPostsApi] Language from session: " + lang);
+
+        String sql = "SELECT id, source, lang, post_id, permalink, image_url, caption, created_at " +
+                "FROM social_posts WHERE lang = ? ORDER BY created_at DESC, id DESC LIMIT ?";
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode arr = mapper.createArrayNode();
         try (Connection c = getConn(); PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setInt(1, limit);
+            ps.setString(1, lang);
+            ps.setInt(2, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     ObjectNode o = mapper.createObjectNode();
                     o.put("id", rs.getInt(1));
                     o.put("source", rs.getString(2));
-                    o.put("postId", rs.getString(3));
-                    o.put("permalink", rs.getString(4));
-                    if (rs.getString(5) != null) o.put("image", rs.getString(5));
-                    if (rs.getString(6) != null) o.put("caption", rs.getString(6));
-                    Timestamp ts = rs.getTimestamp(7);
+                    o.put("lang", rs.getString(3));
+                    o.put("postId", rs.getString(4));
+                    o.put("permalink", rs.getString(5));
+                    if (rs.getString(6) != null) o.put("image", rs.getString(6));
+                    if (rs.getString(7) != null) o.put("caption", rs.getString(7));
+                    Timestamp ts = rs.getTimestamp(8);
                     if (ts != null) {
                         String iso = DateTimeFormatter.ISO_INSTANT.format(ts.toInstant());
                         o.put("createdAt", iso);
@@ -77,6 +84,7 @@ public class SocialPostsApiServlet extends HttpServlet {
         try (InputStream in = req.getInputStream()) { body = mapper.readTree(in); }
         if (body == null) { resp.setStatus(400); resp.getWriter().write("{\"error\":\"invalid json\"}"); return; }
         String source = body.path("source").asText(null);
+        String lang = body.path("lang").asText("cs"); // default to 'cs' if not provided
         String postId = body.path("postId").asText(null);
         String permalink = body.path("permalink").asText(null);
         String image = body.path("image").asText(null);
@@ -85,16 +93,17 @@ public class SocialPostsApiServlet extends HttpServlet {
         if (source == null || postId == null || permalink == null || createdAt == null) {
             resp.setStatus(400); resp.getWriter().write("{\"error\":\"missing fields\"}"); return;
         }
-        String sql = "INSERT INTO social_posts(source, post_id, permalink, image_url, caption, created_at) " +
-                     "VALUES(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE permalink=VALUES(permalink), image_url=VALUES(image_url), caption=VALUES(caption), created_at=VALUES(created_at)";
+        String sql = "INSERT INTO social_posts(source, lang, post_id, permalink, image_url, caption, created_at) " +
+                     "VALUES(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE lang=VALUES(lang), permalink=VALUES(permalink), image_url=VALUES(image_url), caption=VALUES(caption), created_at=VALUES(created_at)";
         try (Connection c = getConn(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, source);
-            ps.setString(2, postId);
-            ps.setString(3, permalink);
-            ps.setString(4, image);
-            ps.setString(5, caption);
+            ps.setString(2, lang);
+            ps.setString(3, postId);
+            ps.setString(4, permalink);
+            ps.setString(5, image);
+            ps.setString(6, caption);
             Timestamp ts = Timestamp.from(Instant.parse(createdAt));
-            ps.setTimestamp(6, ts);
+            ps.setTimestamp(7, ts);
             ps.executeUpdate();
         } catch (SQLException e) {
             resp.setStatus(500); resp.getWriter().write("{\"error\":\"db error\"}"); return;

@@ -1,4 +1,5 @@
 <%@ page import="java.sql.*" %>
+<%@ page import="com.github.skeliit.Db" %>
 <%@ include file="includes/header.jsp" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
@@ -47,15 +48,8 @@
       <h3 class="bruno-ace-sc-regular" style="margin-top:0;">🗞️ <%= ((java.util.Properties)request.getAttribute("t")).getProperty("home.news","Novinky") %></h3>
       <div class="videos">
         <%
-          String mysqlUrl = "jdbc:mysql://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4&useSSL=false&serverTimezone=UTC";
-          String mariadbUrl = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
-          String user = "Skeli";
-          String password = "skeli";
-          boolean mariaLoaded=false, mysqlLoaded=false;
-          try { Class.forName("org.mariadb.jdbc.Driver"); mariaLoaded=true; } catch(Throwable ignore){}
-          try { Class.forName("com.mysql.cj.jdbc.Driver"); mysqlLoaded=true; } catch(Throwable ignore){}
           String sql = "SELECT youtube_id, COALESCE(title, youtube_id) AS title, published_at FROM videos ORDER BY published_at DESC, id DESC LIMIT 3";
-          try (Connection conn = mariaLoaded ? java.sql.DriverManager.getConnection(mariadbUrl, user, password) : (mysqlLoaded ? java.sql.DriverManager.getConnection(mysqlUrl, user, password) : null)){
+          try (Connection conn = Db.get()){
             if (conn != null){
               try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()){
                 while (rs.next()){

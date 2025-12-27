@@ -43,8 +43,7 @@ public class ChangePasswordServlet extends HttpServlet {
             return;
         }
         
-        String url = "jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4";
-        try (Connection conn = DriverManager.getConnection(url, "Skeli", "skeli")) {
+        try (Connection conn = Db.get()) {
             // Ověř staré heslo
             String selectSql = "SELECT password_hash FROM users WHERE id = ?";
             String currentHash;

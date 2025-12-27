@@ -1,3 +1,4 @@
+<%@ page import="com.github.skeliit.Db" %>
 <%@ include file="includes/header.jsp" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <main>
@@ -55,7 +56,7 @@
           if (__uidObj == null) __uidObj = session.getAttribute("user_id");
           if (__uidObj != null) {
             int __uid2 = (Integer) __uidObj;
-            try (java.sql.Connection c = java.sql.DriverManager.getConnection("jdbc:mariadb://127.0.0.1:3306/skeliweb?useUnicode=true&characterEncoding=utf8mb4","Skeli","skeli");
+            try (java.sql.Connection c = Db.get();
                  java.sql.PreparedStatement ps = c.prepareStatement(
                    "SELECT c.id, c.content, c.created_at, c.lyric_id, s.name " +
                    "FROM comments c JOIN lyrics l ON l.id=c.lyric_id JOIN songs s ON s.id=l.song_id " +
