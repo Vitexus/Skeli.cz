@@ -95,10 +95,15 @@ public class EllipticPlayerServlet extends HttpServlet {
                 out.println(
                                 ".ep-layout{display:grid;grid-template-columns:2fr 1fr;grid-template-rows:auto auto;gap:10px;align-items:start;}");
                 out.println("@media (max-width: 800px){");
-                out.println("  .ep-layout{ display: flex !important; flex-direction: column !important; gap: 30px !important; }");
-                out.println("  .ep-frame-wrap, .ep-carousel, .ep-comments { grid-column: auto !important; grid-row: auto !important; width: 100% !important; max-width: 100% !important; position: relative !important; left: auto !important; top: auto !important; transform: none !important; }");
-                out.println("  .ep-carousel { padding: 4% 12% !important; margin-top: 20px !important; }");
-                out.println("  .ep-viewport { padding-top: 50% !important; }");
+                out.println("  .ep-layout{ display: flex !important; flex-direction: column !important; align-items: stretch !important; gap: 30px !important; }");
+                out.println("  .ep-left, .ep-frame-wrap, .ep-carousel, .ep-comments { grid-column: auto !important; grid-row: auto !important; width: 100% !important; max-width: 100% !important; position: relative !important; left: auto !important; top: auto !important; transform: none !important; }");
+                out.println("  .ep-carousel { padding: 4% 6% !important; margin-top: 20px !important; }");
+                out.println("  .ep-viewport { padding-top: 60% !important; }");
+                out.println("  .ep-item { width: 60% !important; padding-top: 33.75% !important; }");
+                out.println("  .ep-item.is-active { width: 76% !important; padding-top: 42.75% !important; }");
+                out.println("  .ep-item.is-prev, .ep-item.is-next { width: 48% !important; padding-top: 27% !important; }");
+                out.println("  .ep-item.is-prev2, .ep-item.is-next2 { display: none !important; }");
+                out.println("  .ep-arrow { width: 38px !important; height: 38px !important; font-size: 130% !important; }");
                 out.println("}");
                 out.println(".ep-left{}\n");
                 out.println(

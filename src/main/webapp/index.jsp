@@ -107,7 +107,7 @@
       <hr style="border-color:var(--panel-border); opacity:.5;">
       <div class="newsletter">
         <h4 style="margin:6px 0 8px;">📧 <%= ((java.util.Properties)request.getAttribute("t")).getProperty("home.newsletter.title","Novinky e-mailem") %></h4>
-        <form method="post" action="/subscribe">
+        <form method="post" action="/newsletter/subscribe">
           <input type="hidden" name="csrf" value="<%= request.getAttribute("csrf") %>">
           <input type="email" name="email" placeholder="<%= ((java.util.Properties)request.getAttribute("t")).getProperty("home.newsletter.placeholder","Tvůj e-mail") %>" required>
           <button type="submit"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("home.newsletter.submit","Odebírat") %></button>
