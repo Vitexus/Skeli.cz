@@ -118,9 +118,22 @@ public class UzivatelPageIT {
 
     @Test
     @DisplayName("Export data returns JSON containing the account's username")
-    void exportData() {
-        driver.get(BASE_URL + "/profile/export");
-        String body = driver.findElement(By.tagName("body")).getText();
+    void exportData() throws Exception {
+        // /profile/export sends Content-Disposition: attachment, so a real browser
+        // downloads the file instead of rendering it; fetch it directly with the
+        // session cookie instead of navigating there with the WebDriver.
+        String sessionCookie = driver.manage().getCookieNamed("JSESSIONID").getValue();
+        java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+        java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                .uri(java.net.URI.create(BASE_URL + "/profile/export"))
+                .header("Cookie", "JSESSIONID=" + sessionCookie)
+                .GET()
+                .build();
+        java.net.http.HttpResponse<String> response = client.send(request,
+                java.net.http.HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(200, response.statusCode());
+        String body = response.body();
         assertTrue(body.contains(username), "exported JSON should contain the username, got: " + body);
         assertTrue(body.contains("\"comments\""), "exported JSON should contain a comments array");
         assertTrue(body.contains("\"favorites\""), "exported JSON should contain a favorites array");

@@ -84,16 +84,18 @@
       <hr style="border-color:var(--panel-border); opacity:.4; margin:12px 0;">
       <h4 class="bruno-ace-sc-regular" style="margin:6px 0 8px;">📣 Sociální sítě</h4>
       <div id="home-social" style="display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:12px;"></div>
+      <div style="text-align:right; margin-top:8px; font-size:.9em;"><a href="/aktuality.jsp" style="color:var(--text); opacity:.7;">Všechny aktuality →</a></div>
       <script>
         (async function(){
           try{
-            const res = await fetch('/api/social-posts?limit=6'); if(!res.ok) return; const posts = await res.json();
+            const res = await fetch('/api/social-posts?onePerSource=true'); if(!res.ok) return;
+            const posts = await res.json(); if(!Array.isArray(posts)||!posts.length) return;
             const el = document.getElementById('home-social'); if(!el) return;
             el.innerHTML = posts.map(p=>{
-              const img = p.image?`<img src="${p.image}" style='width:100%;height:120px;object-fit:cover;display:block;'>`:'';
+              const img = p.image?`<img src="\${p.image}" style='width:100%;height:120px;object-fit:cover;display:block;'>`:'';
               const cap = (p.caption||'').slice(0,120);
-              const badge = p.source==='instagram'?'IG':'FB';
-              return `<a href='${p.permalink}' target='_blank' rel='noopener' style='text-decoration:none;color:inherit;border:1px solid var(--panel-border);border-radius:10px;overflow:hidden;background:rgba(0,0,0,0.55);display:block;position:relative;'>${img}<span style='position:absolute;left:8px;top:8px;background:rgba(0,0,0,0.5);padding:2px 6px;border-radius:6px;font-size:.85em;'>${badge}</span><div style='padding:8px;font-size:.95em;'>${cap}</div></a>`;
+              const badge = p.source==='instagram'?'<i class="fab fa-instagram"></i>':(p.source==='facebook'?'<i class="fab fa-facebook"></i>':'📰');
+              return `<a href='\${p.permalink}' target='_blank' rel='noopener' style='text-decoration:none;color:inherit;border:1px solid var(--panel-border);border-radius:10px;overflow:hidden;background:rgba(0,0,0,0.55);display:block;position:relative;'>\${img}<span style='position:absolute;left:8px;top:8px;background:rgba(0,0,0,0.5);padding:2px 6px;border-radius:6px;font-size:.85em;'>\${badge}</span><div style='padding:8px;font-size:.95em;'>\${cap}</div></a>`;
             }).join('');
           }catch(e){}
         })();
