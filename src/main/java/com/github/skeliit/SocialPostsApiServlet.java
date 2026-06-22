@@ -39,8 +39,19 @@ public class SocialPostsApiServlet extends HttpServlet {
             lang = "cs";
         System.out.println("[SocialPostsApi] Language from session: " + lang);
 
-        String sql = "SELECT id, source, lang, post_id, permalink, image_url, caption, created_at " +
-                "FROM social_posts WHERE lang = ? ORDER BY created_at DESC, id DESC LIMIT ?";
+        String sql =
+                "(SELECT id, 'youtube' COLLATE utf8mb4_czech_ci AS source," +
+                " NULL COLLATE utf8mb4_czech_ci AS lang," +
+                " CONVERT(youtube_id USING utf8mb4) COLLATE utf8mb4_czech_ci AS post_id," +
+                " CONVERT(CONCAT('https://www.youtube.com/shorts/', youtube_id) USING utf8mb4) COLLATE utf8mb4_czech_ci AS permalink," +
+                " CONVERT(CONCAT('https://i.ytimg.com/vi/', youtube_id, '/hqdefault.jpg') USING utf8mb4) COLLATE utf8mb4_czech_ci AS image_url," +
+                " CONVERT(title USING utf8mb4) COLLATE utf8mb4_czech_ci AS caption," +
+                " published_at AS created_at" +
+                " FROM shorts WHERE published_at IS NOT NULL)" +
+                " UNION ALL" +
+                " (SELECT id, source, lang, post_id, permalink, image_url, caption, created_at" +
+                " FROM social_posts WHERE lang = ?)" +
+                " ORDER BY created_at DESC LIMIT ?";
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode arr = mapper.createArrayNode();
         try (Connection c = Db.get(); PreparedStatement ps = c.prepareStatement(sql)) {

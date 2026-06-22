@@ -15,7 +15,7 @@
   function card(p){
     const img = p.image ? `<img src="\${p.image}" alt="" style="width:100%;height:180px;object-fit:cover;display:block;">` : '';
     const cap = (p.caption||'').slice(0,160);
-    const badge = p.source==='instagram'?'IG':(p.source==='facebook'?'FB':'📰');
+    const badge = p.source==='instagram'?'IG':(p.source==='facebook'?'FB':(p.source==='youtube'?'YT':'📰'));
     return `<a href="\${p.permalink}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;border:1px solid var(--panel-border);border-radius:10px;overflow:hidden;background:rgba(0,0,0,0.55);display:block;position:relative;">
               \${img}
               <span style="position:absolute;left:8px;top:8px;background:rgba(0,0,0,0.5);padding:2px 6px;border-radius:6px;font-size:.85em;">\${badge}</span>
