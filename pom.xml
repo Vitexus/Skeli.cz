@@ -91,7 +91,7 @@
                     </webApp>
                 </configuration>
                 <dependencies>
-                    <!-- Jetty's bundled ASM cannot scan Java 25 class files (major version 69) -->
+                    <!-- Newer ASM than Jetty bundles, so annotation scanning keeps up with recent class file versions -->
                     <dependency>
                         <groupId>org.ow2.asm</groupId>
                         <artifactId>asm</artifactId>
@@ -149,7 +149,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <release>25</release>
+                    <release>21</release>
                 </configuration>
             </plugin>
 
@@ -172,8 +172,8 @@
                         <configuration>
                             <rules>
                                 <requireJavaVersion>
-                                    <version>[25,)</version>
-                                    <message>Project requires JDK 25+. Please install JDK 25 and configure your IDE (Project SDK) accordingly.</message>
+                                    <version>[21,)</version>
+                                    <message>Project requires JDK 21+. Please install JDK 21 and configure your IDE (Project SDK) accordingly.</message>
                                 </requireJavaVersion>
                                 <requireMavenVersion>
                                     <version>[3.8,)</version>
@@ -188,8 +188,8 @@
     </build>
 
     <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.10.2</junit.version>
     </properties>

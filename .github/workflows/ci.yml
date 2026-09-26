@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '25'
+          java-version: '21'
           cache: maven
       # Unit tests run in the package phase; *IT Selenium tests need a running app and are not run here
       - name: Build & Test
