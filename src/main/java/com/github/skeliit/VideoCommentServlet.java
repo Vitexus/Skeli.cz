@@ -62,9 +62,7 @@ public class VideoCommentServlet extends HttpServlet {
             return;
         }
         int userId = (int) s.getAttribute("userId");
-        String csrf = req.getParameter("csrf");
-        Object sc = s.getAttribute("csrf");
-        if (sc != null && (csrf == null || !sc.equals(csrf))) {
+        if (!CsrfFilter.isValid(req)) {
             resp.setStatus(400);
             return;
         }

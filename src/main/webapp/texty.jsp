@@ -39,10 +39,10 @@
                             String youtubeId = rs.getString("youtube_id");
                             String dataAttr = "";
                             if (youtubeId != null && !youtubeId.isEmpty()) {
-                                dataAttr = " data-thumb=\"https://img.youtube.com/vi/" + youtubeId + "/mqdefault.jpg\"";
+                                dataAttr = " data-thumb=\"https://img.youtube.com/vi/" + com.github.skeliit.WebUtils.escapeHtml(youtubeId) + "/mqdefault.jpg\"";
                             }
         %>
-                            <li<%= dataAttr %>><a href="/lyrics/<%= lyricId %>"><%= name %></a><% if (y != null) { %> (<%= y %>)<% } %></li>
+                            <li<%= dataAttr %>><a href="/lyrics/<%= lyricId %>"><%= com.github.skeliit.WebUtils.escapeHtml(name) %></a><% if (y != null) { %> (<%= y %>)<% } %></li>
         <%
                         }
                 } catch (SQLException e) {
@@ -63,11 +63,11 @@
       document.querySelectorAll('.texts-list li[data-thumb]').forEach(li => {
         const thumb = li.getAttribute('data-thumb');
         if(thumb) {
-          li.style.setProperty('--thumb-bg', `url("${thumb}")`);
+          li.style.setProperty('--thumb-bg', `url("\${thumb}")`);
           const style = document.createElement('style');
           const id = 'thumb-' + Math.random().toString(36).substr(2, 9);
           li.classList.add(id);
-          style.textContent = `.${id}::before { background-image: url("${thumb}") !important; }`;
+          style.textContent = `.\${id}::before { background-image: url("\${thumb}") !important; }`;
           document.head.appendChild(style);
         }
       });

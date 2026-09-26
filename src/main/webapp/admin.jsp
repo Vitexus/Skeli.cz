@@ -17,6 +17,7 @@
     <section class="admin-card">
       <h3>Upravit / napojit video</h3>
       <form method="post" action="/admin/video" style="display:grid; gap:8px;">
+        <input type="hidden" name="csrf" value="${csrf}">
         <label>YouTube ID: <input name="youtube_id" required></label>
         <label>Název (přepíše title v DB): <input name="title"></label>
         <label>Song name (vytvoří/propojí): <input name="song_name"></label>
@@ -34,6 +35,7 @@
     <section class="admin-card">
       <h3>Moderace komentářů</h3>
       <form method="post" action="/admin/comment" style="display:flex; gap:8px; align-items:center;">
+        <input type="hidden" name="csrf" value="${csrf}">
         <label>ID komentáře: <input name="comment_id" required></label>
         <button type="submit" style="background:#7b1e1e;color:#fff;border:none;padding:6px 10px;border-radius:8px;">Smazat</button>
       </form>

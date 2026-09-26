@@ -24,12 +24,21 @@
     return '📰';
   }
 
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function safeUrl(u) {
+    return /^https?:\/\//i.test(u || '') ? esc(u) : '#';
+  }
+
   function card(p) {
-    var img = p.image ? '<img src="' + p.image + '" alt="" class="news-image">' : '';
-    var cap = (p.caption || '').slice(0, 200);
+    var img = p.image ? '<img src="' + safeUrl(p.image) + '" alt="" class="news-image">' : '';
+    var cap = esc((p.caption || '').slice(0, 200));
     var badge = sourceBadge(p.source);
-    var date = p.createdAt ? new Date(p.createdAt).toLocaleDateString('cs-CZ') : '';
-    return '<a href="' + p.permalink + '" target="_blank" rel="noopener" class="news-card">'
+    var date = p.createdAt ? esc(new Date(p.createdAt).toLocaleDateString('cs-CZ')) : '';
+    return '<a href="' + safeUrl(p.permalink) + '" target="_blank" rel="noopener" class="news-card">'
       + img
       + '<span class="news-badge">' + badge + '</span>'
       + '<div class="news-info">'

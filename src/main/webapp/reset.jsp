@@ -6,7 +6,8 @@
     <section class="auth-card">
       <h2>Nastavit nové heslo</h2>
       <form method="post" action="reset">
-        <input type="hidden" name="token" value="<%= request.getParameter("token") != null ? request.getParameter("token") : "" %>">
+        <input type="hidden" name="csrf" value="${csrf}">
+        <input type="hidden" name="token" value="<%= com.github.skeliit.WebUtils.escapeHtml(request.getParameter("token")) %>">
         <label>Nové heslo:<br>
           <input type="password" name="password" minlength="12" required autocomplete="new-password"></label>
         <button type="submit">Uložit heslo</button>

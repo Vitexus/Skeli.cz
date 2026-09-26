@@ -41,7 +41,7 @@
                         int lyricId = rs.getInt("lyric_id");
                         boolean isActive = (activeId != null && activeId == lyricId);
         %>
-                        <li><a class="<%= isActive ? "active" : "" %>" href="lyric.jsp?id=<%= lyricId %>"><%= name %></a></li>
+                        <li><a class="<%= isActive ? "active" : "" %>" href="lyric.jsp?id=<%= lyricId %>"><%= com.github.skeliit.WebUtils.escapeHtml(name) %></a></li>
         <%
                     }
                 } catch (SQLException e) {
@@ -92,11 +92,11 @@
         %>
                                 <div class="card accent lyric-layout lyric-card">
                                   <div>
-                                    <h3><%= name %><% if (year != null) { %> (<%= year %>)<% } %></h3>
+                                    <h3><%= com.github.skeliit.WebUtils.escapeHtml(name) %><% if (year != null) { %> (<%= year %>)<% } %></h3>
                                     <% if (yt != null && !yt.isEmpty()) { %>
                                     <div class="video-container">
                                       <div class="video-ratio">
-                                        <iframe src="https://www.youtube.com/embed/<%= yt %>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                                        <iframe src="https://www.youtube.com/embed/<%= com.github.skeliit.WebUtils.escapeHtml(yt) %>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                                       </div>
                                     </div>
                                     <% } %>
@@ -171,11 +171,11 @@
                                             int __cid = rsc.getInt("id");
                                     %>
                                               <div class="comment-item">
-                                                <img src="<%= rsc.getString("avatar_url") != null ? rsc.getString("avatar_url") : "/img/avatar-default.png" %>" alt="avatar" class="comment-avatar">
+                                                <img src="<%= com.github.skeliit.WebUtils.escapeHtml(com.github.skeliit.WebUtils.safeUrl(rsc.getString("avatar_url"), "/img/avatar-default.png")) %>" alt="avatar" class="comment-avatar">
                                                 <div style="flex:1;">
-                                                  <strong><%= rsc.getString("username") %></strong>
+                                                  <strong><%= com.github.skeliit.WebUtils.escapeHtml(rsc.getString("username")) %></strong>
                                                   <span class="meta comment-meta">(<%= rsc.getTimestamp("created_at") %>)</span>
-                                                  <div id="c-body-<%= __cid %>"><%= rsc.getString("content") %></div>
+                                                  <div id="c-body-<%= __cid %>"><%= com.github.skeliit.WebUtils.escapeHtml(rsc.getString("content")) %></div>
                                                 <%
                                                   Integer uid2 = (Integer) session.getAttribute("userId");
                                                   String role2 = (String) session.getAttribute("role");
@@ -199,7 +199,7 @@
                                                   <%
                                                     String __content = rsc.getString("content");
                                                     if (__content == null) __content = "";
-                                                    __content = __content.replace("&","&amp;").replace("<","&lt;");
+                                                    __content = com.github.skeliit.WebUtils.escapeHtml(__content);
                                                   %>
                                                   <textarea name="content" rows="3" style="width:100%;"><%= __content %></textarea>
                                                     <input type="hidden" name="csrf" value="${csrf}">

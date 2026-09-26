@@ -10,7 +10,7 @@
         <li>
           <a href="${pageContext.request.contextPath}/lyrics/${s.firstLyricId}" 
              class="${(lyric != null && lyric.songId == s.id) ? 'active' : ''}">
-            ${s.name}
+            <c:out value="${s.name}"/>
           </a>
         </li>
       </c:forEach>
@@ -112,7 +112,7 @@
         
         <c:forEach items="${comments}" var="cmt">
           <div class="comment-item">
-            <img src="${empty cmt.avatarUrl ? '/img/avatar-default.png' : cmt.avatarUrl}" 
+            <img src="<c:out value="${empty cmt.avatarUrl ? '/img/avatar-default.png' : cmt.avatarUrl}"/>" 
                  alt="avatar" 
                  class="comment-avatar"/>
             <div class="comment-content">

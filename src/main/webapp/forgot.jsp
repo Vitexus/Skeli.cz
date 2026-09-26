@@ -9,6 +9,7 @@
         <div class="form-success">✓ Pokud účet existuje, byl na něj odeslán e-mail s odkazem pro obnovení hesla.</div>
       <% } %>
       <form method="post" action="forgot">
+        <input type="hidden" name="csrf" value="${csrf}">
         <label>Uživatelské jméno:<br>
           <input name="username" required autocomplete="username"></label>
         <button type="submit">Poslat odkaz na reset</button>

@@ -45,9 +45,7 @@
     <%@ include file="/WEB-INF/i18n/i18n.jspf" %>
   </head>
   <body>
-      <% String __csrf=(String) session.getAttribute("csrf"); if (__csrf==null) {
-        __csrf=java.util.UUID.randomUUID().toString(); session.setAttribute("csrf", __csrf); }
-        request.setAttribute("csrf", __csrf); %>
+      <% request.setAttribute("csrf", com.github.skeliit.CsrfFilter.token(session)); %>
         <header>
 
           <div id="topClock" class="bruno-ace-sc-regular"></div>
@@ -146,8 +144,12 @@
             const cur = localStorage.getItem(k) || 'dark';
             body.classList.add(cur);
             document.getElementById('themeToggle').addEventListener('click', () => {
-              body.classList.toggle('light'); body.classList.toggle('dark');
-              const v = body.classList.contains('light') ? 'light' : 'dark'; localStorage.setItem(k, v);
+              // Add transition trigger class
+              body.style.transition = 'background-color 0.6s ease, color 0.6s ease, background-image 0.6s ease';
+              body.classList.toggle('light'); 
+              body.classList.toggle('dark');
+              const v = body.classList.contains('light') ? 'light' : 'dark'; 
+              localStorage.setItem(k, v);
             });
 
             // Language menu toggle by click
@@ -197,8 +199,8 @@
               if (/^https?:\/\//.test(input)) return input;
               // short forms: track:ID, playlist:ID, album:ID, artist:ID
               const [type, id] = input.split(':');
-              if (id) { return `https://open.spotify.com/embed/${type}/${id}?utm_source=generator`; }
-              return `https://open.spotify.com/embed/track/${input}?utm_source=generator`;
+              if (id) { return `https://open.spotify.com/embed/\${type}/\${id}?utm_source=generator`; }
+              return `https://open.spotify.com/embed/track/\${input}?utm_source=generator`;
             }
             const SP_DEFAULT = 'https://open.spotify.com/embed/artist/5IouXw8U9uKCTwmncG5bUl?utm_source=generator';
             function openBar() { const bar = ensureSpBar(); const f = document.getElementById('sp-iframe'); if (!f.src) { const saved = localStorage.getItem('sp_src'); f.src = saved || SP_DEFAULT; } bar.style.display = 'block'; document.getElementById('sp-min').style.display = 'none'; localStorage.setItem('sp_min', '0'); }
@@ -279,7 +281,7 @@
             // Parallax background
             (function () {
               let lastY = 0, ticking = false;
-              function onScroll() { lastY = window.scrollY || 0; if (!ticking) { requestAnimationFrame(() => { document.body.style.backgroundPosition = `center ${Math.round(lastY * 0.25)}px`; ticking = false; }); ticking = true; } }
+              function onScroll() { lastY = window.scrollY || 0; if (!ticking) { requestAnimationFrame(() => { document.body.style.backgroundPosition = `center \${Math.round(lastY * 0.25)}px`; ticking = false; }); ticking = true; } }
               window.addEventListener('scroll', onScroll, { passive: true });
               onScroll();
             })();

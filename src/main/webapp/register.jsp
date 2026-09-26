@@ -19,7 +19,7 @@
       <form method="post" action="register">
         <input type="hidden" name="csrf" value="<%= request.getAttribute("csrf") != null ? request.getAttribute("csrf") : "" %>">
         <label><%= ((java.util.Properties)request.getAttribute("t")).getProperty("auth.label.username","Uživatel") %><br>
-          <input type="text" name="username" required pattern="[A-Za-z0-9._-]{3,50}" maxlength="50" value="<%= request.getAttribute("username") != null ? request.getAttribute("username") : "" %>" autocomplete="username"></label>
+          <input type="text" name="username" required pattern="[A-Za-z0-9._-]{3,50}" maxlength="50" value="<%= com.github.skeliit.WebUtils.escapeHtml(request.getAttribute("username")) %>" autocomplete="username"></label>
         <label><%= ((java.util.Properties)request.getAttribute("t")).getProperty("auth.label.email","E-mail") %><br>
           <input type="email" name="email" required maxlength="255" value="<%= request.getAttribute("email") != null ? request.getAttribute("email") : "" %>" autocomplete="email"></label>
         <div class="row">

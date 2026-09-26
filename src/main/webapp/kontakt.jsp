@@ -4,6 +4,7 @@
 <main>
   <h2>Kontakt</h2>
   <form method="post" action="/contact">
+    <input type="hidden" name="csrf" value="${csrf}">
     <label>Jméno: <input name="name" required></label><br>
     <label>E-mail: <input name="email" type="email" required></label><br>
     <label>Zpráva: <textarea name="message" rows="4" required></textarea></label><br>

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@ include file="includes/header.jsp" %>
 
 <main>
@@ -15,6 +15,7 @@
             <% } %>
 
             <form method="post" action="/newsletter/subscribe">
+                <input type="hidden" name="csrf" value="${csrf}">
                 <label for="email">E-mailová adresa</label>
                 <input type="email" name="email" id="email" placeholder="vas@email.cz" required>
                 <button type="submit">Přihlásit se k odběru</button>

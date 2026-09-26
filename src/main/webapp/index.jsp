@@ -24,7 +24,8 @@
     </a>
   </section>
 
-  <section class="news-grid">
+  <!-- 2-column layout: News + Social/Concerts -->
+  <section class="home-grid">
     <div class="card">
       <h3 class="bruno-ace-sc-regular">🗞️ <%= ((java.util.Properties)request.getAttribute("t")).getProperty("home.news","Novinky") %></h3>
       <div class="videos">
@@ -62,32 +63,20 @@
           }
         %>
       </div>
-      <hr style="border-color:var(--panel-border); opacity:.4; margin:12px 0;">
-      <h4 class="bruno-ace-sc-regular">📣 Sociální sítě</h4>
-      <div id="home-social" class="home-social-grid"></div>
-      <div class="all-news-link"><a href="/aktuality.jsp">Všechny aktuality →</a></div>
-      <script>
-        (async function(){
-          try{
-            const res = await fetch('/api/social-posts?onePerSource=true'); if(!res.ok) return;
-            const posts = await res.json(); if(!Array.isArray(posts)||!posts.length) return;
-            const el = document.getElementById('home-social'); if(!el) return;
-            el.innerHTML = posts.map(p=>{
-              const img = p.image?`<img src="\${p.image}" class="home-social-img">`:'';
-              const cap = (p.caption||'').slice(0,120);
-              const badge = p.source==='instagram'?'<i class="fab fa-instagram"></i>':(p.source==='facebook'?'<i class="fab fa-facebook"></i>':'📰');
-              return `<a href="\${p.permalink}" target="_blank" rel="noopener" class="home-social-link">\${img}<span class="home-social-badge">\${badge}</span><div class="home-social-caption">\${cap}</div></a>`;
-            }).join('');
-          }catch(e){}
-        })();
-      </script>
     </div>
+
     <div class="card">
       <h3 class="bruno-ace-sc-regular">🎤 <%= ((java.util.Properties)request.getAttribute("t")).getProperty("home.concerts","Koncerty") %></h3>
       <ul class="concerts-list">
         <li><%= ((java.util.Properties)request.getAttribute("t")).getProperty("home.concerts.none","Zatím nejsou naplánovány žádné koncerty.") %></li>
       </ul>
-      <hr style="border-color:var(--panel-border); opacity:.5;">
+      <hr style="border-color:var(--panel-border); opacity:.5; margin:12px 0;">
+      
+      <h4 class="bruno-ace-sc-regular" style="margin-top:16px;">📣 Sociální sítě</h4>
+      <div id="home-social" class="home-social-grid"></div>
+      <div class="all-news-link" style="margin-top:8px;"><a href="/aktuality.jsp">Všechny aktuality →</a></div>
+      
+      <hr style="border-color:var(--panel-border); opacity:.5; margin:12px 0;">
       <div class="newsletter">
         <h4>📧 <%= ((java.util.Properties)request.getAttribute("t")).getProperty("home.newsletter.title","Novinky e-mailem") %></h4>
         <form method="post" action="/newsletter/subscribe">
@@ -95,10 +84,31 @@
           <input type="email" name="email" placeholder="<%= ((java.util.Properties)request.getAttribute("t")).getProperty("home.newsletter.placeholder","Tvůj e-mail") %>" required>
           <button type="submit"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("home.newsletter.submit","Odebírat") %></button>
         </form>
-      </div>
     </div>
   </section>
+
 <script>
+  // Load social posts for home page
+  (async function(){
+    try{
+      const res = await fetch('/api/social-posts?onePerSource=true'); 
+      if(!res.ok) return;
+      const posts = await res.json(); 
+      if(!Array.isArray(posts)||!posts.length) return;
+      const el = document.getElementById('home-social'); 
+      if(!el) return;
+      const esc = v => String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      const safeUrl = u => /^https?:\/\//i.test(u||'') ? esc(u) : '#';
+      el.innerHTML = posts.map(p=>{
+        const img = p.image?`<img src="\${safeUrl(p.image)}" class="home-social-img">`:'';
+        const cap = esc((p.caption||'').slice(0,120));
+        const badge = p.source==='instagram'?'<i class="fab fa-instagram"></i>':(p.source==='facebook'?'<i class="fab fa-facebook"></i>':'📰');
+        return `<a href="\${safeUrl(p.permalink)}" target="_blank" rel="noopener" class="home-social-link">\${img}<span class="home-social-badge">\${badge}</span><div class="home-social-caption">\${cap}</div></a>`;
+      }).join('');
+    }catch(e){}
+  })();
+
+  // Share button handler
   document.addEventListener('click', function(e){
     const btn = e.target.closest('.share-btn');
     if(!btn) return;
@@ -108,6 +118,7 @@
       navigator.share({ title: document.title, url }).catch(()=>{});
     } else {
       navigator.clipboard.writeText(url).then(()=>{ btn.textContent='Copied'; setTimeout(()=>btn.textContent='Share',1200); });
+    }
     }
   });
 </script>

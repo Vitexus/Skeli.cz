@@ -14,6 +14,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # pom.xml enforces JDK 21+; the runner's default JDK is older
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: maven
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh

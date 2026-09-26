@@ -69,15 +69,15 @@
         %>
           <tr>
             <td style="padding:6px; opacity:.8;"><%= ts %></td>
-            <td style="padding:6px;"><a href="/lyric.jsp?id=<%= lid %>"><%= sname %></a></td>
+            <td style="padding:6px;"><a href="/lyric.jsp?id=<%= lid %>"><%= com.github.skeliit.WebUtils.escapeHtml(sname) %></a></td>
             <td style="padding:6px; max-width:420px;">
               <form method="post" action="/comment" style="display:flex; gap:6px; align-items:flex-start;">
                 <input type="hidden" name="lyric_id" value="<%= lid %>">
                 <input type="hidden" name="comment_id" value="<%= cid %>">
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="csrf" value="${csrf}">
-                <textarea name="content" rows="2" style="flex:1; width:100%; border:1px solid var(--panel-border); border-radius:6px; background:rgba(0,0,0,0.12); color:inherit;"><%= ctext %></textarea>
-                <button type=\"submit\" class=\"bruno-ace-sc-regular\" style=\"border:1px solid var(--panel-border); border-radius:6px; background:transparent; padding:6px 10px; color:var(--text);\">Uložit</button>
+                <textarea name="content" rows="2" style="flex:1; width:100%; border:1px solid var(--panel-border); border-radius:6px; background:rgba(0,0,0,0.12); color:inherit;"><%= com.github.skeliit.WebUtils.escapeHtml(ctext) %></textarea>
+                <button type="submit" class="bruno-ace-sc-regular" style="border:1px solid var(--panel-border); border-radius:6px; background:transparent; padding:6px 10px; color:var(--text);">Uložit</button>
               </form>
             </td>
             <td style="padding:6px; text-align:center;">

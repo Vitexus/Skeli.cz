@@ -3,6 +3,11 @@
    Reusable UI components
    ============================================ */
 
+/* Global theme transition */
+*:not(.share-btn) {
+  transition: background-color 0.6s ease, color 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease !important;
+}
+
 /* Global Form Elements */
 input[type=text],
 input[type=password],
@@ -17,6 +22,7 @@ textarea {
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   padding: 8px 10px;
+  transition: background-color 0.6s ease, color 0.6s ease, border-color 0.6s ease;
 }
 
 body.light input[type=text],

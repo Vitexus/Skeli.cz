@@ -71,10 +71,10 @@
         <div class="settings-form">
           <form method="post" action="/profile/update" enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="csrf" value="${csrf}">
-            <label>Zobrazované jméno<br><input name="display_name" maxlength="60" value="<%= (displayName!=null?displayName:"") %>"></label>
+            <label>Zobrazované jméno<br><input name="display_name" maxlength="60" value="<%= com.github.skeliit.WebUtils.escapeHtml(displayName) %>"></label>
             <label>Věk<br><input type="number" name="age" min="1" max="120" value="<%= (age!=null?age:"") %>"></label>
-            <label>Město<br><input name="city" maxlength="80" value="<%= (city!=null?city:"") %>"></label>
-            <label>Bio<br><textarea name="bio" rows="3"><%= (bio!=null?bio:"") %></textarea></label>
+            <label>Město<br><input name="city" maxlength="80" value="<%= com.github.skeliit.WebUtils.escapeHtml(city) %>"></label>
+            <label>Bio<br><textarea name="bio" rows="3"><%= com.github.skeliit.WebUtils.escapeHtml(bio) %></textarea></label>
             <label>Téma<br>
               <select name="theme">
                 <option value="dark" <%= "dark".equals(theme)?"selected":"" %>>Dark</option>
@@ -101,6 +101,7 @@
         <h3>Změna hesla</h3>
         <div class="settings-form">
           <form method="post" action="/profile/change-password">
+            <input type="hidden" name="csrf" value="${csrf}">
             <label>Staré heslo: <input type="password" name="old_password" required></label>
             <label>Nové heslo: <input type="password" name="new_password" minlength="6" required></label>
             <label>Potvrzení: <input type="password" name="confirm_password" minlength="6" required></label>
