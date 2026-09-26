@@ -218,12 +218,6 @@ body.light .sp-hide:hover {
   background: rgba(255, 255, 255, 1);
 }
 
-/* Header & Navigation Extras */
-header {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
 /* Hamburger Menu Styles */
 .menu-toggle {
   display: none;

@@ -95,11 +95,26 @@ header {
   border-radius: 0;
   margin: 0;
   position: relative;
+  z-index: 0;
+}
+
+/* Tint + blur live on a masked layer so the header fades into the page
+   instead of ending with the hard edge of backdrop-filter */
+header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background: linear-gradient(
     to bottom,
     rgba(34, 34, 34, 0.9) 0%,
     rgba(34, 34, 34, 0) 100%
   );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
 }
 
 /* Navigation */
@@ -128,30 +143,27 @@ main {
   width: calc(100vw - 60px);
   max-width: none;
   margin: 30px auto;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.1) 0%,
-    rgba(0, 0, 0, 0.3) 60px,
-    var(--panel) 180px,
-    var(--panel) 100%
-  );
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
-  border: 1px solid var(--panel-border);
-  border-top-color: transparent;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  padding: 30px 30px 90px;
+  position: relative;
+  z-index: 0;
 }
 
-body.light main {
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.2) 0%,
-    rgba(255, 255, 255, 0.4) 60px,
-    var(--panel) 180px,
-    var(--panel) 100%
-  );
+/* Panel + blur on a masked layer: fades in at the top and out at the bottom
+   (a backdrop-filter on main itself would always stop at a sharp edge) */
+main::before {
+  --fade: 160px;
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  -webkit-mask-image: linear-gradient(to bottom,
+    transparent 0, #000 var(--fade), #000 calc(100% - var(--fade)), transparent 100%);
+  mask-image: linear-gradient(to bottom,
+    transparent 0, #000 var(--fade), #000 calc(100% - var(--fade)), transparent 100%);
 }
 
 /* Footer */
