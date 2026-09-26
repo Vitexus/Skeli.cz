@@ -4,7 +4,7 @@
 <main>
   <div class="settings-wrap">
     <div class="settings-shell">
-      <h2 class="bruno-ace-sc-regular text-center" style="margin-top:0;">Nastavení účtu</h2>
+      <h2 class="bruno-ace-sc-regular text-center" style="margin-top:0;"><%= t.getProperty("settings.heading") %></h2>
 
       <%
         Integer uid = (Integer) session.getAttribute("user_id");
@@ -29,14 +29,28 @@
       %>
 
       <% if ("true".equals(request.getParameter("saved"))) { %>
-        <div class="form-success text-center">Profil uložen.</div>
+        <div class="form-success text-center"><%= t.getProperty("settings.saved") %></div>
       <% } %>
       <% if ("true".equals(request.getParameter("password_changed"))) { %>
-        <div class="form-success text-center">Heslo změněno.</div>
+        <div class="form-success text-center"><%= t.getProperty("settings.passwordChanged") %></div>
+      <% } %>
+      <%
+        // Error codes sent by ChangePasswordServlet (?error=...) and ProfileDeleteServlet (?confirm=required)
+        String settingsError = request.getParameter("error");
+        String settingsErrorKey = null;
+        if ("empty".equals(settingsError)) settingsErrorKey = "settings.error.empty";
+        else if ("mismatch".equals(settingsError)) settingsErrorKey = "settings.error.mismatch";
+        else if ("short".equals(settingsError)) settingsErrorKey = "settings.error.short";
+        else if ("wrong_old".equals(settingsError)) settingsErrorKey = "settings.error.wrongOld";
+        else if (settingsError != null) settingsErrorKey = "settings.error.generic";
+        if ("required".equals(request.getParameter("confirm"))) settingsErrorKey = "settings.deleteRequired";
+        if (settingsErrorKey != null) {
+      %>
+        <div class="form-alert text-center"><%= t.getProperty(settingsErrorKey) %></div>
       <% } %>
 
       <section class="settings-section">
-        <h3>Avatar</h3>
+        <h3><%= t.getProperty("avatar.title") %></h3>
         <div class="avatar-edit-wrap">
           <div>
             <div id="avatar-preview" class="avatar-preview-box">
@@ -50,14 +64,14 @@
               <div id="cropper-overlay" style="position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at center, rgba(0,0,0,0) 46%, rgba(0,0,0,0.45) 48%, rgba(0,0,0,0.55) 100%);"></div>
             </div>
             <div class="avatar-btns">
-              <button id="btn-auto-face" type="button" class="bruno-ace-sc-regular control-btn"><i class="fa-solid fa-user"></i> Auto center</button>
+              <button id="btn-auto-face" type="button" class="bruno-ace-sc-regular control-btn"><i class="fa-solid fa-user"></i> <%= t.getProperty("avatar.autoCenter") %></button>
               <button id="btn-zoom-in" type="button" class="bruno-ace-sc-regular control-btn">+</button>
               <button id="btn-zoom-out" type="button" class="bruno-ace-sc-regular control-btn">−</button>
               <span style="flex:1"></span>
-              <button id="btn-crop-save" type="button" class="bruno-ace-sc-regular control-btn" style="background:transparent;color:#fff;"><i class="fa-solid fa-floppy-disk"></i> Uložit</button>
-              <button id="btn-cancel" type="button" class="bruno-ace-sc-regular control-btn" style="background:transparent;color:#fff;">Zrušit</button>
+              <button id="btn-crop-save" type="button" class="bruno-ace-sc-regular control-btn" style="background:transparent;color:#fff;"><i class="fa-solid fa-floppy-disk"></i> <%= t.getProperty("common.save") %></button>
+              <button id="btn-cancel" type="button" class="bruno-ace-sc-regular control-btn" style="background:transparent;color:#fff;"><%= t.getProperty("common.cancel") %></button>
             </div>
-            <p class="form-note" style="margin-top:6px;">Tip: Zoom kolečkem myši, tažení myší pro posun. Výstup 512×512 JPG.</p>
+            <p class="form-note" style="margin-top:6px;"><%= t.getProperty("avatar.tip") %></p>
           </div>
         </div>
         <form id="avatar-form" method="post" action="/profile/avatar" enctype="multipart/form-data" style="display:none;">
@@ -67,21 +81,21 @@
       </section>
 
       <section class="settings-section">
-        <h3>Profil</h3>
+        <h3><%= t.getProperty("menu.profile") %></h3>
         <div class="settings-form">
           <form method="post" action="/profile/update" enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="csrf" value="${csrf}">
-            <label>Zobrazované jméno<br><input name="display_name" maxlength="60" value="<%= com.github.skeliit.WebUtils.escapeHtml(displayName) %>"></label>
-            <label>Věk<br><input type="number" name="age" min="1" max="120" value="<%= (age!=null?age:"") %>"></label>
-            <label>Město<br><input name="city" maxlength="80" value="<%= com.github.skeliit.WebUtils.escapeHtml(city) %>"></label>
-            <label>Bio<br><textarea name="bio" rows="3"><%= com.github.skeliit.WebUtils.escapeHtml(bio) %></textarea></label>
-            <label>Téma<br>
+            <label><%= t.getProperty("settings.displayName") %><br><input name="display_name" maxlength="60" value="<%= com.github.skeliit.WebUtils.escapeHtml(displayName) %>"></label>
+            <label><%= t.getProperty("settings.age") %><br><input type="number" name="age" min="1" max="120" value="<%= (age!=null?age:"") %>"></label>
+            <label><%= t.getProperty("settings.city") %><br><input name="city" maxlength="80" value="<%= com.github.skeliit.WebUtils.escapeHtml(city) %>"></label>
+            <label><%= t.getProperty("settings.bio") %><br><textarea name="bio" rows="3"><%= com.github.skeliit.WebUtils.escapeHtml(bio) %></textarea></label>
+            <label><%= t.getProperty("settings.theme") %><br>
               <select name="theme">
-                <option value="dark" <%= "dark".equals(theme)?"selected":"" %>>Dark</option>
-                <option value="light" <%= "light".equals(theme)?"selected":"" %>>Light</option>
+                <option value="dark" <%= "dark".equals(theme)?"selected":"" %>><%= t.getProperty("settings.theme.dark") %></option>
+                <option value="light" <%= "light".equals(theme)?"selected":"" %>><%= t.getProperty("settings.theme.light") %></option>
               </select>
             </label>
-            <label>Jazyk<br>
+            <label><%= t.getProperty("header.language") %><br>
               <select name="lang">
                 <option value="cs" <%= "cs".equals(prefLang)?"selected":"" %>>Čeština</option>
                 <option value="en" <%= "en".equals(prefLang)?"selected":"" %>>English</option>
@@ -90,37 +104,37 @@
               </select>
             </label>
             <label class="checkbox-label">
-              <input type="checkbox" name="public_profile" value="1"> Veřejný profil
+              <input type="checkbox" name="public_profile" value="1"> <%= t.getProperty("settings.public") %>
             </label>
-            <div class="text-center" style="margin-top:8px;"><button type="submit">Uložit</button></div>
+            <div class="text-center" style="margin-top:8px;"><button type="submit"><%= t.getProperty("common.save") %></button></div>
           </form>
         </div>
       </section>
 
       <section class="settings-section">
-        <h3>Změna hesla</h3>
+        <h3><%= t.getProperty("settings.password") %></h3>
         <div class="settings-form">
           <form method="post" action="/profile/change-password">
             <input type="hidden" name="csrf" value="${csrf}">
-            <label>Staré heslo: <input type="password" name="old_password" required></label>
-            <label>Nové heslo: <input type="password" name="new_password" minlength="6" required></label>
-            <label>Potvrzení: <input type="password" name="confirm_password" minlength="6" required></label>
-            <div class="text-center" style="margin-top:8px;"><button type="submit">Změnit heslo</button></div>
+            <label><%= t.getProperty("settings.oldPassword") %> <input type="password" name="old_password" required></label>
+            <label><%= t.getProperty("settings.newPassword") %> <input type="password" name="new_password" minlength="6" required></label>
+            <label><%= t.getProperty("settings.confirmPassword") %> <input type="password" name="confirm_password" minlength="6" required></label>
+            <div class="text-center" style="margin-top:8px;"><button type="submit"><%= t.getProperty("settings.changePassword") %></button></div>
           </form>
         </div>
       </section>
 
       <section class="settings-section">
-        <h3>Soukromí</h3>
+        <h3><%= t.getProperty("settings.privacy") %></h3>
         <div class="settings-form">
           <form method="get" action="/profile/export" class="text-center" style="margin:8px 0;">
-            <button type="submit" class="bruno-ace-sc-regular" style="background:transparent; border:1px solid var(--panel-border);">Export dat (JSON)</button>
+            <button type="submit" class="bruno-ace-sc-regular" style="background:transparent; border:1px solid var(--panel-border);"><%= t.getProperty("settings.export") %></button>
           </form>
-          <form method="post" action="/profile/delete" onsubmit="return confirm('Opravdu smazat účet? Zadej DELETE a potvrď.');">
+          <form method="post" action="/profile/delete" onsubmit="return confirm('<%= com.github.skeliit.WebUtils.escapeJs(t.getProperty("settings.deleteConfirm")) %>');">
             <input type="hidden" name="csrf" value="${csrf}">
-            <label>Potvrzení (napiš "DELETE")<br><input type="text" name="confirm" required></label>
+            <label><%= com.github.skeliit.WebUtils.escapeHtml(t.getProperty("settings.deleteLabel")) %><br><input type="text" name="confirm" required></label>
             <div class="text-center" style="margin-top:8px;">
-              <button type="submit" class="btn-delete" style="width:100%;">Smazat účet</button>
+              <button type="submit" class="btn-delete" style="width:100%;"><%= t.getProperty("settings.deleteAccount") %></button>
             </div>
           </form>
         </div>
@@ -147,7 +161,7 @@
 
     function loadFile(f){
       if(!f) return;
-      if (f.size > 15*1024*1024) { alert('Soubor je příliš velký. Zvol menší (<= 15 MB)'); return; }
+      if (f.size > 15*1024*1024) { alert('<%= com.github.skeliit.WebUtils.escapeJs(t.getProperty("avatar.tooLarge")) %>'); return; }
       const url = URL.createObjectURL(f);
       img.src = url; wrap.style.display='block';
       if (cropper) { cropper.destroy(); }
@@ -200,10 +214,10 @@
         try {
           const res = await fetch(form.action, { method:'POST', body: fd });
           const data = await res.json();
-          if (!res.ok || !data.ok){ alert('Uložení selhalo'); return; }
+          if (!res.ok || !data.ok){ alert('<%= com.github.skeliit.WebUtils.escapeJs(t.getProperty("avatar.saveFailed")) %>'); return; }
           preview.src = data.url;
           btnCancel.click();
-        } catch(e){ alert('Chyba sítě'); }
+        } catch(e){ alert('<%= com.github.skeliit.WebUtils.escapeJs(t.getProperty("common.networkError")) %>'); }
       }, 'image/jpeg', 0.85);
     });
   })();

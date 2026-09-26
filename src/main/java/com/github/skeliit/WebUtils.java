@@ -33,6 +33,27 @@ public class WebUtils {
         return sb.toString();
     }
 
+    /**
+     * Escapes text for a JavaScript string literal. Quotes, &lt;, &gt; and &amp; become
+     * \\uXXXX, so the result is also safe inside an HTML attribute (e.g. onclick).
+     */
+    public static String escapeJs(Object o) {
+        if (o == null) return "";
+        String s = o.toString();
+        StringBuilder sb = new StringBuilder(s.length() + 16);
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case '\\' -> sb.append("\\\\");
+                case '\n' -> sb.append("\\n");
+                case '\r' -> sb.append("\\r");
+                case '\'', '"', '<', '>', '&', '`' -> sb.append(String.format("\\u%04x", (int) c));
+                default -> sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
     /** Returns the URL only if it is a site-relative path or http(s) URL, otherwise the fallback. */
     public static String safeUrl(String url, String fallback) {
         if (url == null || url.isBlank()) return fallback;

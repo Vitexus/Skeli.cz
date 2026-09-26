@@ -3,28 +3,28 @@
 
 <main>
   <section class="about-header">
-    <h2 class="bruno-ace-sc-regular"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.title","About me") %></h2>
+    <h2 class="bruno-ace-sc-regular"><%= t.getProperty("about.title","About me") %></h2>
     <div class="about-avatar-container">
       <img src="/img/IMG_0132.webp" alt="Skeli" class="about-avatar" onerror="this.style.display='none'">
     </div>
-    <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.p1","Jsem Skeli – rapper, producent a nadšenec do webu. Baví mě tvořit hudbu i aplikace, které něco předají.") %></p>
+    <p><%= t.getProperty("about.p1","Jsem Skeli – rapper, producent a nadšenec do webu. Baví mě tvořit hudbu i aplikace, které něco předají.") %></p>
   </section>
   <section class="about-grid">
     <div class="about-card">
-      <h3><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.music.title","Music journey") %></h3>
-      <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.music.text","From the first tracks to the current work. Find clips and playlists on the Music page.") %></p>
+      <h3><%= t.getProperty("about.music.title","Music journey") %></h3>
+      <p><%= t.getProperty("about.music.text","From the first tracks to the current work. Find clips and playlists on the Music page.") %></p>
     </div>
     <div class="about-card">
-      <h3><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.collab.title","Collaboration") %></h3>
-      <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.collab.text","If you enjoy my work, get in touch. I welcome rap features, beat production and visuals.") %></p>
+      <h3><%= t.getProperty("about.collab.title","Collaboration") %></h3>
+      <p><%= t.getProperty("about.collab.text","If you enjoy my work, get in touch. I welcome rap features, beat production and visuals.") %></p>
     </div>
     <div class="about-card">
-      <h3><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.contact.title","Contact") %></h3>
-      <p><%= ((java.util.Properties)request.getAttribute("t")).getProperty("about.contact.email","E-mail") %>: <a href="mailto:skelimc@seznam.cz">skelimc@seznam.cz</a></p>
+      <h3><%= t.getProperty("about.contact.title","Contact") %></h3>
+      <p><%= t.getProperty("about.contact.email","E-mail") %>: <a href="mailto:skelimc@seznam.cz">skelimc@seznam.cz</a></p>
     </div>
   </section>
   <section class="about-footer">
-    <p> Sleduj novinky na mých sítích:</p>
+    <p><%= t.getProperty("about.follow") %></p>
     <div class="social-icons-large">
         <a href="https://www.facebook.com/mcskeli/" target="_blank">
             <i class="fab fa-facebook icon-facebook"></i>

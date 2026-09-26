@@ -43,7 +43,7 @@ public class CsrfFilter implements Filter {
         if (unsafe && !multipart && !isValid(req)) {
             resp.setStatus(400);
             resp.setContentType("text/plain; charset=UTF-8");
-            resp.getWriter().write("Bad Request (CSRF) - obnovte stránku a zkuste to znovu.");
+            resp.getWriter().write(I18n.getText(req, "error.csrf"));
             return;
         }
 

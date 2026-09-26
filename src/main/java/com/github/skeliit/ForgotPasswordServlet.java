@@ -43,7 +43,7 @@ public class ForgotPasswordServlet extends HttpServlet {
                 }
                 // Send password reset email
                 try {
-                    EmailUtil.sendMail(email, buildSubject(), buildBody(token));
+                    EmailUtil.sendMail(email, I18n.getText(req, "email.reset.subject"), buildBody(req, token));
                 } catch (Exception mailErr) {
                     // Log error but continue - user should see success message for security
                     getServletContext().log("Password reset e-mail could not be sent", mailErr);
@@ -61,18 +61,9 @@ public class ForgotPasswordServlet extends HttpServlet {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(b);
     }
 
-    private static String buildSubject() { 
-        return "Skeli.cz - Obnovení hesla"; 
-    }
-    
-    private static String buildBody(String token) {
+    private static String buildBody(HttpServletRequest req, String token) {
         // Base URL comes from configuration, never from the Host header (reset link poisoning)
         String resetLink = WebUtils.baseUrl() + "/reset.jsp?token=" + token;
-        return "Dobrý den,\n\n" +
-               "Obdrželi jsme žádost o obnovení hesla k vašemu účtu na Skeli.cz.\n\n" +
-               "Pokud chcete obnovit heslo, klikněte na následující odkaz (platí 30 minut):\n" +
-               resetLink + "\n\n" +
-               "Pokud jste o obnovení hesla nežádali, ignorujte tento e-mail.\n\n" +
-               "S pozdravem,\nTým Skeli.cz";
+        return I18n.getText(req, "email.reset.body").replace("{link}", resetLink);
     }
 }

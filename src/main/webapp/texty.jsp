@@ -4,7 +4,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <main>
-    <h2 class="bruno-ace-sc-regular text-center"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.lyrics","Lyrics") %></h2>
+    <h2 class="bruno-ace-sc-regular text-center"><%= t.getProperty("menu.lyrics","Lyrics") %></h2>
     <div class="texts-card">
       <ul class="texts-list">
         <%
@@ -46,14 +46,14 @@
         <%
                         }
                 } catch (SQLException e) {
-                    out.println("<li>Chyba připojení k databázi: " + e.getMessage() + "</li>");
+                    out.println("<li>" + t.getProperty("lyrics.loadError") + "</li>");
                 }
 
                 if (!hadRows) {
-                    out.println("<li>Žádné texty nenalezeny.</li>");
+                    out.println("<li>" + t.getProperty("lyrics.none") + "</li>");
                 }
             } catch (Exception e) {
-                out.println("<li>Chyba při načítání textů: " + e.getMessage() + "</li>");
+                out.println("<li>" + t.getProperty("lyrics.loadError") + "</li>");
             }
         %>
       </ul>

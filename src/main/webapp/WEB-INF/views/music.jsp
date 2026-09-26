@@ -3,7 +3,7 @@
 <%@ taglib prefix="c" uri="https://jakarta.ee/jsp/jstl/core" %>
 
 <main>
-  <h2>Moje Hudba!</h2>
+  <h2><%= t.getProperty("music.heading") %></h2>
 
   <div class="media-columns">
     <section class="section youtube">
