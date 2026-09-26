@@ -4,14 +4,14 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <main class="avoid-footer">
-    <h2 style="text-align:center;">Text</h2>
+    <h2 style="text-align:center;"><%= t.getProperty("lyric.heading") %></h2>
 
 
     <% String flash = request.getParameter("msg"); if (flash != null) { %>
-      <div style="background:rgba(0,128,0,0.35); padding:8px 10px; border-radius:8px; margin-bottom:10px; text-align:center;">Komentář <%= ("deleted".equals(flash)?"odstraněn":("updated".equals(flash)?"upraven":"přidán")) %>.</div>
+      <div style="background:rgba(0,128,0,0.35); padding:8px 10px; border-radius:8px; margin-bottom:10px; text-align:center;"><%= t.getProperty("deleted".equals(flash) ? "comment.flash.deleted" : ("updated".equals(flash) ? "comment.flash.updated" : "comment.flash.added")) %></div>
     <% } %>
     <div class="nav-top">
-      <h3>Názvy písní</h3>
+      <h3><%= t.getProperty("lyric.songList") %></h3>
       <ul class="song-list">
         <%
             String idParam = request.getParameter("id");
@@ -41,14 +41,14 @@
                         int lyricId = rs.getInt("lyric_id");
                         boolean isActive = (activeId != null && activeId == lyricId);
         %>
-                        <li><a class="<%= isActive ? "active" : "" %>" href="lyric.jsp?id=<%= lyricId %>"><%= name %></a></li>
+                        <li><a class="<%= isActive ? "active" : "" %>" href="lyric.jsp?id=<%= lyricId %>"><%= com.github.skeliit.WebUtils.escapeHtml(name) %></a></li>
         <%
                     }
                 } catch (SQLException e) {
-                    out.println("<li>Chyba při načítání seznamu: " + e.getMessage() + "</li>");
+                    out.println("<li>" + t.getProperty("lyrics.loadError") + "</li>");
                 }
             } else {
-                out.println("<li>Chyba připojení k DB.</li>");
+                out.println("<li>" + t.getProperty("lyrics.loadError") + "</li>");
             }
         %>
         </ul>
@@ -66,7 +66,7 @@
             }
             if (connected) {
                 if (activeId == null) {
-                    out.println("<p>Vyberte prosím píseň vlevo.</p>");
+                    out.println("<p>" + t.getProperty("lyric.choose") + "</p>");
                 } else {
                     String detailSql = "SELECT s.name AS song_name, s.year AS song_year, l.words, l.score, " +
                                        "(SELECT v.youtube_id FROM videos v WHERE v.song_id = l.song_id ORDER BY v.published_at DESC, v.id DESC LIMIT 1) AS yt " +
@@ -81,8 +81,8 @@
                                 String words = rs.getString("words");
                                 String yt = rs.getString("yt");
                                 // try translated words if available for selected language
-                                String curLang = (String) session.getAttribute("lang");
-                                if (curLang != null && !curLang.equals("cs")) {
+                                String curLang = cur;
+                                if (!curLang.equals("cs")) {
                                   try (PreparedStatement tr = conn.prepareStatement("SELECT words FROM lyrics_translations WHERE lyric_id=? AND lang=?")) {
                                     tr.setInt(1, activeId);
                                     tr.setString(2, curLang);
@@ -92,16 +92,16 @@
         %>
                                 <div class="card accent lyric-layout lyric-card">
                                   <div>
-                                    <h3><%= name %><% if (year != null) { %> (<%= year %>)<% } %></h3>
+                                    <h3><%= com.github.skeliit.WebUtils.escapeHtml(name) %><% if (year != null) { %> (<%= year %>)<% } %></h3>
                                     <% if (yt != null && !yt.isEmpty()) { %>
                                     <div class="video-container">
                                       <div class="video-ratio">
-                                        <iframe src="https://www.youtube.com/embed/<%= yt %>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                                        <iframe src="https://www.youtube.com/embed/<%= com.github.skeliit.WebUtils.escapeHtml(yt) %>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                                       </div>
                                     </div>
                                     <% } %>
                                     <div class="lyrics-box">
-                                      <pre><%= words %></pre>
+                                      <pre><%= com.github.skeliit.WebUtils.escapeHtml(words) %></pre>
                                     </div>
                                   </div>
                                   <div>
@@ -113,7 +113,7 @@
                                       <input type="hidden" name="lyric_id" value="<%= activeId %>">
                                       <input type="hidden" name="action" value="up">
                                       <input type="hidden" name="csrf" value="${csrf}">
-                                      <button type="submit" class="btn-vote up" title="Líbí se mi">
+                                      <button type="submit" class="btn-vote up" title="<%= t.getProperty("vote.like") %>">
                                         <i class="fa-solid fa-thumbs-up"></i>
                                       </button>
                                     </form>
@@ -121,7 +121,7 @@
                                       <input type="hidden" name="lyric_id" value="<%= activeId %>">
                                       <input type="hidden" name="action" value="down">
                                       <input type="hidden" name="csrf" value="${csrf}">
-                                      <button type="submit" class="btn-vote down" title="Nelíbí se mi">
+                                      <button type="submit" class="btn-vote down" title="<%= t.getProperty("vote.dislike") %>">
                                         <i class="fa-solid fa-thumbs-down"></i>
                                       </button>
                                     </form>
@@ -154,13 +154,13 @@
                                         try (ResultSet rsv2 = psViews2.executeQuery()) { if (rsv2.next()) views = rsv2.getLong(1); }
                                       }
                                     %>
-                                    Návštěvy: <%= views %>
+                                    <%= t.getProperty("lyric.views") %> <%= views %>
                                   </div>
                                   </div>
 
                                   <div>
                                   <div class="comments">
-                                    <h4>Komentáře</h4>
+                                    <h4><%= t.getProperty("comments.title") %></h4>
                                     <div>
                                       <%
                                         try (PreparedStatement psC = conn.prepareStatement(
@@ -171,11 +171,11 @@
                                             int __cid = rsc.getInt("id");
                                     %>
                                               <div class="comment-item">
-                                                <img src="<%= rsc.getString("avatar_url") != null ? rsc.getString("avatar_url") : "/img/avatar-default.png" %>" alt="avatar" class="comment-avatar">
+                                                <img src="<%= com.github.skeliit.WebUtils.escapeHtml(com.github.skeliit.WebUtils.safeUrl(rsc.getString("avatar_url"), "/img/avatar-default.png")) %>" alt="avatar" class="comment-avatar">
                                                 <div style="flex:1;">
-                                                  <strong><%= rsc.getString("username") %></strong>
+                                                  <strong><%= com.github.skeliit.WebUtils.escapeHtml(rsc.getString("username")) %></strong>
                                                   <span class="meta comment-meta">(<%= rsc.getTimestamp("created_at") %>)</span>
-                                                  <div id="c-body-<%= __cid %>"><%= rsc.getString("content") %></div>
+                                                  <div id="c-body-<%= __cid %>"><%= com.github.skeliit.WebUtils.escapeHtml(rsc.getString("content")) %></div>
                                                 <%
                                                   Integer uid2 = (Integer) session.getAttribute("userId");
                                                   String role2 = (String) session.getAttribute("role");
@@ -188,9 +188,9 @@
                                                     <input type="hidden" name="comment_id" value="<%= __cid %>">
                                                     <input type="hidden" name="action" value="delete">
                                                     <input type="hidden" name="csrf" value="${csrf}">
-                                                    <button type="submit" style="background:#7b1e1e;color:#fff;border:none;padding:4px 8px;border-radius:6px;">Smazat</button>
+                                                    <button type="submit" style="background:#7b1e1e;color:#fff;border:none;padding:4px 8px;border-radius:6px;"><%= t.getProperty("common.delete") %></button>
                                                   </form>
-                                                  <button type="button" onclick="(function(){ var f=document.getElementById('edit-<%= __cid %>'); f.style.display = f.style.display==='none'?'block':'none'; })()" style="margin-left:6px;">Upravit</button>
+                                                  <button type="button" onclick="(function(){ var f=document.getElementById('edit-<%= __cid %>'); f.style.display = f.style.display==='none'?'block':'none'; })()" style="margin-left:6px;"><%= t.getProperty("common.edit") %></button>
                                                 </div>
                                                 <form id="edit-<%= __cid %>" method="post" action="/comment" style="display:none; margin-top:6px;">
                                                   <input type="hidden" name="lyric_id" value="<%= activeId %>">
@@ -199,11 +199,11 @@
                                                   <%
                                                     String __content = rsc.getString("content");
                                                     if (__content == null) __content = "";
-                                                    __content = __content.replace("&","&amp;").replace("<","&lt;");
+                                                    __content = com.github.skeliit.WebUtils.escapeHtml(__content);
                                                   %>
                                                   <textarea name="content" rows="3" style="width:100%;"><%= __content %></textarea>
                                                     <input type="hidden" name="csrf" value="${csrf}">
-                                                    <button type="submit">Uložit</button>
+                                                    <button type="submit"><%= t.getProperty("common.save") %></button>
                                                 </form>
                                                 <%
                                                   }
@@ -225,15 +225,15 @@
                                         <input type="hidden" name="lyric_id" value="<%= activeId %>">
                                         <input type="hidden" name="csrf" value="${csrf}">
                                         <div style="position:relative;">
-                                          <textarea id="comment-textarea" name="content" rows="3" class="comment-textarea" placeholder="Napište komentář... 😎" required></textarea>
+                                          <textarea id="comment-textarea" name="content" rows="3" class="comment-textarea" placeholder="<%= t.getProperty("comment.placeholder") %> 😎" required></textarea>
                                           <button type="button" id="emoji-btn" class="emoji-trigger">😊</button>
                                         </div>
-                                        <button type="submit" style="margin-top:6px; padding:6px 10px; border:1px solid var(--panel-border); border-radius:8px; background:rgba(0,0,0,0.2); color:inherit;">Odeslat</button>
+                                        <button type="submit" style="margin-top:6px; padding:6px 10px; border:1px solid var(--panel-border); border-radius:8px; background:rgba(0,0,0,0.2); color:inherit;"><%= t.getProperty("common.send") %></button>
                                       </form>
                                     <%
                                       } else {
                                     %>
-                                      <p><a href="/login.jsp">Přihlaste se</a> pro přidání komentáře a hlasování.</p>
+                                      <p><a href="/login.jsp"><%= t.getProperty("comment.login.link") %></a><%= t.getProperty("comment.login.toCommentVote") %></p>
                                     <%
                                       }
                                     %>
@@ -242,11 +242,11 @@
                                 </div>
         <%
                             } else {
-                                out.println("<p>Text nenalezen.</p>");
+                                out.println("<p>" + t.getProperty("lyric.notFound") + "</p>");
                             }
                         }
                     } catch (SQLException de) {
-                        out.println("<p>Chyba načtení textu: " + de.getMessage() + "</p>");
+                        out.println("<p>" + t.getProperty("lyrics.loadError") + "</p>");
                     }
                 }
                 try { conn.close(); } catch (Exception ignore) {}

@@ -7,17 +7,18 @@
   }
   String assetVersion = "1.0.2";
 %>
-  <html lang="cs-cz">
+<%@ include file="/WEB-INF/i18n/i18n.jspf" %>
+  <html lang="<%= cur %>">
 
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, viewport-fit=cover">
-    <title>Skeli — oficiální web</title>
-    <meta name="description" content="Skeli — hudba, texty, videa a novinky" />
-    <meta name="keywords" content="Skeli, hudba, rap, videoklipy, texty" />
+    <title><%= t.getProperty("meta.title") %></title>
+    <meta name="description" content="<%= t.getProperty("meta.description") %>" />
+    <meta name="keywords" content="<%= t.getProperty("meta.keywords") %>" />
     <meta name="author" content="Skeli" />
-    <meta property="og:title" content="Skeli — oficiální web" />
-    <meta property="og:description" content="Poslouchej hudbu, sleduj klipy a čti texty" />
+    <meta property="og:title" content="<%= t.getProperty("meta.title") %>" />
+    <meta property="og:description" content="<%= t.getProperty("meta.og.description") %>" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="/" />
     <link rel="shortcut icon" href="<%= ctx %>/favicon.ico" type="image/x-icon" />
@@ -42,12 +43,9 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Slick Carousel JS -->
     <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
-    <%@ include file="/WEB-INF/i18n/i18n.jspf" %>
   </head>
   <body>
-      <% String __csrf=(String) session.getAttribute("csrf"); if (__csrf==null) {
-        __csrf=java.util.UUID.randomUUID().toString(); session.setAttribute("csrf", __csrf); }
-        request.setAttribute("csrf", __csrf); %>
+      <% request.setAttribute("csrf", com.github.skeliit.CsrfFilter.token(session)); %>
         <header>
 
           <div id="topClock" class="bruno-ace-sc-regular"></div>
@@ -57,34 +55,34 @@
           <h1 class="comforter-brush-regular">SKELOSQUAD</h1>
           <nav id="mainNav" class="bruno-ace-sc-regular">
             <a href="<%= ctx %>/index.jsp">
-              <%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.home","Home") %>
+              <%= t.getProperty("menu.home","Home") %>
             </a>
             <a href="<%= ctx %>/bio.jsp">
-              <%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.about","About") %>
+              <%= t.getProperty("menu.about","About") %>
             </a>
             <a href="<%= ctx %>/music.jsp">
-              <%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.music","Music") %>
+              <%= t.getProperty("menu.music","Music") %>
             </a>
-            <a href="<%= ctx %>/aktuality.jsp">Aktuality</a>
+            <a href="<%= ctx %>/aktuality.jsp"><%= t.getProperty("menu.news") %></a>
             <a href="<%= ctx %>/texty.jsp">
-              <%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.lyrics","Lyrics") %>
+              <%= t.getProperty("menu.lyrics","Lyrics") %>
             </a>
           </nav>
           <div class="top-controls">
             <% String currentUser=(String) session.getAttribute("username"); String currentRole=(String)
               session.getAttribute("role"); %>
-              <a href="<%= ctx %>/donate.jsp" class="bruno-ace-sc-regular donate-link" title="Donate">
+              <a href="<%= ctx %>/donate.jsp" class="bruno-ace-sc-regular donate-link" title="<%= t.getProperty("btn.donate") %>">
                 <i class="fa-solid fa-heart"></i>
-                <span>Donate</span>
+                <span><%= t.getProperty("btn.donate") %></span>
               </a>
-              <button id="fontToggle" title="Tloušťka textu" class="bruno-ace-sc-regular control-btn bold-btn">
+              <button id="fontToggle" title="<%= t.getProperty("header.fontWeight") %>" class="bruno-ace-sc-regular control-btn bold-btn">
                 <i class="fa-solid fa-bold"></i>
               </button>
-              <button id="themeToggle" title="Přepnout světlý/tmavý" class="bruno-ace-sc-regular control-btn">
+              <button id="themeToggle" title="<%= t.getProperty("header.theme") %>" class="bruno-ace-sc-regular control-btn">
                 <i class="fa-solid fa-circle-half-stroke"></i>
               </button>
               <div class="lang-switch">
-                <button class="lang-btn bruno-ace-sc-regular control-btn" title="Jazyk">
+                <button class="lang-btn bruno-ace-sc-regular control-btn" title="<%= t.getProperty("header.language") %>">
                   <i class="fa-solid fa-language"></i>
                 </button>
                 <ul class="menu">
@@ -95,14 +93,14 @@
                 </ul>
               </div>
               <% if (currentUser==null) { %>
-                <a href="<%= ctx %>/login.jsp" class="bruno-ace-sc-regular auth-link" title="Přihlásit">
+                <a href="<%= ctx %>/login.jsp" class="bruno-ace-sc-regular auth-link" title="<%= t.getProperty("btn.login") %>">
                   <i class="fa-solid fa-right-to-bracket"></i>
-                  <span>Login</span>
+                  <span><%= t.getProperty("btn.login") %></span>
                 </a>
                 <span class="auth-sep">|</span>
-                <a href="<%= ctx %>/register.jsp" class="bruno-ace-sc-regular auth-link" title="Registrace">
+                <a href="<%= ctx %>/register.jsp" class="bruno-ace-sc-regular auth-link" title="<%= t.getProperty("btn.register") %>">
                   <i class="fa-solid fa-user-plus"></i>
-                  <span>Register</span>
+                  <span><%= t.getProperty("btn.register") %></span>
                 </a>
                 <% } else { %>
                   <div class="user-menu">
@@ -110,11 +108,11 @@
                         <% if ("ADMIN".equals(currentRole)) { %> <span style="color:var(--accent);">★</span>
                           <% } %></span>
                     <div class="user-dropdown">
-                      <a href="<%= ctx %>/profile.jsp">Profil</a>
-                      <a href="<%= ctx %>/uzivatel.jsp">Nastavení</a>
+                      <a href="<%= ctx %>/profile.jsp"><%= t.getProperty("menu.profile") %></a>
+                      <a href="<%= ctx %>/uzivatel.jsp"><%= t.getProperty("menu.settings") %></a>
                       <% if ("ADMIN".equals(currentRole)) { %><a href="<%= ctx %>/admin.jsp" class="admin">Admin</a>
                         <% } %>
-                          <a href="<%= ctx %>/logout">Odhlásit</a>
+                          <a href="<%= ctx %>/logout"><%= t.getProperty("btn.logout") %></a>
                     </div>
                   </div>
                   <% } %>
@@ -124,7 +122,7 @@
           (function () {
             const fwKey = 'fontWeight';
             // Digital clock with locale based on session lang
-            const sessionLang = (function () { try { return '<% String __lang = (String) session.getAttribute("lang"); if (__lang == null) __lang = "cs"; out.print(__lang); %>'; } catch (e) { return 'cs'; } })();
+            const sessionLang = (function () { try { return '<%= com.github.skeliit.I18n.safeLang(session.getAttribute("lang")) %>'; } catch (e) { return 'cs'; } })();
             const localeMap = { cs: 'cs-CZ', en: 'en-GB', de: 'de-DE', uk: 'uk-UA' };
             function updateClock() {
               const el = document.getElementById('topClock'); if (!el) return;
@@ -146,8 +144,12 @@
             const cur = localStorage.getItem(k) || 'dark';
             body.classList.add(cur);
             document.getElementById('themeToggle').addEventListener('click', () => {
-              body.classList.toggle('light'); body.classList.toggle('dark');
-              const v = body.classList.contains('light') ? 'light' : 'dark'; localStorage.setItem(k, v);
+              // Add transition trigger class
+              body.style.transition = 'background-color 0.6s ease, color 0.6s ease, background-image 0.6s ease';
+              body.classList.toggle('light'); 
+              body.classList.toggle('dark');
+              const v = body.classList.contains('light') ? 'light' : 'dark'; 
+              localStorage.setItem(k, v);
             });
 
             // Language menu toggle by click
@@ -184,7 +186,7 @@
             function ensureSpBar() {
               if (document.getElementById('sp-bar')) return document.getElementById('sp-bar');
               const bar = document.createElement('div'); bar.id = 'sp-bar'; bar.className = 'sp-bar';
-              bar.innerHTML = "<div class='sp-inner'><button id='sp-hide' class='sp-hide' title='Skrýt přehrávač'>▼</button><iframe id='sp-iframe' class='sp-iframe' allow='autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture' loading='lazy'></iframe></div>";
+              bar.innerHTML = "<div class='sp-inner'><button id='sp-hide' class='sp-hide' title='<%= com.github.skeliit.WebUtils.escapeJs(com.github.skeliit.WebUtils.escapeHtml(t.getProperty("player.hide"))) %>'>▼</button><iframe id='sp-iframe' class='sp-iframe' allow='autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture' loading='lazy'></iframe></div>";
               document.body.appendChild(bar);
               const min = document.createElement('div'); min.id = 'sp-min'; min.className = 'sp-minbar'; min.innerHTML = '<i class="fab fa-spotify"></i> Spotify';
               document.body.appendChild(min);
@@ -197,8 +199,8 @@
               if (/^https?:\/\//.test(input)) return input;
               // short forms: track:ID, playlist:ID, album:ID, artist:ID
               const [type, id] = input.split(':');
-              if (id) { return `https://open.spotify.com/embed/${type}/${id}?utm_source=generator`; }
-              return `https://open.spotify.com/embed/track/${input}?utm_source=generator`;
+              if (id) { return `https://open.spotify.com/embed/\${type}/\${id}?utm_source=generator`; }
+              return `https://open.spotify.com/embed/track/\${input}?utm_source=generator`;
             }
             const SP_DEFAULT = 'https://open.spotify.com/embed/artist/5IouXw8U9uKCTwmncG5bUl?utm_source=generator';
             function openBar() { const bar = ensureSpBar(); const f = document.getElementById('sp-iframe'); if (!f.src) { const saved = localStorage.getItem('sp_src'); f.src = saved || SP_DEFAULT; } bar.style.display = 'block'; document.getElementById('sp-min').style.display = 'none'; localStorage.setItem('sp_min', '0'); }
@@ -279,7 +281,7 @@
             // Parallax background
             (function () {
               let lastY = 0, ticking = false;
-              function onScroll() { lastY = window.scrollY || 0; if (!ticking) { requestAnimationFrame(() => { document.body.style.backgroundPosition = `center ${Math.round(lastY * 0.25)}px`; ticking = false; }); ticking = true; } }
+              function onScroll() { lastY = window.scrollY || 0; if (!ticking) { requestAnimationFrame(() => { document.body.style.backgroundPosition = `center \${Math.round(lastY * 0.25)}px`; ticking = false; }); ticking = true; } }
               window.addEventListener('scroll', onScroll, { passive: true });
               onScroll();
             })();

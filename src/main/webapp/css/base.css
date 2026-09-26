@@ -24,7 +24,7 @@ body.light {
   --panel-strong: rgba(255, 255, 255, 0.82);
   --panel-border: rgba(0, 0, 0, 0.18);
   --accent: #a37b00;
-  background: var(--bg) url('/img/IMG_0132.webp') center center/cover no-repeat fixed;
+  background: var(--bg) url('/img/lightnaweb.webp') center center/cover no-repeat fixed;
 }
 
 body.dark {
@@ -83,6 +83,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  transition: background-color 0.6s ease, color 0.6s ease, background-image 0.6s ease;
 }
 
 /* Header */

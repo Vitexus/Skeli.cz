@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ include file="includes/header.jsp" %>
 
@@ -19,12 +19,13 @@
                 <% List<String[]> emails = (List<String[]>)request.getAttribute("emails");
                    if (emails != null) for (String[] row : emails) { %>
                     <tr>
-                        <td><%= row[0] %></td>
-                        <td><%= row[1] %></td>
-                        <td><%= row[2] != null && !"null".equals(row[2]) ? row[2] : "" %></td>
+                        <td><%= com.github.skeliit.WebUtils.escapeHtml(row[0]) %></td>
+                        <td><%= com.github.skeliit.WebUtils.escapeHtml(row[1]) %></td>
+                        <td><%= row[2] != null && !"null".equals(row[2]) ? com.github.skeliit.WebUtils.escapeHtml(row[2]) : "" %></td>
                         <td>
                             <form method="post" action="/admin/newsletter" style="display:inline">
-                                <input type="hidden" name="email" value="<%= row[0] %>">
+                                <input type="hidden" name="csrf" value="${csrf}">
+                                <input type="hidden" name="email" value="<%= com.github.skeliit.WebUtils.escapeHtml(row[0]) %>">
                                 <button type="submit" class="btn-delete" onclick="return confirm('Opravdu smazat?')">Smazat</button>
                             </form>
                         </td>

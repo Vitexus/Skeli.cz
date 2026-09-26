@@ -36,12 +36,7 @@ public class LyricRouterServlet extends HttpServlet {
         if (id == null || id == 0) { resp.sendError(404); return; }
         try {
             // Ensure CSRF token exists in session
-            String csrf = (String) req.getSession().getAttribute("csrf");
-            if (csrf == null) {
-                csrf = java.util.UUID.randomUUID().toString();
-                req.getSession().setAttribute("csrf", csrf);
-            }
-            req.setAttribute("csrf", csrf);
+            req.setAttribute("csrf", CsrfFilter.token(req.getSession()));
             
             String lang = (String) req.getSession().getAttribute("lang");
             var songs = svc.listSongs();

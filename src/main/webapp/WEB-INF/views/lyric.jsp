@@ -10,7 +10,7 @@
         <li>
           <a href="${pageContext.request.contextPath}/lyrics/${s.firstLyricId}" 
              class="${(lyric != null && lyric.songId == s.id) ? 'active' : ''}">
-            ${s.name}
+            <c:out value="${s.name}"/>
           </a>
         </li>
       </c:forEach>
@@ -22,7 +22,7 @@
       
       <!-- Song Title -->
       <h3 class="bruno-ace-sc-regular lyric-title">
-        ${lyric.songName} <c:if test="${not empty lyric.year}">(${lyric.year})</c:if>
+        <c:out value="${lyric.songName}"/> <c:if test="${not empty lyric.year}">(${lyric.year})</c:if>
       </h3>
       
       <!-- Video Box -->
@@ -45,25 +45,25 @@
         
         <!-- Action Buttons -->
         <div class="action-buttons">
-          <button class="action-btn" onclick="navigator.clipboard.writeText(window.location.href); alert('⚡ Odkaz zkopírován!')" title="Sdílet odkaz">
-            <i class="fas fa-share-alt"></i> Sdílet
+          <button class="action-btn" onclick="navigator.clipboard.writeText(window.location.href); alert('<%= com.github.skeliit.WebUtils.escapeJs(t.getProperty("lyric.linkCopied")) %>')" title="<%= t.getProperty("lyric.shareLink") %>">
+            <i class="fas fa-share-alt"></i> <%= t.getProperty("common.share") %>
           </button>
-          <a class="action-btn" href="https://open.spotify.com/search/<c:out value='${lyric.songName}'/>" target="_blank" rel="noopener" title="Najít na Spotify">
+          <a class="action-btn" href="https://open.spotify.com/search/<c:out value='${lyric.songName}'/>" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.findSpotify") %>">
             <i class="fab fa-spotify" style="color:#1DB954;"></i> Spotify
           </a>
           <c:if test="${not empty lyric.youtubeId}">
-            <a class="action-btn" href="https://www.youtube.com/watch?v=${lyric.youtubeId}" target="_blank" rel="noopener" title="Otevřít na YouTube">
+            <a class="action-btn" href="https://www.youtube.com/watch?v=${lyric.youtubeId}" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.openYoutube") %>">
               <i class="fab fa-youtube" style="color:#FF0000;"></i> YouTube
             </a>
           </c:if>
           <c:if test="${not empty lyric.appleMusicId}">
-            <a class="action-btn" href="https://music.apple.com/song/${lyric.appleMusicId}" target="_blank" rel="noopener" title="Otevřít na Apple Music">
+            <a class="action-btn" href="https://music.apple.com/song/${lyric.appleMusicId}" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.openApple") %>">
               <i class="fab fa-apple" style="color:#fc3c44;"></i> Apple Music
             </a>
           </c:if>
         </div>
         
-        <div class="views-count">Návštěvy: ${lyric.views}</div>
+        <div class="views-count"><%= t.getProperty("lyric.views") %> ${lyric.views}</div>
       </div>
       
       <!-- Votes & Comments Box -->
@@ -76,11 +76,11 @@
                 <input type="hidden" name="lyric_id" value="${lyric.id}">
                 <input type="hidden" name="action" value="up">
                 <input type="hidden" name="csrf" value="${csrf}">
-                <button type="submit" class="vote-btn up" title="Líbí se mi">👍</button>
+                <button type="submit" class="vote-btn up" title="<%= t.getProperty("vote.like") %>">👍</button>
               </form>
             </c:when>
             <c:otherwise>
-              <a href="/login.jsp" class="vote-btn up" style="text-decoration:none; display:inline-block;" title="Přihlaš se pro hlasování">👍</a>
+              <a href="/login.jsp" class="vote-btn up" style="text-decoration:none; display:inline-block;" title="<%= t.getProperty("vote.loginToVote") %>">👍</a>
             </c:otherwise>
           </c:choose>
           
@@ -96,11 +96,11 @@
                 <input type="hidden" name="lyric_id" value="${lyric.id}">
                 <input type="hidden" name="action" value="down">
                 <input type="hidden" name="csrf" value="${csrf}">
-                <button type="submit" class="vote-btn down" title="Nelíbí se mi">👎</button>
+                <button type="submit" class="vote-btn down" title="<%= t.getProperty("vote.dislike") %>">👎</button>
               </form>
             </c:when>
             <c:otherwise>
-              <a href="/login.jsp" class="vote-btn down" style="text-decoration:none; display:inline-block;" title="Přihlaš se pro hlasování">👎</a>
+              <a href="/login.jsp" class="vote-btn down" style="text-decoration:none; display:inline-block;" title="<%= t.getProperty("vote.loginToVote") %>">👎</a>
             </c:otherwise>
           </c:choose>
         </div>
@@ -108,11 +108,11 @@
         <hr style="border:none; border-top:1px solid var(--panel-border); margin:20px 0;">
         
         <!-- Comments -->
-        <h4 style="margin:0 0 16px; color:var(--accent); text-align:center;">Komentáře</h4>
+        <h4 style="margin:0 0 16px; color:var(--accent); text-align:center;"><%= t.getProperty("comments.title") %></h4>
         
         <c:forEach items="${comments}" var="cmt">
           <div class="comment-item">
-            <img src="${empty cmt.avatarUrl ? '/img/avatar-default.png' : cmt.avatarUrl}" 
+            <img src="<c:out value="${empty cmt.avatarUrl ? '/img/avatar-default.png' : cmt.avatarUrl}"/>" 
                  alt="avatar" 
                  class="comment-avatar"/>
             <div class="comment-content">
@@ -129,8 +129,8 @@
                     <input type="hidden" name="csrf" value="${csrf}">
                     <button type="submit" 
                             style="background:transparent; border:none; color:#ff4444; cursor:pointer; padding:4px 8px; font-size:0.9em;" 
-                            onclick="return confirm('Opravdu smazat komentář?')" 
-                            title="Smazat">❌</button>
+                            onclick="return confirm('<%= com.github.skeliit.WebUtils.escapeJs(t.getProperty("comment.deleteConfirm")) %>')"
+                            title="<%= t.getProperty("common.delete") %>">❌</button>
                   </form>
                 </c:if>
               </div>
@@ -144,16 +144,16 @@
             <input type="hidden" name="lyric_id" value="${lyric.id}">
             <input type="hidden" name="csrf" value="${csrf}">
             <textarea name="content" 
-                      placeholder="Napiš komentář..." 
+                      placeholder="<%= t.getProperty("comment.placeholder") %>"
                       required 
                       style="width:100%; min-height:80px; padding:10px; box-sizing:border-box; margin-bottom:10px; background:rgba(0,0,0,0.2); border:1px solid var(--panel-border); border-radius:8px; color:var(--text); font-family:inherit; font-size:1em; resize:vertical;"></textarea>
             <button type="submit" 
-                    style="background:var(--accent); color:#000; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600; font-size:1em; width:100%;">Přidat komentář</button>
+                    style="background:var(--accent); color:#000; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600; font-size:1em; width:100%;"><%= t.getProperty("comment.add") %></button>
           </form>
         </c:if>
         <c:if test="${empty sessionScope.username}">
           <p style="margin-top:20px; text-align:center; opacity:0.7;">
-            <a href="/login.jsp" style="color:var(--accent); text-decoration:none; font-weight:600;">Přihlaš se</a> pro přidání komentáře
+            <a href="/login.jsp" style="color:var(--accent); text-decoration:none; font-weight:600;"><%= t.getProperty("comment.login.link") %></a><%= t.getProperty("comment.login.toComment") %>
           </p>
         </c:if>
       </div>

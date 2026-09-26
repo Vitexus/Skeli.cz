@@ -106,7 +106,7 @@ public class RegisterServlet extends HttpServlet {
                     ps2.executeUpdate();
                 }
                 try {
-                    EmailUtil.sendMail(email, buildRegistrationSubject(), buildRegistrationBody(req, username));
+                    EmailUtil.sendMail(email, I18n.getText(req, "email.register.subject"), buildRegistrationBody(req, username));
                 } catch (Exception mailErr) {
                     // If email sending fails, registration is still valid.
                 }
@@ -168,17 +168,11 @@ public class RegisterServlet extends HttpServlet {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(b);
     }
 
-    private static String buildRegistrationSubject() {
-        return "Vítejte na Skeli.cz - Registrace úspěšně dokončena";
-    }
-
     private static String buildRegistrationBody(HttpServletRequest req, String username) {
-        String base = req.getRequestURL().toString().replace(req.getRequestURI(), req.getContextPath());
-        String loginLink = base + "/login.jsp";
-        return "Vítejte na Skeli.cz!\n\n" +
-               "Váš účet \"" + username + "\" byl úspěšně vytvořen.\n\n" +
-               "Nyní se můžete přihlásit na našich stránkách:\n" + loginLink + "\n\n" +
-               "Děkujeme za registraci a těšíme se na vaši účast v naší komunitě!\n\n" +
-               "S pozdravem,\nTým Skeli.cz";
+        // Base URL comes from configuration, never from the Host header
+        String loginLink = WebUtils.baseUrl() + "/login.jsp";
+        return I18n.getText(req, "email.register.body")
+                .replace("{username}", username)
+                .replace("{link}", loginLink);
     }
 }

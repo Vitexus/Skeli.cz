@@ -95,9 +95,13 @@ public class SocialPostsApiServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String token = System.getenv("SOCIAL_TOKEN");
-        String q = req.getParameter("token");
-        if (token != null && (q == null || !token.equals(q))) {
+        String token = Config.get("SOCIAL_TOKEN");
+        String q = req.getHeader("X-Social-Token");
+        if (q == null) q = req.getParameter("token");
+        // Fail closed: without a configured token nobody may post
+        if (token == null || token.isBlank() || q == null
+                || !java.security.MessageDigest.isEqual(token.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                        q.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
             resp.setStatus(403);
             resp.getWriter().write("{\"error\":\"forbidden\"}");
             return;

@@ -4,7 +4,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <main>
-    <h2 class="bruno-ace-sc-regular text-center"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.lyrics","Lyrics") %></h2>
+    <h2 class="bruno-ace-sc-regular text-center"><%= t.getProperty("menu.lyrics","Lyrics") %></h2>
     <div class="texts-card">
       <ul class="texts-list">
         <%
@@ -39,21 +39,21 @@
                             String youtubeId = rs.getString("youtube_id");
                             String dataAttr = "";
                             if (youtubeId != null && !youtubeId.isEmpty()) {
-                                dataAttr = " data-thumb=\"https://img.youtube.com/vi/" + youtubeId + "/mqdefault.jpg\"";
+                                dataAttr = " data-thumb=\"https://img.youtube.com/vi/" + com.github.skeliit.WebUtils.escapeHtml(youtubeId) + "/mqdefault.jpg\"";
                             }
         %>
-                            <li<%= dataAttr %>><a href="/lyrics/<%= lyricId %>"><%= name %></a><% if (y != null) { %> (<%= y %>)<% } %></li>
+                            <li<%= dataAttr %>><a href="/lyrics/<%= lyricId %>"><%= com.github.skeliit.WebUtils.escapeHtml(name) %></a><% if (y != null) { %> (<%= y %>)<% } %></li>
         <%
                         }
                 } catch (SQLException e) {
-                    out.println("<li>Chyba připojení k databázi: " + e.getMessage() + "</li>");
+                    out.println("<li>" + t.getProperty("lyrics.loadError") + "</li>");
                 }
 
                 if (!hadRows) {
-                    out.println("<li>Žádné texty nenalezeny.</li>");
+                    out.println("<li>" + t.getProperty("lyrics.none") + "</li>");
                 }
             } catch (Exception e) {
-                out.println("<li>Chyba při načítání textů: " + e.getMessage() + "</li>");
+                out.println("<li>" + t.getProperty("lyrics.loadError") + "</li>");
             }
         %>
       </ul>
@@ -63,11 +63,11 @@
       document.querySelectorAll('.texts-list li[data-thumb]').forEach(li => {
         const thumb = li.getAttribute('data-thumb');
         if(thumb) {
-          li.style.setProperty('--thumb-bg', `url("${thumb}")`);
+          li.style.setProperty('--thumb-bg', `url("\${thumb}")`);
           const style = document.createElement('style');
           const id = 'thumb-' + Math.random().toString(36).substr(2, 9);
           li.classList.add(id);
-          style.textContent = `.${id}::before { background-image: url("${thumb}") !important; }`;
+          style.textContent = `.\${id}::before { background-image: url("\${thumb}") !important; }`;
           document.head.appendChild(style);
         }
       });

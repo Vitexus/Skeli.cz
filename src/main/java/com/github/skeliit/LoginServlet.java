@@ -29,6 +29,12 @@ public class LoginServlet extends HttpServlet {
             req.getRequestDispatcher("/login.jsp").forward(req, resp);
             return;
         }
+        if (LoginRateLimiter.isBlocked(username)) {
+            req.setAttribute("loginError", I18n.getText(req, "auth.error.tooManyAttempts", "Příliš mnoho neúspěšných pokusů. Zkuste to znovu za 15 minut."));
+            req.setAttribute("username", username);
+            req.getRequestDispatcher("/login.jsp").forward(req, resp);
+            return;
+        }
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement("SELECT id, password_hash, role FROM users WHERE username = ?")) {
             ps.setString(1, username);
@@ -36,7 +42,10 @@ public class LoginServlet extends HttpServlet {
                 if (rs.next()) {
                     String hash = rs.getString("password_hash");
                     if (hash != null && BCrypt.checkpw(password, hash)) {
+                        LoginRateLimiter.reset(username);
                         HttpSession session = req.getSession(true);
+                        // Prevent session fixation: issue a new session ID after authentication
+                        req.changeSessionId();
                         int uid = rs.getInt("id");
                         session.setAttribute("userId", uid);
                         session.setAttribute("user_id", uid); // for legacy JSP/servlets expecting user_id
@@ -47,6 +56,8 @@ public class LoginServlet extends HttpServlet {
                             session.setMaxInactiveInterval(60*60*24*30); // 30 dní
                             jakarta.servlet.http.Cookie c = new jakarta.servlet.http.Cookie("JSESSIONID", session.getId());
                             c.setHttpOnly(true);
+                            c.setSecure(isHttps(req));
+                            c.setComment("__SAME_SITE_LAX__"); // Jetty emits SameSite=Lax
                             c.setPath(req.getContextPath().isEmpty() ? "/" : req.getContextPath());
                             c.setMaxAge(60*60*24*30);
                             resp.addCookie(c);
@@ -59,8 +70,14 @@ public class LoginServlet extends HttpServlet {
         } catch (SQLException e) {
             throw new ServletException(e);
         }
+        LoginRateLimiter.recordFailure(username);
         req.setAttribute("loginError", I18n.getText(req, "auth.error.invalidCredentials", "Neplatné uživatelské jméno nebo heslo."));
         req.setAttribute("username", username);
         req.getRequestDispatcher("/login.jsp").forward(req, resp);
+    }
+
+    /** True when the client connection is HTTPS, also behind a TLS-terminating proxy. */
+    private static boolean isHttps(HttpServletRequest req) {
+        return req.isSecure() || "https".equalsIgnoreCase(req.getHeader("X-Forwarded-Proto"));
     }
 }
