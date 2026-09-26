@@ -84,12 +84,30 @@
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
-                <version>11.0.15</version>
+                <version>11.0.26</version>
                 <configuration>
                     <webApp>
                         <contextPath>/</contextPath>
                     </webApp>
                 </configuration>
+                <dependencies>
+                    <!-- Jetty's bundled ASM cannot scan Java 25 class files (major version 69) -->
+                    <dependency>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm</artifactId>
+                        <version>9.10.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm-commons</artifactId>
+                        <version>9.10.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm-tree</artifactId>
+                        <version>9.10.1</version>
+                    </dependency>
+                </dependencies>
             </plugin>
 
             <plugin>
@@ -131,7 +149,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                        <release>25</release>
+                    <release>25</release>
                 </configuration>
             </plugin>
 

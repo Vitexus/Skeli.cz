@@ -1,5 +1,5 @@
 # Development image: runs the app with the Jetty Maven plugin.
-FROM maven:3.9-eclipse-temurin-21
+FROM maven:3.9-eclipse-temurin-25
 
 WORKDIR /app
 
