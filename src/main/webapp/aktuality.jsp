@@ -1,15 +1,14 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="includes/header.jsp" %>
 <main>
-  <h2 class="bruno-ace-sc-regular text-center" style="margin-top:0;"><%= t.getProperty("menu.news") %></h2>
-  <section class="card" style="max-width:1000px; margin:0 auto;">
+  <h2><%= t.getProperty("menu.news") %></h2>
+  <section class="news-feed">
     <div id="social-feed" class="news-grid"></div>
-    <div id="feed-empty" style="display:none; text-align:center; opacity:.6; padding:24px 0;"><%= t.getProperty("news.empty") %></div>
-    <div class="text-center" style="margin-top:12px;">
-      <button id="load-more" class="newsletter button" style="display:none;"><%= t.getProperty("news.loadMore") %></button>
+    <div id="feed-empty" class="empty-note" style="display:none;"><%= t.getProperty("news.empty") %></div>
+    <div class="news-more">
+      <button id="load-more" type="button" class="btn" style="display:none;"><%= t.getProperty("news.loadMore") %></button>
     </div>
   </section>
-</main>
 <script>
 (function(){
   var PAGE = 12;
@@ -21,7 +20,7 @@
   function sourceBadge(source) {
     if (source === 'instagram') return '<i class="fab fa-instagram"></i>';
     if (source === 'facebook')  return '<i class="fab fa-facebook"></i>';
-    return '📰';
+    return '<i class="fa-solid fa-newspaper"></i>';
   }
 
   function esc(v) {
@@ -77,4 +76,5 @@
   load();
 })();
 </script>
+</main>
 <%@ include file="includes/footer.jsp" %>

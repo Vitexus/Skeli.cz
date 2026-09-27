@@ -3,7 +3,7 @@
 
 <main>
   <section class="about-header">
-    <h2 class="bruno-ace-sc-regular"><%= t.getProperty("about.title","About me") %></h2>
+    <h2 class="font-display"><%= t.getProperty("about.title","About me") %></h2>
     <div class="about-avatar-container">
       <img src="/img/IMG_0132.webp" alt="Skeli" class="about-avatar" onerror="this.style.display='none'">
     </div>

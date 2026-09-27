@@ -4,7 +4,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <main>
-  <h2 class="bruno-ace-sc-regular text-center"><%= t.getProperty("menu.music","Music") %></h2>
+  <h2 class="font-display text-center"><%= t.getProperty("menu.music","Music") %></h2>
 
   <div class="media-columns">
   <section class="section youtube">

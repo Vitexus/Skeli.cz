@@ -4,7 +4,7 @@
 <main>
   <div class="settings-wrap">
     <div class="settings-shell">
-      <h2 class="bruno-ace-sc-regular text-center" style="margin-top:0;"><%= t.getProperty("settings.heading") %></h2>
+      <h2 class="font-display text-center" style="margin-top:0;"><%= t.getProperty("settings.heading") %></h2>
 
       <%
         Integer uid = (Integer) session.getAttribute("user_id");
@@ -64,12 +64,12 @@
               <div id="cropper-overlay" style="position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at center, rgba(0,0,0,0) 46%, rgba(0,0,0,0.45) 48%, rgba(0,0,0,0.55) 100%);"></div>
             </div>
             <div class="avatar-btns">
-              <button id="btn-auto-face" type="button" class="bruno-ace-sc-regular control-btn"><i class="fa-solid fa-user"></i> <%= t.getProperty("avatar.autoCenter") %></button>
-              <button id="btn-zoom-in" type="button" class="bruno-ace-sc-regular control-btn">+</button>
-              <button id="btn-zoom-out" type="button" class="bruno-ace-sc-regular control-btn">−</button>
+              <button id="btn-auto-face" type="button" class="control-btn"><i class="fa-solid fa-user"></i> <%= t.getProperty("avatar.autoCenter") %></button>
+              <button id="btn-zoom-in" type="button" class="control-btn">+</button>
+              <button id="btn-zoom-out" type="button" class="control-btn">−</button>
               <span style="flex:1"></span>
-              <button id="btn-crop-save" type="button" class="bruno-ace-sc-regular control-btn" style="background:transparent;color:#fff;"><i class="fa-solid fa-floppy-disk"></i> <%= t.getProperty("common.save") %></button>
-              <button id="btn-cancel" type="button" class="bruno-ace-sc-regular control-btn" style="background:transparent;color:#fff;"><%= t.getProperty("common.cancel") %></button>
+              <button id="btn-crop-save" type="button" class="control-btn" style="background:transparent;color:var(--text);"><i class="fa-solid fa-floppy-disk"></i> <%= t.getProperty("common.save") %></button>
+              <button id="btn-cancel" type="button" class="control-btn" style="background:transparent;color:var(--text);"><%= t.getProperty("common.cancel") %></button>
             </div>
             <p class="form-note" style="margin-top:6px;"><%= t.getProperty("avatar.tip") %></p>
           </div>
@@ -128,7 +128,7 @@
         <h3><%= t.getProperty("settings.privacy") %></h3>
         <div class="settings-form">
           <form method="get" action="/profile/export" class="text-center" style="margin:8px 0;">
-            <button type="submit" class="bruno-ace-sc-regular" style="background:transparent; border:1px solid var(--panel-border);"><%= t.getProperty("settings.export") %></button>
+            <button type="submit"  style="background:transparent; border:1px solid var(--panel-border);"><%= t.getProperty("settings.export") %></button>
           </form>
           <form method="post" action="/profile/delete" onsubmit="return confirm('<%= com.github.skeliit.WebUtils.escapeJs(t.getProperty("settings.deleteConfirm")) %>');">
             <input type="hidden" name="csrf" value="${csrf}">

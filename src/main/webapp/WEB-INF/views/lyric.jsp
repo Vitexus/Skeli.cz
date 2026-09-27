@@ -1,78 +1,81 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/includes/header.jsp" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<main>
-  <!-- Header Box: Title + Navigation -->
-  <div class="lyric-header-box">
-    <h2 class="bruno-ace-sc-regular">${t.getProperty('menu.lyrics','Texty')}</h2>
+<main class="lyric-page">
+  <!-- Song switcher -->
+  <nav class="lyric-switcher">
+    <a class="lyric-back" href="/texty.jsp"><i class="fa-solid fa-arrow-left"></i> <%= t.getProperty("lyrics.back") %></a>
     <ul class="lyric-nav">
       <c:forEach items="${songs}" var="s">
         <li>
-          <a href="${pageContext.request.contextPath}/lyrics/${s.firstLyricId}" 
+          <a href="${pageContext.request.contextPath}/lyrics/${s.firstLyricId}"
              class="${(lyric != null && lyric.songId == s.id) ? 'active' : ''}">
             <c:out value="${s.name}"/>
           </a>
         </li>
       </c:forEach>
     </ul>
-  </div>
+  </nav>
 
   <c:if test="${not empty lyric}">
-    <div style="max-width:800px; margin:0 auto;">
-      
+    <div class="lyric-grid">
+
       <!-- Song Title -->
-      <h3 class="bruno-ace-sc-regular lyric-title">
-        <c:out value="${lyric.songName}"/> <c:if test="${not empty lyric.year}">(${lyric.year})</c:if>
-      </h3>
-      
-      <!-- Video Box -->
-      <c:if test="${not empty lyric.youtubeId}">
-        <div class="content-box">
-          <div class="video-wrapper">
-            <iframe src="https://www.youtube.com/embed/${lyric.youtubeId}" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowfullscreen></iframe>
+      <header class="lyric-head">
+        <h1 class="lyric-title"><c:out value="${lyric.songName}"/></h1>
+        <c:if test="${not empty lyric.year}"><span class="song-year">${lyric.year}</span></c:if>
+      </header>
+
+      <!-- Video + listen links (sticky sidebar on desktop) -->
+      <aside class="lyric-side">
+        <c:if test="${not empty lyric.youtubeId}">
+          <div class="content-box video-box">
+            <div class="video-wrapper">
+              <iframe src="https://www.youtube.com/embed/<c:out value='${lyric.youtubeId}'/>"
+                      frameborder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowfullscreen></iframe>
+            </div>
           </div>
+        </c:if>
+
+        <div class="content-box lyric-links">
+          <div class="action-buttons">
+            <button type="button" class="action-btn" id="shareLyric" data-copied="<%= com.github.skeliit.WebUtils.escapeHtml(t.getProperty("lyric.linkCopied")) %>" title="<%= t.getProperty("lyric.shareLink") %>">
+              <i class="fas fa-share-alt"></i> <span><%= t.getProperty("common.share") %></span>
+            </button>
+            <a class="action-btn" href="https://open.spotify.com/search/<c:out value='${lyric.songName}'/>" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.findSpotify") %>">
+              <i class="fab fa-spotify icon-spotify"></i> Spotify
+            </a>
+            <c:if test="${not empty lyric.youtubeId}">
+              <a class="action-btn" href="https://www.youtube.com/watch?v=<c:out value='${lyric.youtubeId}'/>" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.openYoutube") %>">
+                <i class="fab fa-youtube icon-youtube"></i> YouTube
+              </a>
+            </c:if>
+            <c:if test="${not empty lyric.appleMusicId}">
+              <a class="action-btn" href="https://music.apple.com/song/<c:out value='${lyric.appleMusicId}'/>" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.openApple") %>">
+                <i class="fab fa-apple icon-apple"></i> Apple Music
+              </a>
+            </c:if>
+          </div>
+          <div class="views-count"><i class="fa-regular fa-eye"></i> <%= t.getProperty("lyric.views") %> ${lyric.views}</div>
         </div>
-      </c:if>
-      
-      <!-- Lyrics Text Box -->
-      <div class="content-box">
+      </aside>
+
+      <!-- Lyrics Text -->
+      <article class="content-box lyric-body">
         <div class="lyrics-text">
           <pre><c:out value="${lyric.words}"/></pre>
         </div>
-        
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-          <button class="action-btn" onclick="navigator.clipboard.writeText(window.location.href); alert('<%= com.github.skeliit.WebUtils.escapeJs(t.getProperty("lyric.linkCopied")) %>')" title="<%= t.getProperty("lyric.shareLink") %>">
-            <i class="fas fa-share-alt"></i> <%= t.getProperty("common.share") %>
-          </button>
-          <a class="action-btn" href="https://open.spotify.com/search/<c:out value='${lyric.songName}'/>" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.findSpotify") %>">
-            <i class="fab fa-spotify" style="color:#1DB954;"></i> Spotify
-          </a>
-          <c:if test="${not empty lyric.youtubeId}">
-            <a class="action-btn" href="https://www.youtube.com/watch?v=${lyric.youtubeId}" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.openYoutube") %>">
-              <i class="fab fa-youtube" style="color:#FF0000;"></i> YouTube
-            </a>
-          </c:if>
-          <c:if test="${not empty lyric.appleMusicId}">
-            <a class="action-btn" href="https://music.apple.com/song/${lyric.appleMusicId}" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.openApple") %>">
-              <i class="fab fa-apple" style="color:#fc3c44;"></i> Apple Music
-            </a>
-          </c:if>
-        </div>
-        
-        <div class="views-count"><%= t.getProperty("lyric.views") %> ${lyric.views}</div>
-      </div>
-      
+      </article>
+
       <!-- Votes & Comments Box -->
-      <div class="content-box">
+      <div class="content-box lyric-comments">
         <!-- Votes -->
         <div class="votes-section">
           <c:choose>
             <c:when test="${not empty sessionScope.username}">
-              <form method="post" action="/vote" style="display:inline;">
+              <form method="post" action="/vote" class="vote-form">
                 <input type="hidden" name="lyric_id" value="${lyric.id}">
                 <input type="hidden" name="action" value="up">
                 <input type="hidden" name="csrf" value="${csrf}">
@@ -80,19 +83,19 @@
               </form>
             </c:when>
             <c:otherwise>
-              <a href="/login.jsp" class="vote-btn up" style="text-decoration:none; display:inline-block;" title="<%= t.getProperty("vote.loginToVote") %>">👍</a>
+              <a href="/login.jsp" class="vote-btn up" title="<%= t.getProperty("vote.loginToVote") %>">👍</a>
             </c:otherwise>
           </c:choose>
           
-          <span style="font-size:1.1em; font-weight:600;">
-            <strong style="color:#00ffaa;">${lyric.votesUp}</strong>
-            <span style="opacity:0.5;">/</span>
-            <strong style="color:#ff5050;">${lyric.votesDown}</strong>
+          <span class="vote-score">
+            <strong class="up">${lyric.votesUp}</strong>
+            <span class="sep">/</span>
+            <strong class="down">${lyric.votesDown}</strong>
           </span>
           
           <c:choose>
             <c:when test="${not empty sessionScope.username}">
-              <form method="post" action="/vote" style="display:inline;">
+              <form method="post" action="/vote" class="vote-form">
                 <input type="hidden" name="lyric_id" value="${lyric.id}">
                 <input type="hidden" name="action" value="down">
                 <input type="hidden" name="csrf" value="${csrf}">
@@ -100,21 +103,26 @@
               </form>
             </c:when>
             <c:otherwise>
-              <a href="/login.jsp" class="vote-btn down" style="text-decoration:none; display:inline-block;" title="<%= t.getProperty("vote.loginToVote") %>">👎</a>
+              <a href="/login.jsp" class="vote-btn down" title="<%= t.getProperty("vote.loginToVote") %>">👎</a>
             </c:otherwise>
           </c:choose>
         </div>
         
-        <hr style="border:none; border-top:1px solid var(--panel-border); margin:20px 0;">
+        <hr>
         
         <!-- Comments -->
-        <h4 style="margin:0 0 16px; color:var(--accent); text-align:center;"><%= t.getProperty("comments.title") %></h4>
+        <h3 class="comments-title"><%= t.getProperty("comments.title") %></h3>
         
         <c:forEach items="${comments}" var="cmt">
           <div class="comment-item">
-            <img src="<c:out value="${empty cmt.avatarUrl ? '/img/avatar-default.png' : cmt.avatarUrl}"/>" 
-                 alt="avatar" 
-                 class="comment-avatar"/>
+            <c:choose>
+              <c:when test="${not empty cmt.avatarUrl}">
+                <img src="<c:out value='${cmt.avatarUrl}'/>" alt="" class="comment-avatar"/>
+              </c:when>
+              <c:otherwise>
+                <span class="comment-avatar comment-avatar-empty"><i class="fa-solid fa-user"></i></span>
+              </c:otherwise>
+            </c:choose>
             <div class="comment-content">
               <div class="comment-meta">
                 <div>
@@ -122,15 +130,14 @@
                   <span class="comment-date">${cmt.createdAt}</span>
                 </div>
                 <c:if test="${not empty sessionScope.userId && (sessionScope.userId == cmt.userId || sessionScope.role == 'ADMIN')}">
-                  <form method="post" action="/comment" style="display:inline;">
+                  <form method="post" action="/comment" class="vote-form">
                     <input type="hidden" name="comment_id" value="${cmt.id}">
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="lyric_id" value="${lyric.id}">
                     <input type="hidden" name="csrf" value="${csrf}">
-                    <button type="submit" 
-                            style="background:transparent; border:none; color:#ff4444; cursor:pointer; padding:4px 8px; font-size:0.9em;" 
+                    <button type="submit" class="comment-delete"
                             onclick="return confirm('<%= com.github.skeliit.WebUtils.escapeJs(t.getProperty("comment.deleteConfirm")) %>')"
-                            title="<%= t.getProperty("common.delete") %>">❌</button>
+                            title="<%= t.getProperty("common.delete") %>" aria-label="<%= t.getProperty("common.delete") %>"><i class="fa-solid fa-trash-can"></i></button>
                   </form>
                 </c:if>
               </div>
@@ -140,25 +147,71 @@
         </c:forEach>
         
         <c:if test="${not empty sessionScope.username}">
-          <form method="post" action="/comment" style="margin-top:20px;">
+          <form method="post" action="/comment" class="comment-form">
             <input type="hidden" name="lyric_id" value="${lyric.id}">
             <input type="hidden" name="csrf" value="${csrf}">
             <textarea name="content" 
                       placeholder="<%= t.getProperty("comment.placeholder") %>"
-                      required 
-                      style="width:100%; min-height:80px; padding:10px; box-sizing:border-box; margin-bottom:10px; background:rgba(0,0,0,0.2); border:1px solid var(--panel-border); border-radius:8px; color:var(--text); font-family:inherit; font-size:1em; resize:vertical;"></textarea>
-            <button type="submit" 
-                    style="background:var(--accent); color:#000; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600; font-size:1em; width:100%;"><%= t.getProperty("comment.add") %></button>
+                      required ></textarea>
+            <button type="submit"><%= t.getProperty("comment.add") %></button>
           </form>
         </c:if>
         <c:if test="${empty sessionScope.username}">
-          <p style="margin-top:20px; text-align:center; opacity:0.7;">
-            <a href="/login.jsp" style="color:var(--accent); text-decoration:none; font-weight:600;"><%= t.getProperty("comment.login.link") %></a><%= t.getProperty("comment.login.toComment") %>
+          <p class="comment-login">
+            <a href="/login.jsp"><%= t.getProperty("comment.login.link") %></a><%= t.getProperty("comment.login.toComment") %>
           </p>
         </c:if>
       </div>
       
     </div>
   </c:if>
+  <script>
+    // Song chips row: fade the edges that have hidden songs, let the mouse wheel
+    // scroll it sideways, and start with the current song in the middle
+    (function () {
+      const nav = document.querySelector('.lyric-nav');
+      if (!nav) return;
+      function updateFades() {
+        const max = nav.scrollWidth - nav.clientWidth;
+        nav.classList.toggle('fade-left', nav.scrollLeft > 2);
+        nav.classList.toggle('fade-right', nav.scrollLeft < max - 2);
+      }
+      nav.addEventListener('scroll', updateFades, { passive: true });
+      // chip widths change once the web font arrives or the window resizes
+      if (window.ResizeObserver) new ResizeObserver(updateFades).observe(nav);
+      else window.addEventListener('resize', updateFades);
+      nav.addEventListener('wheel', function (e) {
+        if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+        const before = nav.scrollLeft;
+        nav.scrollLeft += e.deltaY;
+        // at either end, let the page scroll normally
+        if (nav.scrollLeft !== before) e.preventDefault();
+      }, { passive: false });
+      function centerActive() {
+        const active = nav.querySelector('a.active');
+        if (active) {
+          const li = active.parentElement;
+          nav.scrollLeft = li.offsetLeft - (nav.clientWidth - li.offsetWidth) / 2;
+        }
+        updateFades();
+      }
+      centerActive();
+      // measure again with the real font (Bruno Ace is wider than the fallback)
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(centerActive);
+    })();
+
+    (function () {
+      const btn = document.getElementById('shareLyric');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        const url = location.href;
+        if (navigator.share) { navigator.share({ title: document.title, url }).catch(() => {}); return; }
+        navigator.clipboard.writeText(url).then(() => {
+          const label = btn.querySelector('span'); const old = label.textContent;
+          label.textContent = btn.dataset.copied; setTimeout(() => label.textContent = old, 1500);
+        });
+      });
+    })();
+  </script>
 </main>
 <%@ include file="/includes/footer.jsp" %>

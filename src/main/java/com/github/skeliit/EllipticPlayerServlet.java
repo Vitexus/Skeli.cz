@@ -100,13 +100,13 @@ public class EllipticPlayerServlet extends HttpServlet {
                 out.println("    </div>");
                 out.println("    <aside class='ep-comments'>");
                 out.println(
-                                "      <h4 class='bruno-ace-sc-regular' style='margin:0 0 8px 0;text-align:center;'>" + WebUtils.escapeHtml(tr.getProperty("comments.title")) + "</h4>");
+                                "      <h4 class='ep-comments-title'>" + WebUtils.escapeHtml(tr.getProperty("comments.title")) + "</h4>");
                 out.println("      <div id='ep-comments-list' class='ep-comments-list'></div>");
-                out.println("      <form id='ep-comment-form' style='display:flex; gap:6px; align-items:flex-start;'>");
+                out.println("      <form id='ep-comment-form' class='ep-comment-form'>");
                 out.println(
-                                "        <textarea id='ep-comment-text' rows='3' style='flex:1; width:100%; border:1px solid var(--panel-border); border-radius:8px; padding:8px;' placeholder='" + WebUtils.escapeHtml(tr.getProperty("comment.placeholder")) + "'></textarea>");
+                                "        <textarea id='ep-comment-text' rows='3' placeholder='" + WebUtils.escapeHtml(tr.getProperty("comment.placeholder")) + "'></textarea>");
                 out.println(
-                                "        <button type='submit' class='bruno-ace-sc-regular' style='border:1px solid var(--panel-border);border-radius:8px;padding:6px 10px;'>" + WebUtils.escapeHtml(tr.getProperty("common.send")) + "</button>");
+                                "        <button type='submit'>" + WebUtils.escapeHtml(tr.getProperty("common.send")) + "</button>");
                 out.println("      </form>");
                 out.println("    </aside>");
                 out.println("  </div>");
