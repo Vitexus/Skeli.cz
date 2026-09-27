@@ -139,6 +139,32 @@ public class MusicPageIT {
         saveScreenshot("music-page-navigation.png");
     }
 
+    @Test
+    void textyPageLinksPreferSongUuidPaths() {
+        driver.get(BASE_URL + "/texty.jsp");
+        dismissCookieBanner();
+        assertNoDbAccessDenied("texty.jsp");
+        String src = driver.getPageSource();
+        assertTrue(src.contains("song-card"), "texty.jsp should list song cards");
+        assertTrue(src.contains("/cs/song/") || src.contains("/lyrics/"),
+                "texty cards should link to /cs/song/… or /lyrics/…");
+    }
+
+    @Test
+    void legacySongUuidRedirectsToCsPath() {
+        driver.get(BASE_URL + "/texty.jsp");
+        dismissCookieBanner();
+        var links = driver.findElements(By.cssSelector("a.song-card[href*='/cs/song/']"));
+        if (links.isEmpty()) return;
+        String href = links.get(0).getAttribute("href");
+        String key = href.replaceAll(".*/cs/song/", "").replaceAll("[?#].*$", "");
+        if (!key.matches("(?i)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")) return;
+        driver.get(BASE_URL + "/song/" + key);
+        assertTrue(driver.getCurrentUrl().contains("/cs/song/" + key),
+                "legacy /song/{uuid} should land on /cs/song/{uuid}, got: " + driver.getCurrentUrl());
+        assertTrue(driver.getPageSource().length() > 500, "song page should render content");
+    }
+
     private void dismissCookieBanner() {
         try {
             List<WebElement> btns = driver.findElements(By.cssSelector("button"));

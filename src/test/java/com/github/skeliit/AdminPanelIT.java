@@ -121,8 +121,22 @@ public class AdminPanelIT extends UiTestSupport {
     }
 
     @Test
-    @DisplayName("Video form renames a video and links it to a song")
-    void editVideo() throws Exception {
+    @DisplayName("Admin song hub lists songs and opens a song detail with UUID")
+    void songHubShowsUuidAndLocales() throws Exception {
+        driver.get(BASE_URL + "/admin/songs");
+        assertFalse(driver.findElements(By.cssSelector("table.songs-table a[href*='/admin/song?uuid=']")).isEmpty(),
+                "songs list should link by uuid");
+        WebElement first = driver.findElement(By.cssSelector("table.songs-table a[href*='/admin/song?uuid=']"));
+        jsClick(first);
+        waitReady();
+        assertTrue(driver.getCurrentUrl().contains("/admin/song?uuid="), "got: " + driver.getCurrentUrl());
+        assertFalse(driver.findElements(By.id("song-uuid")).isEmpty(), "UUID should be visible");
+        assertFalse(driver.findElements(By.cssSelector(".locale-tab")).isEmpty(), "locale tabs expected");
+    }
+
+    @Test
+    @DisplayName("Video form creates/updates song link")
+    void editVideoCreatesOrUpdatesSong() throws Exception {
         String youtubeId = "it" + uniq();
         String songName = "IT Song " + uniq();
         update("INSERT INTO videos (youtube_id, title) VALUES (?, 'old title')", youtubeId);

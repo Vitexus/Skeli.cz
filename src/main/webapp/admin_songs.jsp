@@ -36,8 +36,8 @@
             </c:choose>
           </td>
           <td>
-            <a href="/admin/song?id=${song.id}"><strong><c:out value="${song.name}"/></strong></a>
-            <div class="text-dim">#${song.id}</div>
+            <a href="/admin/song?uuid=${song.uuid}"><strong><c:out value="${song.name}"/></strong></a>
+            <div class="text-dim song-list-uuid" title="${song.uuid}"><c:out value="${song.uuid}"/></div>
           </td>
           <td>${song.year != null ? song.year : '—'}</td>
           <td class="media-badges">
@@ -59,9 +59,9 @@
             </c:choose>
           </td>
           <td>
-            <a href="/admin/song?id=${song.id}" class="link-btn">Upravit</a>
-            <c:if test="${song.hasLyrics and not empty song.firstLyricId}">
-              <a href="/lyrics/${song.firstLyricId}" class="link-btn" target="_blank">Text</a>
+            <a href="/admin/song?uuid=${song.uuid}" class="link-btn">Upravit</a>
+            <c:if test="${not empty song.uuid}">
+              <a href="/cs/song/${song.uuid}" class="link-btn" target="_blank">Text</a>
             </c:if>
           </td>
         </tr>

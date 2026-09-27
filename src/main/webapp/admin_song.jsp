@@ -19,8 +19,15 @@
         <c:when test="${param.msg == 'preview_deleted'}">Náhledový obrázek smazán.</c:when>
         <c:when test="${param.msg == 'bad_youtube'}">Neplatné YouTube ID / URL.</c:when>
         <c:when test="${param.msg == 'bad_name'}">Název písně je povinný.</c:when>
+        <c:when test="${param.msg == 'locale_saved'}">Překlad / SEO uloženo.</c:when>
+        <c:when test="${param.msg == 'translated'}">Přeloženo.</c:when>
+        <c:when test="${param.msg == 'no_translator'}">Není nastaven překladač (DEEPL_API_KEY nebo LIBRETRANSLATE_URL).</c:when>
+        <c:when test="${param.msg == 'no_cs_source'}">Nejdřív ulož český text.</c:when>
+        <c:when test="${param.msg == 'translate_failed'}">Překlad selhal.</c:when>
+        <c:when test="${param.msg == 'bad_seo_slug'}">SEO URL musí být krátký alias (a–z, 0–9, pomlčky).</c:when>
+        <c:when test="${param.msg == 'seo_slug_taken'}">Tento SEO alias už v tomto jazyce používá jiná píseň.</c:when>
         <c:when test="${param.msg == 'no_file'}">Nebyl vybrán žádný soubor.</c:when>
-        <c:when test="${param.msg == 'too_large'}">Soubor je příliš velký (max 5&nbsp;MB).</c:when>
+        <c:when test="${param.msg == 'too_large'}">Soubor je příliš velký (max 20&nbsp;MB).</c:when>
         <c:when test="${param.msg == 'invalid_image'}">Neplatný obrázek.</c:when>
         <c:otherwise><c:out value="${param.msg}"/></c:otherwise>
       </c:choose>
@@ -38,13 +45,31 @@
     </c:choose>
     <div>
       <h2><c:out value="${song.name}"/></h2>
-      <p class="text-dim">
-        ID ${song.id}
-        <c:if test="${not empty song.year}"> · ${song.year}</c:if>
-        <c:if test="${not empty song.firstLyricId}">
-          · <a href="/lyrics/${song.firstLyricId}" target="_blank" rel="noopener">veřejná stránka textu ↗</a>
+      <p class="song-uuid-row">
+        <span class="text-dim">UUID</span>
+        <code id="song-uuid" class="song-uuid"><c:out value="${song.uuid}"/></code>
+        <button type="button" id="song-uuid-copy" class="control-btn song-uuid-copy" title="Kopírovat UUID" aria-label="Kopírovat UUID">
+          <i class="fa-regular fa-copy"></i>
+        </button>
+        <span id="song-uuid-copied" class="song-uuid-copied" hidden>Zkopírováno</span>
+      </p>
+      <p class="text-dim song-hub-meta">
+        <c:if test="${not empty song.year}">${song.year} · </c:if>
+        interní ID ${song.id}
+        <c:if test="${not empty song.uuid}">
+          · <a href="<c:out value='${song.publicPath}'/>" target="_blank" rel="noopener">veřejná stránka ↗</a>
         </c:if>
       </p>
+      <c:if test="${not empty publicSongUrl}">
+        <p class="song-uuid-row">
+          <span class="text-dim">Sdílecí odkaz</span>
+          <code id="song-share-url" class="song-uuid song-share-url"><c:out value="${publicSongUrl}"/></code>
+          <button type="button" id="song-share-copy" class="control-btn song-uuid-copy" title="Kopírovat odkaz" aria-label="Kopírovat odkaz">
+            <i class="fa-regular fa-copy"></i>
+          </button>
+          <span id="song-share-copied" class="song-uuid-copied" hidden>Zkopírováno</span>
+        </p>
+      </c:if>
     </div>
   </header>
 
@@ -70,29 +95,55 @@
     <!-- Náhled / OG -->
     <section class="admin-card">
       <h3>Náhledový obrázek (Open Graph)</h3>
-      <p class="text-dim">Použije se při sdílení odkazu a jako placeholder před YouTube.</p>
-      <c:if test="${not empty song.previewImageUrl}">
-        <img class="song-preview-thumb song-preview-thumb-lg" src="<c:out value='${song.previewImageUrl}'/>" alt="">
-      </c:if>
-      <form method="post" action="/admin/songs/preview" enctype="multipart/form-data" class="song-preview-form">
+      <p class="text-dim">16:9, 1280×720. Před uložením ořízni, přibliž nebo otoč. Max. 20&nbsp;MB (JPEG/PNG/WebP).</p>
+      <c:if test="${param.msg == 'too_large'}"><p class="admin-error">Soubor je příliš velký (max. 20&nbsp;MB).</p></c:if>
+      <c:if test="${param.msg == 'invalid_image'}"><p class="admin-error">Soubor není platný obrázek.</p></c:if>
+      <c:if test="${param.msg == 'no_file'}"><p class="admin-error">Nebyl vybrán žádný soubor.</p></c:if>
+      <c:if test="${param.msg == 'csrf'}"><p class="admin-error">Relace vypršela — obnov stránku a zkus znovu.</p></c:if>
+
+      <div class="song-preview-toolbar">
+        <label class="song-preview-upload">
+          <input id="song-preview-input" type="file" accept="image/jpeg,image/png,image/webp">
+          <span>Nahrát jiný soubor</span>
+        </label>
+        <c:if test="${not empty song.previewImageUrl}">
+          <form method="post" action="/admin/songs/preview" class="song-preview-form" id="song-preview-delete">
+            <input type="hidden" name="csrf" value="${csrf}">
+            <input type="hidden" name="song_id" value="${song.id}">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="redirect" value="/admin/song?uuid=${song.uuid}">
+            <button type="submit" class="btn-delete" onclick="return confirm('Smazat náhled?')">Smazat náhled</button>
+          </form>
+        </c:if>
+      </div>
+
+      <p id="song-preview-empty" class="text-dim"<c:if test="${not empty song.previewImageUrl}"> hidden</c:if>>Zatím žádný náhled — vyber soubor.</p>
+
+      <div id="song-cropper-wrap" class="song-cropper-wrap"<c:if test="${empty song.previewImageUrl}"> hidden</c:if>>
+        <c:choose>
+          <c:when test="${not empty song.previewImageUrl}">
+            <img id="song-cropper-img" alt="Ořez náhledu" src="<c:out value='${song.previewImageUrl}'/>">
+          </c:when>
+          <c:otherwise>
+            <img id="song-cropper-img" alt="Ořez náhledu">
+          </c:otherwise>
+        </c:choose>
+        <div class="song-cropper-btns">
+          <button type="button" id="song-zoom-out" class="control-btn" title="Oddálit"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+          <button type="button" id="song-zoom-in" class="control-btn" title="Přiblížit"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+          <button type="button" id="song-rotate-left" class="control-btn" title="Otočit vlevo"><i class="fa-solid fa-rotate-left"></i></button>
+          <button type="button" id="song-rotate-right" class="control-btn" title="Otočit vpravo"><i class="fa-solid fa-rotate-right"></i></button>
+          <button type="button" id="song-crop-reset" class="control-btn" title="Obnovit uložený">Obnovit</button>
+          <button type="button" id="song-crop-save" class="control-btn control-btn-primary">Uložit náhled</button>
+        </div>
+        <p id="song-crop-status" class="text-dim" hidden></p>
+      </div>
+
+      <form id="song-preview-form" method="post" action="/admin/songs/preview" enctype="multipart/form-data" hidden>
         <input type="hidden" name="csrf" value="${csrf}">
         <input type="hidden" name="song_id" value="${song.id}">
-        <input type="hidden" name="redirect" value="/admin/song?id=${song.id}">
-        <label class="song-preview-upload">
-          <input type="file" name="preview" accept="image/jpeg,image/png,image/webp" required>
-          <span>Vybrat soubor</span>
-        </label>
-        <button type="submit">Nahrát</button>
+        <input type="hidden" name="redirect" value="/admin/song?uuid=${song.uuid}">
       </form>
-      <c:if test="${not empty song.previewImageUrl}">
-        <form method="post" action="/admin/songs/preview" class="song-preview-form">
-          <input type="hidden" name="csrf" value="${csrf}">
-          <input type="hidden" name="song_id" value="${song.id}">
-          <input type="hidden" name="action" value="delete">
-          <input type="hidden" name="redirect" value="/admin/song?id=${song.id}">
-          <button type="submit" class="btn-delete" onclick="return confirm('Smazat náhled?')">Smazat náhled</button>
-        </form>
-      </c:if>
     </section>
 
     <!-- Streaming IDs -->
@@ -120,25 +171,65 @@
       </form>
     </section>
 
-    <!-- Lyrics -->
-    <section class="admin-card">
-      <h3>Texty</h3>
-      <c:choose>
-        <c:when test="${empty lyricLangs}">
-          <p class="text-dim">Zatím žádný text.</p>
-        </c:when>
-        <c:otherwise>
-          <p>
-            Jazyky:
-            <c:forEach var="lang" items="${lyricLangs}">
-              <span class="lang-flag">${lang}</span>
-            </c:forEach>
-          </p>
-          <c:if test="${not empty song.firstLyricId}">
-            <a class="link-btn" href="/lyrics/${song.firstLyricId}" target="_blank">Zobrazit text</a>
+    <!-- Texty + SEO per language -->
+    <section class="admin-card admin-card-wide">
+      <h3>Texty, popisky a SEO URL</h3>
+      <p class="text-dim">
+        Každý jazyk má vlastní veřejnou adresu <code>/{lang}/song/{alias}</code> (nebo UUID).
+        <c:choose>
+          <c:when test="${translatorReady}">Překlad: <strong><c:out value="${translatorName}"/></strong>.</c:when>
+          <c:otherwise>Překladač není nastavený — doplň <code>DEEPL_API_KEY</code> nebo <code>LIBRETRANSLATE_URL</code> v <code>.env</code>.</c:otherwise>
+        </c:choose>
+      </p>
+      <div class="locale-tabs" id="locale-tabs">
+        <c:forEach var="lang" items="${langs}">
+          <button type="button" class="locale-tab${param.tab == lang || (empty param.tab && lang == 'cs') ? ' active' : ''}" data-lang="${lang}">${lang}</button>
+        </c:forEach>
+      </div>
+      <c:forEach var="lang" items="${langs}">
+        <c:set var="loc" value="${locales[lang]}"/>
+        <div class="locale-panel${param.tab == lang || (empty param.tab && lang == 'cs') ? '' : ' hidden'}" data-panel="${lang}">
+          <form method="post" action="/admin/song" class="admin-form">
+            <input type="hidden" name="csrf" value="${csrf}">
+            <input type="hidden" name="id" value="${song.id}">
+            <input type="hidden" name="action" value="save_locale">
+            <input type="hidden" name="lang" value="${lang}">
+            <label>Text (${lang})
+              <textarea name="words" rows="12"><c:out value="${loc.words}"/></textarea>
+            </label>
+            <label>SEO URL alias (${lang})
+              <input name="seo_slug" value="<c:out value='${loc.seoSlug}'/>"
+                     pattern="[a-z0-9]+(?:-[a-z0-9]+)*" maxlength="120"
+                     placeholder="napr. musis-odejit" autocomplete="off">
+            </label>
+            <p class="text-dim">
+              Veřejná URL:
+              <code>/<c:out value="${lang}"/>/song/<c:out value="${empty loc.seoSlug ? song.uuid : loc.seoSlug}"/></code>
+              · <a href="/<c:out value='${lang}'/>/song/<c:out value='${empty loc.seoSlug ? song.uuid : loc.seoSlug}'/>" target="_blank" rel="noopener">otevřít ↗</a>
+            </p>
+            <label>Meta popisek (max 320 znaků)
+              <textarea name="meta_description" rows="3" maxlength="320"><c:out value="${loc.metaDescription}"/></textarea>
+            </label>
+            <div class="admin-inline-form">
+              <button type="submit">Uložit ${lang}</button>
+            </div>
+          </form>
+          <c:if test="${lang != 'cs'}">
+            <form method="post" action="/admin/song" class="admin-form admin-inline-form" style="margin-top:8px">
+              <input type="hidden" name="csrf" value="${csrf}">
+              <input type="hidden" name="id" value="${song.id}">
+              <input type="hidden" name="action" value="translate_locale">
+              <input type="hidden" name="lang" value="${lang}">
+              <button type="submit" ${translatorReady ? '' : 'disabled'}>
+                Přeložit z CS (<c:out value="${translatorName}"/>)
+              </button>
+              <label class="inline-check">
+                <input type="checkbox" name="overwrite" value="1"> přepsat existující text
+              </label>
+            </form>
           </c:if>
-        </c:otherwise>
-      </c:choose>
+        </div>
+      </c:forEach>
     </section>
 
     <!-- YouTube -->
@@ -198,4 +289,189 @@
   </div>
 </main>
 
+<link href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
+<script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js"></script>
+<script>
+(function () {
+  function wireCopy(btnId, sourceId, copiedId) {
+    const copyBtn = document.getElementById(btnId);
+    const sourceEl = document.getElementById(sourceId);
+    const copiedEl = document.getElementById(copiedId);
+    if (!copyBtn || !sourceEl) return;
+    copyBtn.addEventListener('click', function () {
+      const text = sourceEl.textContent.trim();
+      const done = function () {
+        if (!copiedEl) return;
+        copiedEl.hidden = false;
+        setTimeout(function () { copiedEl.hidden = true; }, 1200);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(function () {
+          window.prompt('Zkopíruj:', text);
+        });
+      } else {
+        window.prompt('Zkopíruj:', text);
+      }
+    });
+  }
+  wireCopy('song-uuid-copy', 'song-uuid', 'song-uuid-copied');
+  wireCopy('song-share-copy', 'song-share-url', 'song-share-copied');
+
+  document.querySelectorAll('.locale-tab').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var lang = btn.getAttribute('data-lang');
+      document.querySelectorAll('.locale-tab').forEach(function (b) { b.classList.toggle('active', b === btn); });
+      document.querySelectorAll('.locale-panel').forEach(function (p) {
+        p.classList.toggle('hidden', p.getAttribute('data-panel') !== lang);
+      });
+    });
+  });
+})();
+</script>
+<script>
+(function () {
+  const input = document.getElementById('song-preview-input');
+  const wrap = document.getElementById('song-cropper-wrap');
+  const img = document.getElementById('song-cropper-img');
+  const form = document.getElementById('song-preview-form');
+  const empty = document.getElementById('song-preview-empty');
+  const statusEl = document.getElementById('song-crop-status');
+  const csrf = form.querySelector('input[name="csrf"]').value;
+  let cropper = null;
+  let objectUrl = null;
+  let lastSavedUrl = (img.getAttribute('src') || '').trim() || null;
+
+  const cropperOpts = {
+    aspectRatio: 16 / 9,
+    viewMode: 1,
+    dragMode: 'move',
+    autoCropArea: 1,
+    movable: true,
+    rotatable: true,
+    scalable: true,
+    zoomOnWheel: true,
+    background: false,
+    responsive: true
+  };
+
+  function setStatus(msg) {
+    if (!statusEl) return;
+    if (!msg) { statusEl.hidden = true; statusEl.textContent = ''; return; }
+    statusEl.hidden = false;
+    statusEl.textContent = msg;
+  }
+
+  function showEditor(hasImage) {
+    wrap.hidden = !hasImage;
+    if (empty) empty.hidden = hasImage;
+  }
+
+  function initCropper() {
+    if (cropper) { cropper.destroy(); cropper = null; }
+    cropper = new Cropper(img, cropperOpts);
+  }
+
+  function loadUrl(url) {
+    if (!url) {
+      if (cropper) { cropper.destroy(); cropper = null; }
+      if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; }
+      img.removeAttribute('src');
+      showEditor(false);
+      setStatus('');
+      return;
+    }
+    showEditor(true);
+    if (cropper) { cropper.destroy(); cropper = null; }
+    const onReady = function () {
+      img.removeEventListener('load', onReady);
+      img.removeEventListener('error', onReady);
+      if (img.naturalWidth) initCropper();
+    };
+    img.addEventListener('load', onReady);
+    img.addEventListener('error', onReady);
+    img.src = url;
+    if (img.complete && img.naturalWidth) onReady();
+  }
+
+  function loadFile(f) {
+    if (!f) return;
+    if (f.size > 20 * 1024 * 1024) { alert('Soubor je příliš velký (max. 20 MB).'); return; }
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = URL.createObjectURL(f);
+    loadUrl(objectUrl);
+  }
+
+  input.addEventListener('change', function () {
+    loadFile(this.files && this.files[0]);
+  });
+
+  document.getElementById('song-crop-reset').addEventListener('click', function () {
+    input.value = '';
+    if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; }
+    if (lastSavedUrl) loadUrl(lastSavedUrl);
+    else loadUrl(null);
+  });
+  document.getElementById('song-zoom-in').addEventListener('click', function () { if (cropper) cropper.zoom(0.1); });
+  document.getElementById('song-zoom-out').addEventListener('click', function () { if (cropper) cropper.zoom(-0.1); });
+  document.getElementById('song-rotate-left').addEventListener('click', function () { if (cropper) cropper.rotate(-90); });
+  document.getElementById('song-rotate-right').addEventListener('click', function () { if (cropper) cropper.rotate(90); });
+
+  document.getElementById('song-crop-save').addEventListener('click', function () {
+    if (!cropper) return;
+    const canvas = cropper.getCroppedCanvas({
+      width: 1280,
+      height: 720,
+      imageSmoothingQuality: 'high',
+      fillColor: '#000'
+    });
+    if (!canvas) return;
+    setStatus('Ukládám…');
+    canvas.toBlob(async function (blob) {
+      if (!blob) { setStatus('Nepodařilo se vytvořit obrázek.'); return; }
+      const fd = new FormData(form);
+      fd.append('preview', blob, 'preview.jpg');
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body: fd,
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-Token': csrf
+          },
+          credentials: 'same-origin'
+        });
+        const data = await res.json().catch(function () { return null; });
+        if (!res.ok || !data || !data.ok) {
+          const err = data && data.error;
+          if (err === 'csrf') alert('Relace vypršela — obnov stránku a zkus znovu.');
+          else if (err === 'too_large') alert('Soubor je příliš velký.');
+          else if (err === 'invalid_image') alert('Neplatný obrázek.');
+          else alert('Uložení selhalo.');
+          setStatus('');
+          return;
+        }
+        lastSavedUrl = data.url;
+        if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; }
+        input.value = '';
+        loadUrl(data.url);
+        setStatus('Uloženo.');
+        setTimeout(function () { setStatus(''); }, 2000);
+      } catch (e) {
+        alert('Síťová chyba při ukládání.');
+        setStatus('');
+      }
+    }, 'image/jpeg', 0.9);
+  });
+
+  // Always open editor when a preview already exists
+  if (lastSavedUrl) {
+    if (img.complete && img.naturalWidth) initCropper();
+    else img.addEventListener('load', function once() {
+      img.removeEventListener('load', once);
+      initCropper();
+    });
+  }
+})();
+</script>
 <%@ include file="includes/footer.jsp" %>

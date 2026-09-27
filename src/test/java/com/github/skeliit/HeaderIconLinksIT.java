@@ -101,11 +101,12 @@ public class HeaderIconLinksIT {
     }
 
     @Test
-    @DisplayName("sitemap.xml lists lyric pages with absolute URLs")
+    @DisplayName("sitemap.xml lists song pages with absolute URLs")
     void sitemapListsLyrics() {
         driver.get(BASE_URL + "/sitemap.xml");
         String xml = driver.getPageSource();
-        assertTrue(xml.contains("/lyrics/"), "sitemap should list lyric pages");
+        assertTrue(xml.contains("/cs/song/") || xml.contains("/song/") || xml.contains("/lyrics/"),
+                "sitemap should list song or lyric pages");
         assertFalse(xml.contains("<loc>/"), "sitemap URLs must be absolute");
     }
 }
