@@ -56,9 +56,10 @@
           <% if (yearObj != null) { %><span class="song-year"><%= String.valueOf(yearObj).replaceAll("^(\\d{4}).*$", "$1") %></span><% } %>
         </div>
         <div class="disco-links">
-          <% if (hasLyrics) { %><a href="/lyrics/<%= lyricId %>"><i class="fa-solid fa-align-left"></i> <%= t.getProperty("music.link.lyrics") %></a><% } %>
-          <% if (yt != null) { %><a href="https://www.youtube.com/watch?v=<%= ytHtml %>" target="_blank" rel="noopener"><i class="fab fa-youtube"></i> <%= t.getProperty("music.link.video") %></a><% } %>
-          <a href="<%= spotifyHref %>" target="_blank" rel="noopener"><i class="fab fa-spotify"></i> Spotify</a>
+          <%-- icons only, stacked on the right edge of the thumbnail; the name is in title/aria-label --%>
+          <% if (hasLyrics) { %><a class="disco-lyrics" href="/lyrics/<%= lyricId %>" title="<%= t.getProperty("music.link.lyrics") %>" aria-label="<%= t.getProperty("music.link.lyrics") %>"><i class="fa-solid fa-align-left"></i></a><% } %>
+          <% if (yt != null) { %><a class="disco-youtube" href="https://www.youtube.com/watch?v=<%= ytHtml %>" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube"><i class="fab fa-youtube"></i></a><% } %>
+          <a class="disco-spotify" href="<%= spotifyHref %>" target="_blank" rel="noopener" title="Spotify" aria-label="Spotify"><i class="fab fa-spotify"></i></a>
         </div>
       </article>
     <%

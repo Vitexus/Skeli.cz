@@ -522,15 +522,18 @@ body.light .lyric-page .action-btn { background: rgba(0, 0, 0, 0.02); }
 .about-header {
   display: grid;
   grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
   grid-template-areas: "avatar title" "avatar text";
-  align-items: center;
+  align-items: start;
   column-gap: 40px;
-  max-width: 900px;
+  max-width: 980px;
   margin: 12px auto 48px;
 }
 .about-header h2 { grid-area: title; align-self: end; margin: 0 0 12px; }
 .about-avatar-container { grid-area: avatar; }
-.about-header p { grid-area: text; align-self: start; font-size: var(--fs-h4); line-height: 1.7; color: var(--text); opacity: 0.9; margin: 0; }
+.about-intro { grid-area: text; align-self: start; }
+.about-intro p { font-size: var(--fs-h4); line-height: 1.7; color: var(--text); opacity: 0.9; margin: 0 0 8px; }
+.about-intro .about-lead { font-size: var(--fs-h3); color: var(--accent); opacity: 1; }
 .about-avatar {
   width: 220px;
   height: 220px;
@@ -578,30 +581,44 @@ body.light .lyric-page .action-btn { background: rgba(0, 0, 0, 0.02); }
 .music-page .discography,
 .music-page .spotify-block { margin-bottom: 56px; }
 
-/* Discography cards reuse .song-card from the Texty page, plus a row of links */
+/* Discography cards reuse .song-card from the Texty page. The links (lyrics /
+   YouTube / Spotify) are round icons stacked on the right edge of the thumbnail. */
 .disco-card a.song-thumb { display: block; }
-/* links sit at the bottom so they line up across a row of cards */
 .disco-links {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
-  padding: 0 18px 16px;
-  margin-top: auto;
 }
 .disco-links a {
-  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border: 1px solid var(--panel-border);
-  border-radius: 999px;
-  color: var(--text-dim);
-  font-size: var(--fs-small);
-  transition: color .2s, border-color .2s;
+  justify-content: center;
+  border-radius: 50%;
+  /* dark glass in both themes: the icons sit on a video thumbnail */
+  background: rgba(9, 9, 11, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f4f4f5;
+  font-size: 0.95rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform .15s, border-color .2s, background-color .2s;
 }
-.disco-links a:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
-.disco-links .fa-youtube { color: var(--youtube); }
-.disco-links .fa-spotify { color: var(--spotify); }
+.disco-links a:hover { transform: scale(1.08); text-decoration: none; background: rgba(9, 9, 11, 0.85); }
+.disco-links .disco-lyrics:hover { border-color: var(--accent); color: #ffd23f; }
+.disco-links .disco-youtube i { color: #ff3b3b; }
+.disco-links .disco-youtube:hover { border-color: #ff3b3b; }
+.disco-links .disco-spotify i { color: var(--spotify); }
+.disco-links .disco-spotify:hover { border-color: var(--spotify); }
+@media (max-width: 600px) {
+  .disco-links { top: 6px; right: 6px; gap: 4px; }
+  .disco-links a { width: 28px; height: 28px; font-size: 0.8rem; }
+}
 
 .spotify-embed { padding: 8px; }
 .spotify-embed iframe { display: block; width: 100%; height: 352px; border: 0; border-radius: 12px; background: #121212; }
@@ -929,3 +946,51 @@ body.light .ep-comments .act .comment-reply-toggle { background: transparent; bo
 .ep-comments .comment-report:hover { color: #ffb84d; border-color: rgba(255, 170, 40, 0.45); }
 .ep-comments .comment-reply-form button[type=submit],
 body.light .ep-comments .comment-reply-form button[type=submit] { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+
+/* ---------- About: the story next to the photo ---------- */
+/* the photo stays in view while the long text scrolls past */
+.about-avatar-container { position: sticky; top: calc(var(--header-h) + 24px); }
+.about-header h2 { margin-top: 28px; }
+.about-text p {
+  font-family: var(--font-text);
+  font-weight: 300;
+  font-size: 1.1rem;
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  margin: 0 0 14px;
+}
+.about-quote {
+  margin: 0 0 18px;
+  padding: 8px 0 8px 18px;
+  border-left: 3px solid var(--accent);
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  color: var(--accent);
+}
+.about-text p.about-highlight { font-family: var(--font-display); font-weight: 400; font-size: var(--fs-h4); letter-spacing: 0.01em; color: var(--accent); opacity: 1; margin: 20px 0; }
+.about-text p.about-outro { font-family: var(--font-display); font-weight: 400; font-size: var(--fs-h4); letter-spacing: 0.01em; opacity: 1; margin-top: 24px; }
+.about-signature { color: var(--accent); }
+.about-signature .logo-mark { height: 42px; }
+@media (max-width: 760px) {
+  .about-avatar-container { position: static; }
+  .about-intro { text-align: left; }
+  .about-intro .about-lead { text-align: center; }
+  .about-text p { font-size: 1.02rem; }
+  .about-signature { text-align: center; }
+}
+
+/* The long about text sits on a see-through glass panel: the photo behind still
+   shows a little, but the text stays readable in both themes. */
+.about-page .about-intro {
+  padding: 28px 32px;
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-border);
+  background: rgba(14, 14, 17, 0.58);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+}
+body.light .about-page .about-intro { background: rgba(255, 255, 255, 0.68); }
+@media (max-width: 760px) {
+  .about-page .about-intro { padding: 20px; }
+}

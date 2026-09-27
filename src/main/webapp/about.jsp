@@ -1,13 +1,30 @@
 <%@ include file="includes/header.jsp" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
-<main>
+<main class="about-page">
   <section class="about-header">
-    <h2 class="font-display"><%= t.getProperty("about.title","About me") %></h2>
+    <h2><%= t.getProperty("about.title","About me") %></h2>
     <div class="about-avatar-container">
       <img src="/img/IMG_0132.webp" alt="Skeli" class="about-avatar" onerror="this.style.display='none'">
     </div>
-    <p><%= t.getProperty("about.p1","Jsem Skeli – rapper, producent a nadšenec do webu. Baví mě tvořit hudbu i aplikace, které něco předají.") %></p>
+    <div class="about-intro">
+      <p class="about-lead"><%= t.getProperty("about.intro1") %></p>
+      <div class="about-text">
+        <p><%= t.getProperty("about.intro2") %></p>
+        <p><%= t.getProperty("about.selftaught.text") %></p>
+        <p><%= t.getProperty("about.work.text") %></p>
+        <blockquote class="about-quote"><%= t.getProperty("about.work.quote") %></blockquote>
+        <p><%= t.getProperty("about.why.p1") %></p>
+        <p><%= t.getProperty("about.why.p2") %></p>
+        <p><%= t.getProperty("about.squad.p1") %></p>
+        <p><%= t.getProperty("about.squad.p2") %></p>
+        <p><%= t.getProperty("about.squad.p3") %></p>
+        <p class="about-highlight"><%= t.getProperty("about.squad.p4") %><br><%= t.getProperty("about.squad.p5") %></p>
+        <p><%= t.getProperty("about.squad.p6") %></p>
+        <p class="about-outro"><%= t.getProperty("about.outro") %></p>
+        <div class="about-signature"><span class="logo-mark" aria-hidden="true"></span><span class="sr-only"><%= t.getProperty("about.signature") %></span></div>
+      </div>
+    </div>
   </section>
   <section class="about-grid">
     <div class="about-card">
@@ -26,16 +43,16 @@
   <section class="about-footer">
     <p><%= t.getProperty("about.follow") %></p>
     <div class="social-icons-large">
-        <a href="https://www.facebook.com/mcskeli/" target="_blank">
+        <a href="https://www.facebook.com/mcskeli/" target="_blank" rel="noopener" aria-label="Facebook">
             <i class="fab fa-facebook icon-facebook"></i>
         </a>
-        <a href="https://www.instagram.com/skeli.official/" target="_blank">
+        <a href="https://www.instagram.com/skeli.official/" target="_blank" rel="noopener" aria-label="Instagram">
             <i class="fab fa-instagram icon-instagram"></i>
         </a>
-        <a href="https://www.youtube.com/@Skeli" target="_blank">
+        <a href="https://www.youtube.com/@Skeli" target="_blank" rel="noopener" aria-label="YouTube">
             <i class="fab fa-youtube icon-youtube"></i>
         </a>
-        <a href="https://open.spotify.com/artist/5IouXw8U9uKCTwmncG5bUl?si=93iNOmPtT8u2l163tTkKeQ" target="_blank">
+        <a href="https://open.spotify.com/artist/5IouXw8U9uKCTwmncG5bUl?si=93iNOmPtT8u2l163tTkKeQ" target="_blank" rel="noopener" aria-label="Spotify">
             <i class="fab fa-spotify icon-spotify"></i>
         </a>
     </div>
