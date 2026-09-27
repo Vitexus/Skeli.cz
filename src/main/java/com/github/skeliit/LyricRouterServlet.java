@@ -44,8 +44,25 @@ public class LyricRouterServlet extends HttpServlet {
             if (v == null) { resp.sendError(404); return; }
             req.setAttribute("songs", songs);
             req.setAttribute("lyric", v);
+            // <title> and meta description for search results and link previews
+            req.setAttribute("pageTitle", v.songName);
+            req.setAttribute("pageDescription", firstLines(v.words, 160));
+            // link previews: the song's own video thumbnail, typed as a song
+            req.setAttribute("pageType", "music.song");
+            if (v.youtubeId != null && v.youtubeId.matches("[A-Za-z0-9_-]{6,20}")) {
+                req.setAttribute("pageImage", "https://i.ytimg.com/vi/" + v.youtubeId + "/hqdefault.jpg");
+            }
             req.setAttribute("comments", svc.comments(id));
             req.getRequestDispatcher("/WEB-INF/views/lyric.jsp").forward(req, resp);
         } catch (Exception e) { throw new ServletException(e); }
+    }
+
+    /** The opening lines of the lyrics joined into one line, cut at a word boundary. */
+    static String firstLines(String words, int max) {
+        if (words == null) return null;
+        String s = words.strip().replaceAll("\\s*\\R\\s*", " / ").replaceAll("\\s+", " ");
+        if (s.length() <= max) return s;
+        int cut = s.lastIndexOf(' ', max);
+        return s.substring(0, cut > 0 ? cut : max).replaceAll("[ /,]+$", "") + "…";
     }
 }

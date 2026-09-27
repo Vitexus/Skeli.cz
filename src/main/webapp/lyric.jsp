@@ -109,7 +109,7 @@
                                   <hr style="border:none; border-top:1px solid rgba(0,0,0,0.08); margin:16px 0;">
 
                                   <div class="votes">
-                                    <form method="post" action="vote" style="display:inline;">
+                                    <form method="post" action="vote?from=legacy" style="display:inline;">
                                       <input type="hidden" name="lyric_id" value="<%= activeId %>">
                                       <input type="hidden" name="action" value="up">
                                       <input type="hidden" name="csrf" value="${csrf}">
@@ -117,7 +117,7 @@
                                         <i class="fa-solid fa-thumbs-up"></i>
                                       </button>
                                     </form>
-                                    <form method="post" action="vote" style="display:inline;">
+                                    <form method="post" action="vote?from=legacy" style="display:inline;">
                                       <input type="hidden" name="lyric_id" value="<%= activeId %>">
                                       <input type="hidden" name="action" value="down">
                                       <input type="hidden" name="csrf" value="${csrf}">
@@ -171,7 +171,7 @@
                                             int __cid = rsc.getInt("id");
                                     %>
                                               <div class="comment-item">
-                                                <img src="<%= com.github.skeliit.WebUtils.escapeHtml(com.github.skeliit.WebUtils.safeUrl(rsc.getString("avatar_url"), "/img/avatar-default.png")) %>" alt="avatar" class="comment-avatar">
+                                                <img src="<%= com.github.skeliit.WebUtils.escapeHtml(com.github.skeliit.WebUtils.safeUrl(rsc.getString("avatar_url"), "/img/avatar-default.svg")) %>" alt="avatar" class="comment-avatar">
                                                 <div style="flex:1;">
                                                   <strong><%= com.github.skeliit.WebUtils.escapeHtml(rsc.getString("username")) %></strong>
                                                   <span class="meta comment-meta">(<%= rsc.getTimestamp("created_at") %>)</span>

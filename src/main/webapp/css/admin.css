@@ -59,5 +59,22 @@ body.light .songs-table tr:hover { background: rgba(0,0,0,0.04); }
 .indicator.no { background: rgba(255,0,0,0.18); color:#f66; }
 .lang-flag { display:inline-block; padding:2px 6px; margin:0 2px; background: rgba(255,255,255,0.1); border-radius:3px; font-size:0.8em; text-transform:uppercase; }
 body.light .lang-flag { background: rgba(0,0,0,0.06); }
-.link-btn { color: var(--accent); text-decoration:none; padding:4px 8px; border:1px solid var(--accent); border-radius:3px; margin:0 4px; font-size:0.85em; display:inline-block; }
-.link-btn:hover { background: var(--accent); color:#000; }
+.link-btn { color: var(--accent); text-decoration:none; padding:6px 14px; border:1px solid var(--accent); border-radius:999px; margin:0 4px; font-size: var(--fs-card); display:inline-block; transition: background-color .2s, color .2s; }
+.link-btn:hover { background: var(--accent); color: var(--accent-ink); text-decoration:none; }
+
+/* Admin: reported comments */
+.admin-card-wide { grid-column: 1 / -1; }
+.admin-inline-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.report-row { display: flex; gap: 16px; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--panel-border); }
+.report-main { min-width: 0; }
+.report-meta { font-size: var(--fs-small); color: var(--text-dim); }
+.report-meta strong { color: var(--accent); font-weight: 400; }
+.report-count { color: #ffb84d; }
+.report-text { margin-top: 4px; white-space: pre-line; overflow-wrap: anywhere; }
+.report-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.report-actions button { padding: 7px 14px; font-size: var(--fs-small); }
+@media (max-width: 700px) { .report-row { flex-direction: column; } }
+.report-actions .btn-dismiss,
+body.light .report-actions .btn-dismiss { background: transparent; color: var(--text); border: 1px solid var(--panel-border); }
+.report-actions .btn-dismiss:hover { border-color: var(--accent); filter: none; }
+.report-text { font-family: var(--font-text); font-weight: 300; font-size: var(--fs-text); }

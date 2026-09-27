@@ -11,33 +11,9 @@ import java.io.PrintWriter;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.net.*;
-import java.nio.charset.StandardCharsets;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
 
 @WebServlet(name = "EllipticPlayerServlet", urlPatterns = { "/elliptic" })
 public class EllipticPlayerServlet extends HttpServlet {
-        private String fetchYtTitle(String ytId) {
-                try {
-                        String oembed = "https://www.youtube.com/oembed?format=json&url=" +
-                                        URLEncoder.encode("https://www.youtube.com/watch?v=" + ytId,
-                                                        StandardCharsets.UTF_8);
-                        URL u = new URL(oembed);
-                        HttpURLConnection c = (HttpURLConnection) u.openConnection();
-                        c.setRequestMethod("GET");
-                        c.setConnectTimeout(2000);
-                        c.setReadTimeout(2000);
-                        try (java.io.InputStream in = c.getInputStream()) {
-                                ObjectMapper m = new ObjectMapper();
-                                JsonNode n = m.readTree(in);
-                                return n.path("title").asText(null);
-                        }
-                } catch (Exception ignore) {
-                }
-                return null;
-        }
-
         static class Vid {
                 String id;
                 String title;
@@ -48,31 +24,19 @@ public class EllipticPlayerServlet extends HttpServlet {
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
                 resp.setContentType("text/html; charset=UTF-8");
                 List<Vid> vids = new ArrayList<>();
-                String sql = "SELECT v.youtube_id, COALESCE(v.title, s.name, v.youtube_id) AS title, s.year " +
+                // Titles missing in the DB are filled from YouTube in the background (VideoTitles)
+                String sql = "SELECT v.youtube_id, v.title, s.name, s.year " +
                                 "FROM videos v LEFT JOIN songs s ON s.id=v.song_id " +
-                                "ORDER BY s.year DESC, COALESCE(v.title, s.name, v.youtube_id) ASC";
+                                "ORDER BY s.year DESC, v.id DESC";
                 try (Connection c = Db.get();
                                 PreparedStatement ps = c.prepareStatement(sql);
                                 ResultSet rs = ps.executeQuery()) {
                         while (rs.next()) {
                                 Vid v = new Vid();
                                 v.id = rs.getString(1);
-                                v.title = rs.getString(2);
-                                v.year = rs.getString(3);
-                                if (v.title == null || v.title.isBlank()) {
-                                        String t = fetchYtTitle(v.id);
-                                        if (t != null && !t.isBlank()) {
-                                                v.title = t;
-                                                try (PreparedStatement up = c
-                                                                .prepareStatement(
-                                                                                "UPDATE videos SET title=? WHERE youtube_id=?")) {
-                                                        up.setString(1, t);
-                                                        up.setString(2, v.id);
-                                                        up.executeUpdate();
-                                                } catch (SQLException ignore) {
-                                                }
-                                        }
-                                }
+                                String title = VideoTitles.display(rs.getString(2));
+                                v.title = title != null ? title : (rs.getString(3) != null ? rs.getString(3) : "YouTube");
+                                v.year = rs.getString(4);
                                 vids.add(v);
                         }
                 } catch (SQLException e) {
@@ -100,13 +64,13 @@ public class EllipticPlayerServlet extends HttpServlet {
                 out.println("    </div>");
                 out.println("    <aside class='ep-comments'>");
                 out.println(
-                                "      <h4 class='bruno-ace-sc-regular' style='margin:0 0 8px 0;text-align:center;'>" + WebUtils.escapeHtml(tr.getProperty("comments.title")) + "</h4>");
+                                "      <h4 class='ep-comments-title'>" + WebUtils.escapeHtml(tr.getProperty("comments.title")) + "</h4>");
                 out.println("      <div id='ep-comments-list' class='ep-comments-list'></div>");
-                out.println("      <form id='ep-comment-form' style='display:flex; gap:6px; align-items:flex-start;'>");
+                out.println("      <form id='ep-comment-form' class='ep-comment-form'>");
                 out.println(
-                                "        <textarea id='ep-comment-text' rows='3' style='flex:1; width:100%; border:1px solid var(--panel-border); border-radius:8px; padding:8px;' placeholder='" + WebUtils.escapeHtml(tr.getProperty("comment.placeholder")) + "'></textarea>");
+                                "        <textarea id='ep-comment-text' rows='3' placeholder='" + WebUtils.escapeHtml(tr.getProperty("comment.placeholder")) + "'></textarea>");
                 out.println(
-                                "        <button type='submit' class='bruno-ace-sc-regular' style='border:1px solid var(--panel-border);border-radius:8px;padding:6px 10px;'>" + WebUtils.escapeHtml(tr.getProperty("common.send")) + "</button>");
+                                "        <button type='submit'>" + WebUtils.escapeHtml(tr.getProperty("common.send")) + "</button>");
                 out.println("      </form>");
                 out.println("    </aside>");
                 out.println("  </div>");
@@ -142,8 +106,8 @@ public class EllipticPlayerServlet extends HttpServlet {
                 out.println("    item.className = 'ep-item';");
                 out.println("    item.dataset.index = index;");
                 out.println("    item.innerHTML = `");
-                out.println("      <img src='https://img.youtube.com/vi/${video.id}/hqdefault.jpg' alt='${video.title}'>");
-                out.println("      <div class='ep-title'>${video.title}</div>");
+                out.println("      <img src='https://img.youtube.com/vi/${video.id}/hqdefault.jpg' alt='${esc(video.title)}'>");
+                out.println("      <div class='ep-title'>${esc(video.title)}</div>");
                 out.println("    `;");
                 out.println("    item.addEventListener('click', () => goTo(index, true));");
                 out.println("    viewport.appendChild(item);");
@@ -193,8 +157,9 @@ public class EllipticPlayerServlet extends HttpServlet {
                 out.println("  else if (e.key === 'ArrowRight') goTo(currentIndex + 1, true);");
                 out.println("});");
 
-                out.println(
-                                "function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;'); }\nfunction renderComments(items){\n  commentsList.innerHTML = items.map(c => `\n    <div class=\"ep-comment\">\n      <div style=\"display:flex;justify-content:space-between;gap:8px;\">\n        <strong>${esc(c.user||'user')}</strong> <span style=\"opacity:.7;\">${esc(c.createdAt||'')}</span>\n      </div>\n      <div style=\"margin:6px 0;\">${esc(c.content||'')}</div>\n      <div class=\"act\">\n        <button class=\"btn-vote up\" data-action=\"vote\" data-v=\"up\" data-id=\"${Number(c.id)}\" title=\"" + WebUtils.escapeHtml(tr.getProperty("vote.like")) + "\" ${!isAuthed?'disabled':''}><i class=\"fa-solid fa-thumbs-up\"></i></button>\n        <button class=\"btn-vote down\" data-action=\"vote\" data-v=\"down\" data-id=\"${Number(c.id)}\" title=\"" + WebUtils.escapeHtml(tr.getProperty("vote.dislike")) + "\" ${!isAuthed?'disabled':''}><i class=\"fa-solid fa-thumbs-down\"></i></button>\n        <span class=\"vote-sum\"><strong>${Number(c.up)||0}</strong> / <strong>${Number(c.down)||0}</strong></span>\n        ${c.mine?`<button data-action=\"delete\" data-id=\"${Number(c.id)}\" style=\"margin-left:auto;background:#7b1e1e;color:#fff;border:none;padding:4px 8px;border-radius:6px;\">" + WebUtils.escapeHtml(tr.getProperty("common.delete")) + "</button>`:''}\n      </div>\n    </div>`).join('');\n}\n\nasync function loadComments(yt){\n  try{ const r = await fetch('/video-comment?yt='+encodeURIComponent(yt)); if(!r.ok) return; const items = await r.json(); renderComments(items); }catch(e){}\n}\n\nif (commentForm){\n  commentForm.addEventListener('submit', async (e)=>{ e.preventDefault(); const yt = videos[currentIndex]?.id; const content = (commentText.value||'').trim(); if(!content) return; try{ const body = new URLSearchParams(); body.set('action','add'); body.set('yt', yt); body.set('content', content); body.set('csrf', CSRF); const r = await fetch('/video-comment', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body.toString()}); if(r.ok){ commentText.value=''; loadComments(yt); } }catch(e){} });\n  commentsList.addEventListener('click', async (e)=>{ const b=e.target.closest('button'); if(!b) return; if(b.disabled) return; const id=b.getAttribute('data-id'); const act=b.getAttribute('data-action'); const v=b.getAttribute('data-v'); const body = new URLSearchParams(); body.set('comment_id', id); body.set('action', act==='vote'?'vote':act); if(v) body.set('vote', v); body.set('csrf', CSRF); const r=await fetch('/video-comment',{method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body.toString()}); if(r.ok){ loadComments(videos[currentIndex].id); } });\n}\n");
+                // comment list: avatar, date, votes; edit/delete for the author and admins
+                out.println("const T = " + commentStrings(tr) + ";");
+                out.println(COMMENTS_JS);
                 out.println("// Initialize");
                 out.println(
                                 "if (!isAuthed && commentForm){ commentText.disabled=true; commentText.placeholder='" + WebUtils.escapeJs(tr.getProperty("comment.loginRequired")) + "'; commentForm.querySelector('button').disabled=true; }\n");
@@ -202,10 +167,139 @@ public class EllipticPlayerServlet extends HttpServlet {
                 out.println("  build();");
                 out.println("  goTo(0, false);");
                 out.println("} else {");
-                out.println("  frame.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1';");
+                out.println("  frame.closest('.ep-frame-wrap').hidden = true;");
                 out.println("}");
 
                 out.println("})();");
                 out.println("</script>");
         }
+
+        /** UI strings for the comments script, as a JSON object. */
+        private static String commentStrings(java.util.Properties tr) {
+                java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+                m.put("like", tr.getProperty("vote.like"));
+                m.put("dislike", tr.getProperty("vote.dislike"));
+                m.put("edit", tr.getProperty("common.edit"));
+                m.put("del", tr.getProperty("common.delete"));
+                m.put("save", tr.getProperty("common.save"));
+                m.put("cancel", tr.getProperty("common.cancel"));
+                m.put("edited", tr.getProperty("comment.edited"));
+                m.put("confirmDelete", tr.getProperty("comment.deleteConfirm"));
+                m.put("reply", tr.getProperty("comment.reply"));
+                m.put("replyPlaceholder", tr.getProperty("comment.replyPlaceholder"));
+                m.put("report", tr.getProperty("comment.report"));
+                m.put("reportConfirm", tr.getProperty("comment.reportConfirm"));
+                m.put("reported", tr.getProperty("flash.reported"));
+                m.put("verifyRequired", tr.getProperty("flash.verifyRequired"));
+                m.put("commentLimit", tr.getProperty("flash.commentLimit"));
+                m.put("max", WebUtils.COMMENT_MAX_LENGTH);
+                try {
+                        // "<" escaped so a string can never close the <script> element
+                        return new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(m).replace("<", "\\u003c");
+                } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                        return "{}";
+                }
+        }
+
+        private static final String COMMENTS_JS = """
+                        function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+                        function commentHtml(c, isReply){
+                          return `
+                            <div class="ep-comment" data-id="${Number(c.id)}" data-root="${Number(c.parentId || c.id)}">
+                              <div class="ep-comment-head">
+                                ${c.avatar ? `<img class="ep-avatar" src="${esc(c.avatar)}" alt="">` : `<span class="ep-avatar ep-avatar-empty"><i class="fa-solid fa-user"></i></span>`}
+                                <div class="ep-comment-who">
+                                  <strong>${esc(c.user || 'user')}</strong>
+                                  <span class="ep-comment-date">${esc(c.createdAt || '')}${c.edited ? ' · ' + esc(T.edited) : ''}</span>
+                                </div>
+                                <div class="comment-actions">
+                                  ${c.canEdit ? `<button type="button" class="comment-action comment-edit-toggle" data-action="edit" title="${esc(T.edit)}" aria-label="${esc(T.edit)}"><i class="fa-solid fa-pen"></i></button>
+                                  <button type="button" class="comment-action comment-delete" data-action="delete" title="${esc(T.del)}" aria-label="${esc(T.del)}"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+                                  ${isAuthed && !c.mine ? `<button type="button" class="comment-action comment-report" data-action="report" title="${esc(T.report)}" aria-label="${esc(T.report)}"><i class="fa-solid fa-flag"></i></button>` : ''}
+                                </div>
+                              </div>
+                              <div class="ep-comment-text">${esc(c.content || '')}</div>
+                              ${c.canEdit ? `<form class="comment-edit-form" hidden>
+                                <textarea maxlength="${T.max}" required>${esc(c.content || '')}</textarea>
+                                <div class="comment-edit-actions"><button type="button" data-action="cancel">${esc(T.cancel)}</button><button type="submit">${esc(T.save)}</button></div>
+                              </form>` : ''}
+                              <div class="act">
+                                <button type="button" class="btn-vote up" data-action="vote" data-v="up" title="${esc(T.like)}" ${!isAuthed ? 'disabled' : ''}><i class="fa-solid fa-thumbs-up"></i></button>
+                                <button type="button" class="btn-vote down" data-action="vote" data-v="down" title="${esc(T.dislike)}" ${!isAuthed ? 'disabled' : ''}><i class="fa-solid fa-thumbs-down"></i></button>
+                                <span class="vote-sum"><strong>${Number(c.up) || 0}</strong> / <strong>${Number(c.down) || 0}</strong></span>
+                                ${isAuthed ? `<button type="button" class="comment-reply-toggle" data-action="reply"><i class="fa-solid fa-reply"></i> ${esc(T.reply)}</button>` : ''}
+                              </div>
+                              ${isAuthed ? `<form class="comment-reply-form" hidden>
+                                <textarea maxlength="${T.max}" required placeholder="${esc(T.replyPlaceholder)}"></textarea>
+                                <div class="comment-edit-actions"><button type="button" data-action="reply-cancel">${esc(T.cancel)}</button><button type="submit">${esc(T.reply)}</button></div>
+                              </form>` : ''}
+                            </div>`;
+                        }
+                        function renderComments(items){
+                          // top-level comments newest first, their replies oldest first
+                          const tops = items.filter(c => !c.parentId);
+                          const replies = items.filter(c => c.parentId).reverse();
+                          commentsList.innerHTML = tops.map(c => {
+                            const own = replies.filter(r => r.parentId === c.id);
+                            return commentHtml(c, false) + (own.length ? `<div class="ep-replies">${own.map(r => commentHtml(r, true)).join('')}</div>` : '');
+                          }).join('');
+                        }
+                        async function loadComments(yt){
+                          try { const r = await fetch('/video-comment?yt=' + encodeURIComponent(yt)); if (!r.ok) return; renderComments(await r.json()); } catch (e) {}
+                        }
+                        /** POSTs and returns the HTTP status (0 = network error); explains 403/429 to the user. */
+                        async function post(url, params){
+                          const body = new URLSearchParams(params); body.set('csrf', CSRF);
+                          try {
+                            const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() });
+                            if (r.status === 403) alert(T.verifyRequired);
+                            else if (r.status === 429) alert(T.commentLimit);
+                            return r.status;
+                          } catch (e) { return 0; }
+                        }
+                        function reloadComments(){ loadComments(videos[currentIndex].id); }
+                        if (commentForm) {
+                          commentText.maxLength = T.max;
+                          commentForm.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            const content = (commentText.value || '').trim(); if (!content) return;
+                            if (await post('/video-comment', { action: 'add', yt: videos[currentIndex].id, content }) === 200) { commentText.value = ''; reloadComments(); }
+                          });
+                        }
+                        commentsList.addEventListener('click', async (e) => {
+                          const b = e.target.closest('button'); if (!b || b.disabled) return;
+                          const box = b.closest('.ep-comment'); if (!box) return;
+                          const id = box.dataset.id, act = b.dataset.action;
+                          if (act === 'vote') { if (await post('/video-comment', { action: 'vote', comment_id: id, vote: b.dataset.v }) === 200) reloadComments(); }
+                          else if (act === 'delete') { if (confirm(T.confirmDelete) && await post('/video-comment', { action: 'delete', comment_id: id }) === 200) reloadComments(); }
+                          else if (act === 'report') { if (confirm(T.reportConfirm) && await post('/comment/report', { kind: 'video', comment_id: id }) === 200) alert(T.reported); }
+                          else if (act === 'reply' || act === 'reply-cancel') {
+                            const f = box.querySelector(':scope > .comment-reply-form');
+                            const open = act === 'reply';
+                            if (!open) f.reset();
+                            f.hidden = !open;
+                            if (open) f.querySelector('textarea').focus();
+                          }
+                          else if (act === 'edit' || act === 'cancel') {
+                            const f = box.querySelector(':scope > .comment-edit-form'), text = box.querySelector(':scope > .ep-comment-text');
+                            const on = act === 'edit' && f.hidden;
+                            if (!on) f.reset();
+                            f.hidden = !on; text.hidden = on;
+                            if (on) f.querySelector('textarea').focus();
+                          }
+                        });
+                        commentsList.addEventListener('submit', async (e) => {
+                          const f = e.target.closest('form'); if (!f) return;
+                          e.preventDefault();
+                          const box = f.closest('.ep-comment');
+                          const content = f.querySelector('textarea').value.trim(); if (!content) return;
+                          let status;
+                          if (f.classList.contains('comment-reply-form')) {
+                            status = await post('/video-comment', { action: 'add', yt: videos[currentIndex].id, parent_id: box.dataset.root, content });
+                          } else {
+                            status = await post('/video-comment', { action: 'update', comment_id: box.dataset.id, content });
+                          }
+                          if (status === 200) reloadComments();
+                        });
+                        """;
 }

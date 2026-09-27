@@ -16,6 +16,12 @@ public class EmailUtil {
         return Config.get(key, defaultValue);
     }
 
+    /** True when SMTP_HOST, SMTP_USERNAME and SMTP_PASSWORD are set, i.e. e-mails can go out. */
+    public static boolean isConfigured() {
+        return getEnv("SMTP_HOST", null) != null && getEnv("SMTP_USERNAME", null) != null
+                && getEnv("SMTP_PASSWORD", null) != null;
+    }
+
     /**
      * Sends an email using the SMTP configuration from environment variables.
      *
