@@ -3,10 +3,10 @@
 <%@ include file="includes/header.jsp" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
-<main>
-    <h2 class="bruno-ace-sc-regular" style="text-align:center;"><%= ((java.util.Properties)request.getAttribute("t")).getProperty("menu.lyrics","Lyrics") %></h2>
-    <div class="texts-card">
-      <ul class="texts-list">
+<main class="texty-page">
+    <h2><%= t.getProperty("menu.lyrics","Lyrics") %></h2>
+    <p class="page-lead"><%= t.getProperty("lyrics.subtitle") %></p>
+    <div class="song-grid">
         <%
             boolean hadRows = false;
             try {
@@ -37,41 +37,35 @@
                             int lyricId = rs.getInt("lyric_id");
                             if (rs.wasNull() || lyricId <= 0) continue;
                             String youtubeId = rs.getString("youtube_id");
-                            String dataAttr = "";
-                            if (youtubeId != null && !youtubeId.isEmpty()) {
-                                dataAttr = " data-thumb=\"https://img.youtube.com/vi/" + youtubeId + "/mqdefault.jpg\"";
-                            }
         %>
-                            <li<%= dataAttr %>><a href="/lyrics/<%= lyricId %>"><%= name %></a><% if (y != null) { %> (<%= y %>)<% } %></li>
+                            <a class="song-card" href="/lyrics/<%= lyricId %>">
+                                <div class="song-thumb">
+                                <% if (youtubeId != null && !youtubeId.isEmpty()) { %>
+                                    <img src="https://img.youtube.com/vi/<%= com.github.skeliit.WebUtils.escapeHtml(youtubeId) %>/mqdefault.jpg" alt="" loading="lazy">
+                                <% } else { %>
+                                    <span class="song-thumb-placeholder"><i class="fa-solid fa-music"></i></span>
+                                <% } %>
+                                </div>
+                                <div class="song-info">
+                                    <span class="song-name"><%= com.github.skeliit.WebUtils.escapeHtml(name) %></span>
+                                    <% if (y != null) { %><span class="song-year"><%= y %></span><% } %>
+                                </div>
+                                <span class="song-go"><i class="fa-solid fa-arrow-right"></i></span>
+                            </a>
         <%
                         }
                 } catch (SQLException e) {
-                    out.println("<li>Chyba připojení k databázi: " + e.getMessage() + "</li>");
+                    out.println("<p class=\"empty-note\">" + t.getProperty("lyrics.loadError") + "</p>");
                 }
 
                 if (!hadRows) {
-                    out.println("<li>Žádné texty nenalezeny.</li>");
+                    out.println("<p class=\"empty-note\">" + t.getProperty("lyrics.none") + "</p>");
                 }
             } catch (Exception e) {
-                out.println("<li>Chyba při načítání textů: " + e.getMessage() + "</li>");
+                out.println("<p class=\"empty-note\">" + t.getProperty("lyrics.loadError") + "</p>");
             }
         %>
-      </ul>
     </div>
-    <script>
-      // Apply YouTube thumbnails to list items
-      document.querySelectorAll('.texts-list li[data-thumb]').forEach(li => {
-        const thumb = li.getAttribute('data-thumb');
-        if(thumb) {
-          li.style.setProperty('--thumb-bg', `url("${thumb}")`);
-          const style = document.createElement('style');
-          const id = 'thumb-' + Math.random().toString(36).substr(2, 9);
-          li.classList.add(id);
-          style.textContent = `.${id}::before { background-image: url("${thumb}") !important; }`;
-          document.head.appendChild(style);
-        }
-      });
-    </script>
 </main>
 
 <%@ include file="includes/footer.jsp" %>

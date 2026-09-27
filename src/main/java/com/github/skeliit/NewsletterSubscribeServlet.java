@@ -38,11 +38,10 @@ public class NewsletterSubscribeServlet extends HttpServlet {
                 ps.executeUpdate();
             }
             // Send confirmation email with unsubscribe link
-            String link = req.getRequestURL().toString().replace("/newsletter/subscribe", "/newsletter/unsubscribe") + "?token=" + token;
-            String subject = "Potvrzení odběru novinek";
-            String body = "Děkujeme za přihlášení k odběru novinek.\n" +
-                    "Pokud si přejete odběr zrušit a vymazat svůj e-mail, klikněte zde: " + link + "\n\n" +
-                    "Vaše adresa bude použita pouze pro zasílání novinek. Kdykoli se můžete odhlásit.";
+            // Base URL comes from configuration, never from the Host header
+            String link = WebUtils.baseUrl() + "/newsletter/unsubscribe?token=" + token;
+            String subject = I18n.getText(req, "email.newsletter.subject");
+            String body = I18n.getText(req, "email.newsletter.body").replace("{link}", link);
             try {
                 EmailUtil.sendMail(email, subject, body);
             } catch (Exception e) {

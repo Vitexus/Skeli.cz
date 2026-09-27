@@ -10,6 +10,7 @@ target/
 # Local config
 src/main/webapp/WEB-INF/youtube.properties
 .env
+demo/db-dump/
 
 # OS
 .DS_Store
@@ -41,3 +42,6 @@ hs_err_pid*
 replay_pid*
 
 /src/main/webapp/uploads/avatars/
+
+# Secrets
+.webui_secret_key

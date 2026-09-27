@@ -39,24 +39,43 @@ public class SocialPostsApiServlet extends HttpServlet {
             lang = "cs";
         System.out.println("[SocialPostsApi] Language from session: " + lang);
 
-        String sql =
-                "(SELECT id, 'youtube' COLLATE utf8mb4_czech_ci AS source," +
-                " NULL COLLATE utf8mb4_czech_ci AS lang," +
-                " CONVERT(youtube_id USING utf8mb4) COLLATE utf8mb4_czech_ci AS post_id," +
-                " CONVERT(CONCAT('https://www.youtube.com/shorts/', youtube_id) USING utf8mb4) COLLATE utf8mb4_czech_ci AS permalink," +
-                " CONVERT(CONCAT('https://i.ytimg.com/vi/', youtube_id, '/hqdefault.jpg') USING utf8mb4) COLLATE utf8mb4_czech_ci AS image_url," +
-                " CONVERT(title USING utf8mb4) COLLATE utf8mb4_czech_ci AS caption," +
-                " published_at AS created_at" +
-                " FROM shorts WHERE published_at IS NOT NULL)" +
-                " UNION ALL" +
-                " (SELECT id, source, lang, post_id, permalink, image_url, caption, created_at" +
-                " FROM social_posts WHERE lang = ?)" +
-                " ORDER BY created_at DESC LIMIT ?";
+        boolean onePerSource = "true".equalsIgnoreCase(req.getParameter("onePerSource"));
+        int offset = 0;
+        try {
+            offset = Math.max(0, Integer.parseInt(req.getParameter("offset")));
+        } catch (Exception ignore) {
+        }
+
+        String sql;
+        if (onePerSource) {
+            sql = "SELECT s.id, s.source, s.lang, s.post_id, s.permalink, s.image_url, s.caption, s.created_at " +
+                    "FROM social_posts s " +
+                    "INNER JOIN (SELECT source, MAX(id) AS max_id FROM social_posts WHERE lang = ? GROUP BY source) sub ON s.id = sub.max_id " +
+                    "ORDER BY s.created_at DESC";
+        } else {
+            // YouTube Shorts + social posts, newest first (offset pagination for load-more)
+            sql =
+                    "(SELECT id, 'youtube' COLLATE utf8mb4_czech_ci AS source," +
+                    " NULL COLLATE utf8mb4_czech_ci AS lang," +
+                    " CONVERT(youtube_id USING utf8mb4) COLLATE utf8mb4_czech_ci AS post_id," +
+                    " CONVERT(CONCAT('https://www.youtube.com/shorts/', youtube_id) USING utf8mb4) COLLATE utf8mb4_czech_ci AS permalink," +
+                    " CONVERT(CONCAT('https://i.ytimg.com/vi/', youtube_id, '/hqdefault.jpg') USING utf8mb4) COLLATE utf8mb4_czech_ci AS image_url," +
+                    " CONVERT(title USING utf8mb4) COLLATE utf8mb4_czech_ci AS caption," +
+                    " published_at AS created_at" +
+                    " FROM shorts WHERE published_at IS NOT NULL)" +
+                    " UNION ALL" +
+                    " (SELECT id, source, lang, post_id, permalink, image_url, caption, created_at" +
+                    " FROM social_posts WHERE lang = ?)" +
+                    " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        }
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode arr = mapper.createArrayNode();
         try (Connection c = Db.get(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, lang);
-            ps.setInt(2, limit);
+            if (!onePerSource) {
+                ps.setInt(2, limit);
+                ps.setInt(3, offset);
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     ObjectNode o = mapper.createObjectNode();
@@ -88,9 +107,13 @@ public class SocialPostsApiServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String token = System.getenv("SOCIAL_TOKEN");
-        String q = req.getParameter("token");
-        if (token != null && (q == null || !token.equals(q))) {
+        String token = Config.get("SOCIAL_TOKEN");
+        String q = req.getHeader("X-Social-Token");
+        if (q == null) q = req.getParameter("token");
+        // Fail closed: without a configured token nobody may post
+        if (token == null || token.isBlank() || q == null
+                || !java.security.MessageDigest.isEqual(token.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                        q.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
             resp.setStatus(403);
             resp.getWriter().write("{\"error\":\"forbidden\"}");
             return;

@@ -1,0 +1,159 @@
+package com.github.skeliit;
+
+import org.junit.jupiter.api.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Select;
+
+import java.sql.SQLException;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Exercises the admin section as a logged-in ADMIN: dashboard, user management,
+ * comment moderation, newsletter subscribers, video editing and the songs overview.
+ * The admin account is registered through the UI, promoted in the DB and deleted afterwards.
+ * Requires a running local instance and MariaDB, see {@link UiTestSupport}.
+ */
+public class AdminPanelIT extends UiTestSupport {
+    private String adminName;
+
+    @BeforeEach
+    void loginAsAdmin() throws SQLException {
+        adminName = "ad" + uniq();
+        int id = registerAndLogin(adminName);
+        update("UPDATE users SET role='ADMIN' WHERE id=?", id);
+        // role is stored in the session at login time, so log in again to pick it up
+        logout();
+        login(adminName, PASSWORD);
+    }
+
+    @Test
+    @DisplayName("Admin sees the Admin link in the nav and the dashboard loads")
+    void dashboardIsReachableFromNav() throws Exception {
+        driver.get(BASE_URL + "/index.jsp");
+        WebElement adminLink = driver.findElement(By.cssSelector("a.admin[href$='/admin.jsp']"));
+        jsClick(adminLink);
+        waitReady();
+
+        assertTrue(driver.getCurrentUrl().endsWith("/admin.jsp"), "got: " + driver.getCurrentUrl());
+        assertEquals("Admin", driver.findElement(By.cssSelector("main h2")).getText());
+        assertFalse(driver.findElements(By.cssSelector("form[action='/admin/video']")).isEmpty());
+        assertFalse(driver.findElements(By.cssSelector("form[action='/admin/comment']")).isEmpty());
+    }
+
+    @Test
+    @DisplayName("All admin pages return 200 for an admin")
+    void adminPagesLoad() throws Exception {
+        for (String path : new String[]{"/admin.jsp", "/admin_users.jsp", "/admin/songs", "/admin/newsletter"}) {
+            assertEquals(200, httpStatus(path), "ADMIN GET " + path);
+        }
+
+        driver.get(BASE_URL + "/admin/songs");
+        assertFalse(driver.findElements(By.cssSelector("table.songs-table")).isEmpty(), "songs table expected");
+    }
+
+    @Test
+    @DisplayName("User list shows the admin; admin can promote and demote another user")
+    void changeUserRole() throws Exception {
+        String targetName = "at" + uniq();
+        int targetId = insertUser(targetName, "USER");
+
+        driver.get(BASE_URL + "/admin_users.jsp");
+        assertTrue(bodyText().contains(adminName), "admin should be listed in the user table");
+
+        setRole(targetName, "ADMIN");
+        assertEquals("ADMIN", queryString("SELECT role FROM users WHERE id=?", targetId));
+
+        setRole(targetName, "USER");
+        assertEquals("USER", queryString("SELECT role FROM users WHERE id=?", targetId));
+    }
+
+    @Test
+    @DisplayName("Admin can delete a user from the user list (after confirming)")
+    void deleteUser() throws Exception {
+        String targetName = "at" + uniq();
+        int targetId = insertUser(targetName, "USER");
+
+        driver.get(BASE_URL + "/admin_users.jsp");
+        WebElement deleteBtn = userRow(targetName).findElement(By.cssSelector("input[name=action][value=delete]"))
+                .findElement(By.xpath("./ancestor::form//button"));
+        clickAndWaitReload(deleteBtn, true);
+
+        assertFalse(exists("SELECT 1 FROM users WHERE id=?", targetId), "user should be deleted");
+        assertFalse(bodyText().contains(targetName), "deleted user must disappear from the list");
+    }
+
+    @Test
+    @DisplayName("Comment moderation form deletes a comment by ID")
+    void deleteComment() throws Exception {
+        int authorId = insertUser("ac" + uniq(), "USER");
+        String text = "Admin IT comment " + uniq();
+        update("INSERT INTO comments (lyric_id, user_id, content) VALUES (1, ?, ?)", authorId, text);
+        int commentId = queryInt("SELECT id FROM comments WHERE user_id=? AND content=?", authorId, text);
+
+        driver.get(BASE_URL + "/admin.jsp");
+        driver.findElement(By.cssSelector("form[action='/admin/comment'] input[name=comment_id]"))
+                .sendKeys(String.valueOf(commentId));
+        clickAndWaitReload(driver.findElement(By.cssSelector("form[action='/admin/comment'] button[type=submit]")), false);
+
+        assertTrue(driver.getCurrentUrl().endsWith("/admin.jsp"), "got: " + driver.getCurrentUrl());
+        assertFalse(exists("SELECT 1 FROM comments WHERE id=?", commentId), "comment should be deleted");
+    }
+
+    @Test
+    @DisplayName("Newsletter admin lists a subscriber and can remove them")
+    void removeNewsletterSubscriber() throws Exception {
+        String email = "nl" + uniq() + "@example.com";
+        update("INSERT INTO newsletter_emails (email, unsubscribe_token) VALUES (?, ?)", email, "tok" + uniq());
+        try {
+            driver.get(BASE_URL + "/admin/newsletter");
+            assertTrue(bodyText().contains(email), "subscriber should be listed");
+
+            WebElement btn = driver.findElement(By.xpath(
+                    "//form[@action='/admin/newsletter'][.//input[@name='email'][@value='" + email + "']]//button"));
+            clickAndWaitReload(btn, true);
+
+            assertFalse(exists("SELECT 1 FROM newsletter_emails WHERE email=?", email), "subscriber should be removed");
+        } finally {
+            update("DELETE FROM newsletter_emails WHERE email=?", email);
+        }
+    }
+
+    @Test
+    @DisplayName("Video form renames a video and links it to a song")
+    void editVideo() throws Exception {
+        String youtubeId = "it" + uniq();
+        String songName = "IT Song " + uniq();
+        update("INSERT INTO videos (youtube_id, title) VALUES (?, 'old title')", youtubeId);
+        try {
+            driver.get(BASE_URL + "/admin.jsp");
+            driver.findElement(By.cssSelector("form[action='/admin/video'] input[name=youtube_id]")).sendKeys(youtubeId);
+            driver.findElement(By.cssSelector("form[action='/admin/video'] input[name=title]")).sendKeys("New IT title");
+            driver.findElement(By.cssSelector("form[action='/admin/video'] input[name=song_name]")).sendKeys(songName);
+            driver.findElement(By.cssSelector("form[action='/admin/video'] input[name=year]")).sendKeys("2026");
+            clickAndWaitReload(driver.findElement(By.cssSelector("form[action='/admin/video'] button[type=submit]")), false);
+
+            assertEquals("New IT title", queryString("SELECT title FROM videos WHERE youtube_id=?", youtubeId));
+            assertEquals(songName, queryString(
+                    "SELECT s.name FROM videos v JOIN songs s ON s.id = v.song_id WHERE v.youtube_id=?", youtubeId));
+        } finally {
+            update("DELETE FROM videos WHERE youtube_id=?", youtubeId);
+            update("DELETE FROM songs WHERE name=?", songName);
+        }
+    }
+
+    private WebElement userRow(String username) {
+        return driver.findElement(By.xpath("//table[contains(@class,'admin-table')]//tr[td[normalize-space()='"
+                + username + "']]"));
+    }
+
+    private void setRole(String username, String role) {
+        driver.get(BASE_URL + "/admin_users.jsp");
+        WebElement row = userRow(username);
+        new Select(row.findElement(By.name("role"))).selectByVisibleText(role);
+        WebElement save = row.findElement(By.cssSelector("input[name=action][value=role]"))
+                .findElement(By.xpath("./ancestor::form//button"));
+        clickAndWaitReload(save, false);
+    }
+}
