@@ -53,26 +53,27 @@ public class AdminSongPreviewServlet extends HttpServlet {
         }
 
         String action = req.getParameter("action");
+        String redirect = safeRedirect(req.getParameter("redirect"), req.getContextPath() + "/admin/songs");
         try {
             if ("delete".equals(action)) {
                 deletePreview(songId);
-                resp.sendRedirect(req.getContextPath() + "/admin/songs?msg=preview_deleted");
+                resp.sendRedirect(withMsg(redirect, "preview_deleted"));
                 return;
             }
 
             Part part = req.getPart("preview");
             if (part == null || part.getSize() == 0) {
-                resp.sendRedirect(req.getContextPath() + "/admin/songs?msg=no_file");
+                resp.sendRedirect(withMsg(redirect, "no_file"));
                 return;
             }
             if (part.getSize() > 5 * 1024 * 1024) {
-                resp.sendRedirect(req.getContextPath() + "/admin/songs?msg=too_large");
+                resp.sendRedirect(withMsg(redirect, "too_large"));
                 return;
             }
 
             BufferedImage src = ImageIO.read(part.getInputStream());
             if (src == null) {
-                resp.sendRedirect(req.getContextPath() + "/admin/songs?msg=invalid_image");
+                resp.sendRedirect(withMsg(redirect, "invalid_image"));
                 return;
             }
 
@@ -91,10 +92,23 @@ public class AdminSongPreviewServlet extends HttpServlet {
             // Bust caches after replace
             relUrl = relUrl + "?v=" + outFile.lastModified();
             songs.updatePreviewImageUrl(songId, relUrl);
-            resp.sendRedirect(req.getContextPath() + "/admin/songs?msg=preview_saved");
+            resp.sendRedirect(withMsg(redirect, "preview_saved"));
         } catch (SQLException e) {
             throw new ServletException(e);
         }
+    }
+
+    /** Only allow same-origin relative redirects under /admin. */
+    private static String safeRedirect(String raw, String fallback) {
+        if (raw == null || raw.isBlank()) return fallback;
+        String r = raw.trim();
+        if (!r.startsWith("/") || r.startsWith("//") || r.contains("://")) return fallback;
+        if (!r.startsWith("/admin")) return fallback;
+        return r;
+    }
+
+    private static String withMsg(String redirect, String msg) {
+        return redirect + (redirect.contains("?") ? "&" : "?") + "msg=" + msg;
     }
 
     private void deletePreview(int songId) throws SQLException, IOException {

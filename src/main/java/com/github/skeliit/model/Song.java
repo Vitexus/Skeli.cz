@@ -7,6 +7,7 @@ public class Song {
     public Integer year;
     public Integer firstLyricId;
     public String appleMusicId;
+    public String spotifyId;
     public String previewImageUrl;
 
     // Getters for EL expressions
@@ -16,5 +17,6 @@ public class Song {
     public Integer getYear() { return year; }
     public Integer getFirstLyricId() { return firstLyricId; }
     public String getAppleMusicId() { return appleMusicId; }
+    public String getSpotifyId() { return spotifyId; }
     public String getPreviewImageUrl() { return previewImageUrl; }
 }
