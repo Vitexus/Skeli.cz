@@ -8,7 +8,7 @@
     <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;">
       <div>
         <div id="avatar-preview" style="width:120px; height:120px; border-radius:50%; overflow:hidden; border:1px solid var(--panel-border); background:rgba(0,0,0,0.2);">
-          <img id="avatar-preview-img" src="<%= (request.getSession().getAttribute("avatar_url")!=null)?request.getSession().getAttribute("avatar_url").toString():"/img/avatar-default.png" %>" alt="preview" style="width:100%;height:100%;object-fit:cover;object-position:center center;display:block;">
+          <img id="avatar-preview-img" src="<%= (request.getSession().getAttribute("avatar_url")!=null)?request.getSession().getAttribute("avatar_url").toString():"/img/avatar-default.svg" %>" alt="preview" style="width:100%;height:100%;object-fit:cover;object-position:center center;display:block;">
         </div>
       </div>
       <div style="flex:1; min-width:280px;">

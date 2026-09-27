@@ -13,7 +13,7 @@
       <% } %>
       <form method="post" action="login">
         <input type="hidden" name="csrf" value="<%= request.getAttribute("csrf") != null ? request.getAttribute("csrf") : "" %>">
-        <label><%= t.getProperty("auth.label.username","Uživatel") %><br>
+        <label><%= t.getProperty("auth.label.login") %><br>
           <input type="text" name="username" required value="<%= com.github.skeliit.WebUtils.escapeHtml(request.getAttribute("username")) %>" autocomplete="username"></label>
         <label><%= t.getProperty("auth.label.password","Heslo") %><br>
           <input type="password" name="password" required autocomplete="current-password"></label>

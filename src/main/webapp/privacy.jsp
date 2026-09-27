@@ -3,9 +3,11 @@
 
 <main>
   <h2><%= t.getProperty("privacy.heading") %></h2>
-  <p><%= t.getProperty("privacy.p1") %></p>
-  <p><%= t.getProperty("privacy.p2") %></p>
-  <p><%= t.getProperty("privacy.controller") %> <a href="mailto:privacy@skeli.cz">privacy@skeli.cz</a></p>
+  <div class="card prose-card">
+    <p><%= t.getProperty("privacy.p1") %></p>
+    <p><%= t.getProperty("privacy.p2") %></p>
+    <p><%= t.getProperty("privacy.controller") %> <a href="mailto:privacy@skeli.cz">privacy@skeli.cz</a></p>
+  </div>
 </main>
 
 <%@ include file="includes/footer.jsp" %>

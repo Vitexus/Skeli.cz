@@ -40,7 +40,7 @@
         String settingsErrorKey = null;
         if ("empty".equals(settingsError)) settingsErrorKey = "settings.error.empty";
         else if ("mismatch".equals(settingsError)) settingsErrorKey = "settings.error.mismatch";
-        else if ("short".equals(settingsError)) settingsErrorKey = "settings.error.short";
+        else if ("short".equals(settingsError)) settingsErrorKey = "auth.error.passwordStrength";
         else if ("wrong_old".equals(settingsError)) settingsErrorKey = "settings.error.wrongOld";
         else if (settingsError != null) settingsErrorKey = "settings.error.generic";
         if ("required".equals(request.getParameter("confirm"))) settingsErrorKey = "settings.deleteRequired";
@@ -54,7 +54,7 @@
         <div class="avatar-edit-wrap">
           <div>
             <div id="avatar-preview" class="avatar-preview-box">
-              <img id="avatar-preview-img" src="<%= (session.getAttribute("avatar_url")!=null)?session.getAttribute("avatar_url").toString():"/img/avatar-default.png" %>" alt="preview">
+              <img id="avatar-preview-img" src="<%= (session.getAttribute("avatar_url")!=null)?session.getAttribute("avatar_url").toString():"/img/avatar-default.svg" %>" alt="preview">
             </div>
           </div>
           <div class="avatar-controls">

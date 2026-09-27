@@ -17,14 +17,14 @@ import java.util.HexFormat;
 
 @WebServlet(name = "ResetPasswordServlet", urlPatterns = {"/reset"})
 public class ResetPasswordServlet extends HttpServlet {
-    static final int MIN_PASSWORD_LENGTH = 12;
+
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String token = req.getParameter("token");
         String password = req.getParameter("password");
         if (token == null || token.isBlank()) { resp.sendRedirect("forgot.jsp"); return; }
-        if (password == null || password.length() < MIN_PASSWORD_LENGTH) {
+        if (!WebUtils.isPasswordStrong(password)) {
             resp.sendRedirect("reset.jsp?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8));
             return;
         }

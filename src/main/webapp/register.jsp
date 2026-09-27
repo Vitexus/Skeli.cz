@@ -18,6 +18,8 @@
       <% } %>
       <form method="post" action="register">
         <input type="hidden" name="csrf" value="<%= request.getAttribute("csrf") != null ? request.getAttribute("csrf") : "" %>">
+        <%-- honeypot: invisible to people, bots fill it in and are ignored --%>
+        <div class="hp-field" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
         <label><%= t.getProperty("auth.label.username","Uživatel") %><br>
           <input type="text" name="username" required pattern="[A-Za-z0-9._-]{3,50}" maxlength="50" value="<%= com.github.skeliit.WebUtils.escapeHtml(request.getAttribute("username")) %>" autocomplete="username"></label>
         <label><%= t.getProperty("auth.label.email","E-mail") %><br>

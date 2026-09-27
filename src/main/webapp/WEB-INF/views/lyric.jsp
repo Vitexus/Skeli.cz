@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/includes/header.jsp" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="sk" tagdir="/WEB-INF/tags" %>
 <main class="lyric-page">
   <!-- Song switcher -->
   <nav class="lyric-switcher">
@@ -110,57 +111,61 @@
         
         <hr>
         
-        <!-- Comments -->
-        <h3 class="comments-title"><%= t.getProperty("comments.title") %></h3>
-        
-        <c:forEach items="${comments}" var="cmt">
-          <div class="comment-item">
-            <c:choose>
-              <c:when test="${not empty cmt.avatarUrl}">
-                <img src="<c:out value='${cmt.avatarUrl}'/>" alt="" class="comment-avatar"/>
-              </c:when>
-              <c:otherwise>
-                <span class="comment-avatar comment-avatar-empty"><i class="fa-solid fa-user"></i></span>
-              </c:otherwise>
-            </c:choose>
-            <div class="comment-content">
-              <div class="comment-meta">
-                <div>
-                  <strong class="comment-username"><c:out value="${cmt.username}"/></strong>
-                  <span class="comment-date">${cmt.createdAt}</span>
-                </div>
-                <c:if test="${not empty sessionScope.userId && (sessionScope.userId == cmt.userId || sessionScope.role == 'ADMIN')}">
-                  <form method="post" action="/comment" class="vote-form">
-                    <input type="hidden" name="comment_id" value="${cmt.id}">
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="lyric_id" value="${lyric.id}">
-                    <input type="hidden" name="csrf" value="${csrf}">
-                    <button type="submit" class="comment-delete"
-                            onclick="return confirm('<%= com.github.skeliit.WebUtils.escapeJs(t.getProperty("comment.deleteConfirm")) %>')"
-                            title="<%= t.getProperty("common.delete") %>" aria-label="<%= t.getProperty("common.delete") %>"><i class="fa-solid fa-trash-can"></i></button>
-                  </form>
-                </c:if>
-              </div>
-              <div class="comment-text"><c:out value="${cmt.content}"/></div>
-            </div>
-          </div>
-        </c:forEach>
-        
+        <!-- Comments: new-comment form first, then the threads (newest first, replies oldest first) -->
+<%
+  @SuppressWarnings("unchecked")
+  java.util.List<com.github.skeliit.model.CommentView> threads =
+      (java.util.List<com.github.skeliit.model.CommentView>) request.getAttribute("comments");
+  int commentTotal = 0;
+  if (threads != null) for (com.github.skeliit.model.CommentView c0 : threads) commentTotal += 1 + c0.replies.size();
+  boolean canPost = com.github.skeliit.EmailVerification.isVerified(session);
+  com.github.skeliit.model.LyricView lyricView = (com.github.skeliit.model.LyricView) request.getAttribute("lyric");
+%>
+        <h3 class="comments-title" id="comments"><%= t.getProperty("comments.title") %> <span class="comments-count"><%= commentTotal %></span></h3>
+
         <c:if test="${not empty sessionScope.username}">
+          <% if (canPost) { %>
           <form method="post" action="/comment" class="comment-form">
             <input type="hidden" name="lyric_id" value="${lyric.id}">
             <input type="hidden" name="csrf" value="${csrf}">
-            <textarea name="content" 
+            <div class="hp-field" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+            <textarea name="content" maxlength="<%= com.github.skeliit.WebUtils.COMMENT_MAX_LENGTH %>"
                       placeholder="<%= t.getProperty("comment.placeholder") %>"
-                      required ></textarea>
-            <button type="submit"><%= t.getProperty("comment.add") %></button>
+                      required></textarea>
+            <div class="comment-form-foot">
+              <span class="comment-hint"><%= t.getProperty("comment.maxLength") %></span>
+              <button type="submit"><%= t.getProperty("comment.add") %></button>
+            </div>
           </form>
+          <% } else { %>
+          <div class="verify-notice">
+            <p><i class="fa-solid fa-envelope-circle-check"></i> <%= t.getProperty("verify.notice") %></p>
+            <form method="post" action="/verify/resend">
+              <input type="hidden" name="csrf" value="${csrf}">
+              <input type="hidden" name="back" value="/lyrics/${lyric.id}#comments">
+              <button type="submit" class="btn"><%= t.getProperty("verify.resend") %></button>
+            </form>
+          </div>
+          <% } %>
         </c:if>
         <c:if test="${empty sessionScope.username}">
           <p class="comment-login">
             <a href="/login.jsp"><%= t.getProperty("comment.login.link") %></a><%= t.getProperty("comment.login.toComment") %>
           </p>
         </c:if>
+
+        <% if (threads != null) for (com.github.skeliit.model.CommentView thread : threads) { %>
+          <div class="comment-thread">
+            <sk:lyricComment cmt="<%= thread %>" lyricId="<%= lyricView.id %>" t="<%= t %>" lang="<%= cur %>" canPost="<%= canPost %>"/>
+            <% if (!thread.replies.isEmpty()) { %>
+            <div class="comment-replies">
+              <% for (com.github.skeliit.model.CommentView reply : thread.replies) { %>
+                <sk:lyricComment cmt="<%= reply %>" lyricId="<%= lyricView.id %>" t="<%= t %>" lang="<%= cur %>" canPost="<%= canPost %>" isReply="<%= true %>"/>
+              <% } %>
+            </div>
+            <% } %>
+          </div>
+        <% } %>
       </div>
       
     </div>
@@ -198,6 +203,42 @@
       centerActive();
       // measure again with the real font (Bruno Ace is wider than the fallback)
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(centerActive);
+    })();
+
+    // Edit a comment in place (the pencil swaps the text for a small form) and open reply forms
+    (function () {
+      document.querySelectorAll('.comment-item').forEach(function (item) {
+        const toggle = item.querySelector('.comment-edit-toggle');
+        const form = item.querySelector('.comment-edit-form');
+        const text = item.querySelector('.comment-text');
+        if (toggle && form && text) {
+          function setEditing(on) {
+            form.hidden = !on;
+            text.hidden = on;
+            toggle.classList.toggle('active', on);
+            if (on) { const ta = form.querySelector('textarea'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+          }
+          toggle.addEventListener('click', function () { setEditing(form.hidden); });
+          form.querySelector('.comment-edit-cancel').addEventListener('click', function () {
+            form.reset();
+            setEditing(false);
+          });
+        }
+        const replyBtn = item.querySelector('.comment-reply-toggle');
+        const replyForm = item.querySelector('.comment-reply-form');
+        if (replyBtn && replyForm) {
+          replyBtn.addEventListener('click', function () {
+            replyForm.hidden = !replyForm.hidden;
+            replyBtn.hidden = !replyForm.hidden;
+            if (!replyForm.hidden) replyForm.querySelector('textarea').focus();
+          });
+          replyForm.querySelector('.comment-reply-cancel').addEventListener('click', function () {
+            replyForm.reset();
+            replyForm.hidden = true;
+            replyBtn.hidden = false;
+          });
+        }
+      });
     })();
 
     (function () {

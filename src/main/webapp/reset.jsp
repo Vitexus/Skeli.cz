@@ -10,7 +10,7 @@
         <input type="hidden" name="token" value="<%= com.github.skeliit.WebUtils.escapeHtml(request.getParameter("token")) %>">
         <label><%= t.getProperty("reset.password") %><br>
           <input type="password" name="password" minlength="12" required autocomplete="new-password"></label>
-        <p class="form-note"><%= t.getProperty("reset.note") %></p>
+        <p class="form-note"><%= t.getProperty("auth.error.passwordStrength") %></p>
         <button type="submit"><%= t.getProperty("reset.submit") %></button>
       </form>
     </section>

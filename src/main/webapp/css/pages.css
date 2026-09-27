@@ -259,7 +259,7 @@ body.light .hero-actions .btn-ghost { background: rgba(255, 255, 255, 0.5); }
   gap: 10px;
   padding: 16px 18px;
 }
-.song-name { font-size: var(--fs-h4); line-height: 1.35; }
+.song-name { font-size: var(--fs-h4); line-height: 1.35; overflow-wrap: anywhere; min-width: 0; }
 .song-go {
   position: absolute;
   top: 12px;
@@ -454,8 +454,24 @@ body.light .lyric-page .lyric-nav a:hover { border-color: rgba(0, 0, 0, 0.22); b
 .lyric-page .comment-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .lyric-page .comment-username { color: var(--accent); font-size: var(--fs-card); font-weight: 400; }
 .lyric-page .comment-date { font-size: var(--fs-small); color: var(--text-dim); margin-left: 8px; }
-.lyric-page .comment-text { color: var(--text); font-size: var(--fs-card); overflow-wrap: anywhere; }
-.comment-delete {
+.lyric-page .comment-text { color: var(--text); font-size: var(--fs-card); overflow-wrap: anywhere; white-space: pre-line; }
+.comments-count {
+  display: inline-block;
+  min-width: 26px;
+  padding: 1px 8px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: var(--fs-small);
+  text-align: center;
+  vertical-align: middle;
+}
+.comment-edited { font-size: var(--fs-small); color: var(--text-dim); margin-left: 4px; }
+
+/* Edit / delete icons on your own comments (and on all comments for admins) */
+.comment-actions { display: flex; gap: 2px; flex-shrink: 0; }
+.comment-action {
   width: 32px;
   height: 32px;
   padding: 0;
@@ -465,11 +481,26 @@ body.light .lyric-page .lyric-nav a:hover { border-color: rgba(0, 0, 0, 0.22); b
   color: var(--text-dim);
   cursor: pointer;
 }
+.comment-edit-toggle:hover, .comment-edit-toggle.active { color: var(--accent); border-color: var(--accent); }
 .comment-delete:hover { color: #ff5a5a; border-color: rgba(255, 90, 90, 0.4); }
-.comment-form { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
-.comment-form textarea { min-height: 90px; resize: vertical; }
-.comment-form button { align-self: flex-end; }
-.comment-login { margin: 18px 0 0; text-align: center; color: var(--text-dim); }
+
+.comment-form { margin: 0 0 20px; display: flex; flex-direction: column; gap: 10px; }
+/* typing happens in the same font the comment is shown in (Oswald) */
+.comment-form textarea, .comment-edit-form textarea, .ep-comment-form textarea {
+  min-height: 90px;
+  resize: vertical;
+  font-family: var(--font-text);
+  font-weight: 300;
+  font-size: var(--fs-text);
+  letter-spacing: 0.02em;
+}
+.comment-form-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.comment-hint { font-size: var(--fs-small); color: var(--text-dim); }
+.comment-edit-form { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.comment-edit-form[hidden] { display: none; }
+.comment-edit-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.comment-edit-actions button { padding: 7px 16px; }
+.comment-login { margin: 0 0 20px; text-align: center; color: var(--text-dim); }
 .comment-login a { font-weight: 600; }
 
 body.light .lyric-page .comment-item,
@@ -543,11 +574,39 @@ body.light .lyric-page .action-btn { background: rgba(0, 0, 0, 0.02); }
 .section { padding: 22px; margin-bottom: 20px; }
 .section-title { margin: 0 0 16px; display: flex; align-items: center; justify-content: center; gap: 10px; }
 .section.youtube, .section.spotify { border-top: 2px solid var(--red); }
-.media-columns { display: block; }
-@media (min-width: 1100px) {
-  .media-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
-  .media-columns > .section:only-child { grid-column: 1 / -1; width: 100%; max-width: 1000px; margin-left: auto; margin-right: auto; }
+.music-page .section.youtube { max-width: 1000px; margin: 0 auto 56px; }
+.music-page .discography,
+.music-page .spotify-block { margin-bottom: 56px; }
+
+/* Discography cards reuse .song-card from the Texty page, plus a row of links */
+.disco-card a.song-thumb { display: block; }
+/* links sit at the bottom so they line up across a row of cards */
+.disco-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 18px 16px;
+  margin-top: auto;
 }
+.disco-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: var(--fs-small);
+  transition: color .2s, border-color .2s;
+}
+.disco-links a:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
+.disco-links .fa-youtube { color: var(--youtube); }
+.disco-links .fa-spotify { color: var(--spotify); }
+
+.spotify-embed { padding: 8px; }
+.spotify-embed iframe { display: block; width: 100%; height: 352px; border: 0; border-radius: 12px; background: #121212; }
+.spotify-block .section-head a { display: inline-flex; align-items: center; gap: 6px; }
+.spotify-block .section-head .fa-arrow-up-right-from-square { font-size: 0.8em; opacity: 0.7; }
 
 /* Elliptic YouTube carousel (markup from EllipticPlayerServlet) */
 .player-shell{border:1px solid var(--panel-border); border-radius:14px; padding:10px; margin: 8px 0; background: radial-gradient(120% 120% at 50% 0%, rgba(204,43,43,0.15), rgba(0,0,0,0.20));}
@@ -776,10 +835,97 @@ body.light .form-success { color: #16803f; }
 .home-social-caption,
 .donate-section li,
 .donate-section p,
-.lyric-page .comment-text {
+.lyric-page .comment-text,
+.ep-comment-text {
   font-family: var(--font-text);
   font-weight: 300;
   font-size: var(--fs-text);
   line-height: 1.6;
   letter-spacing: 0.02em;
 }
+
+/* ---------- Error page (404 / 500) ---------- */
+.error-page { text-align: center; padding-top: 64px; min-height: 60vh; }
+.error-code {
+  font-family: var(--font-display);
+  font-size: clamp(5rem, 18vw, 9rem);
+  line-height: 1;
+  color: var(--accent);
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+body.light .error-code { text-shadow: none; }
+.error-page h2 { margin-top: 14px; }
+.error-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.error-detail { max-width: 900px; margin: 32px auto 0; padding: 16px; text-align: left; }
+.error-detail summary { cursor: pointer; color: var(--accent); }
+.error-detail pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--fs-small); }
+
+/* Music carousel frame: the dark tint looked muddy grey on the light theme */
+body.light .ep-carousel { background: rgba(255, 255, 255, 0.55); }
+
+/* Plain text pages (privacy, terms): readable card instead of text on the photo */
+.prose-card { max-width: 820px; margin: 0 auto; padding: 32px 36px; }
+.prose-card p:last-child { margin-bottom: 0; }
+.prose-card ul { margin: 0; padding-left: 1.2em; }
+.prose-card li + li { margin-top: 10px; }
+@media (max-width: 600px) { .prose-card { padding: 22px; } }
+
+/* Music: video comments (rendered by the script in EllipticPlayerServlet) */
+.ep-comment-head { display: flex; align-items: center; gap: 10px; }
+.ep-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.ep-avatar-empty { display: inline-flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent); font-size: 0.8rem; }
+.ep-comment-who { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.ep-comment-who strong { color: var(--accent); font-weight: 400; font-size: var(--fs-card); }
+.ep-comment-date { font-size: var(--fs-small); color: var(--text-dim); }
+.ep-comment-text { margin: 8px 0; white-space: pre-line; overflow-wrap: anywhere; }
+/* the older ".ep-comments button" rule would paint these grey */
+.ep-comments .comment-action,
+body.light .ep-comments .comment-action { background: transparent; border-color: transparent; }
+.ep-comments .comment-edit-toggle:hover { color: var(--accent); border-color: var(--accent); }
+.ep-comments .comment-delete:hover { color: #ff5a5a; border-color: rgba(255, 90, 90, 0.4); }
+.ep-comments .comment-edit-actions button[type=submit],
+body.light .ep-comments .comment-edit-actions button[type=submit] { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+
+/* ---------- Comment threads: replies, report, verification notice ---------- */
+.comment-thread + .comment-thread { margin-top: 2px; }
+.comment-replies { margin: -4px 0 10px 52px; padding-left: 14px; border-left: 2px solid var(--panel-border); }
+.lyric-page .comment-item.comment-reply { padding: 10px 12px; }
+.lyric-page .comment-reply .comment-avatar { width: 32px; height: 32px; }
+.comment-reply-toggle,
+body.light .comment-reply-toggle {
+  margin-top: 6px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: var(--fs-small);
+  cursor: pointer;
+}
+.comment-reply-toggle:hover { color: var(--accent); border-color: transparent; }
+.comment-reply-form { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.comment-reply-form[hidden] { display: none; }
+.comment-reply-form textarea { min-height: 70px; resize: vertical; font-family: var(--font-text); font-weight: 300; font-size: var(--fs-text); }
+.comment-report:hover { color: #ffb84d; border-color: rgba(255, 170, 40, 0.45); }
+
+.verify-notice {
+  margin: 0 0 20px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 170, 40, 0.45);
+  background: rgba(255, 170, 40, 0.1);
+}
+.verify-notice p { margin: 0 0 12px; font-size: var(--fs-card); }
+.verify-notice i { color: #ffb84d; }
+body.light .verify-notice i { color: #8a4b00; }
+
+@media (max-width: 600px) {
+  .comment-replies { margin-left: 16px; padding-left: 10px; }
+}
+
+/* Music page: replies to video comments */
+.ep-replies { margin: 6px 0 0 18px; padding-left: 10px; border-left: 2px solid var(--panel-border); display: flex; flex-direction: column; gap: 8px; }
+.ep-comments .act .comment-reply-toggle,
+body.light .ep-comments .act .comment-reply-toggle { background: transparent; border: 0; padding: 2px 0; margin: 0 0 0 auto; }
+.ep-comments .comment-report:hover { color: #ffb84d; border-color: rgba(255, 170, 40, 0.45); }
+.ep-comments .comment-reply-form button[type=submit],
+body.light .ep-comments .comment-reply-form button[type=submit] { background: var(--accent); color: var(--accent-ink); border-color: transparent; }

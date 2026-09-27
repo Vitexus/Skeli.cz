@@ -5,7 +5,7 @@
   if (ctx == null) {
     ctx = "";
   }
-  String assetVersion = "2.0.9";
+  String assetVersion = "2.2.1";
 %>
 <%@ include file="/WEB-INF/i18n/i18n.jspf" %>
   <html lang="<%= cur %>">
@@ -13,16 +13,67 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, viewport-fit=cover">
-    <title><%= t.getProperty("meta.title") %></title>
-    <meta name="description" content="<%= t.getProperty("meta.description") %>" />
-    <meta name="keywords" content="<%= t.getProperty("meta.keywords") %>" />
+<%
+  // Per-page <title>/description. A servlet may set "pageTitle"/"pageDescription"
+  // (the lyric page does); otherwise the title comes from the page's menu/heading key.
+  String headTitle = (String) request.getAttribute("pageTitle");
+  if (headTitle == null) {
+    java.util.Map<String, String> titleKeys = java.util.Map.ofEntries(
+        java.util.Map.entry("/texty.jsp", "menu.lyrics"),
+        java.util.Map.entry("/music.jsp", "menu.music"),
+        java.util.Map.entry("/about.jsp", "about.title"),
+        java.util.Map.entry("/aktuality.jsp", "menu.news"),
+        java.util.Map.entry("/donate.jsp", "donate.title"),
+        java.util.Map.entry("/login.jsp", "auth.login.heading"),
+        java.util.Map.entry("/register.jsp", "auth.register.heading"),
+        java.util.Map.entry("/forgot.jsp", "forgot.heading"),
+        java.util.Map.entry("/reset.jsp", "reset.heading"),
+        java.util.Map.entry("/uzivatel.jsp", "settings.heading"),
+        java.util.Map.entry("/profile.jsp", "menu.profile"),
+        java.util.Map.entry("/privacy.jsp", "privacy.heading"),
+        java.util.Map.entry("/terms.jsp", "terms.heading"),
+        java.util.Map.entry("/gdpr.jsp", "gdpr.title"),
+        java.util.Map.entry("/error.jsp", "error.heading"));
+    String titleKey = titleKeys.get(request.getServletPath());
+    if (titleKey != null) headTitle = t.getProperty(titleKey);
+  }
+  String headFullTitle = headTitle == null ? t.getProperty("meta.title") : headTitle + " | Skeli";
+  String headDesc = (String) request.getAttribute("pageDescription");
+  if (headDesc == null) headDesc = t.getProperty("meta.description");
+  // Absolute URLs for search engines and link previews (never taken from the Host header)
+  String siteBase = com.github.skeliit.WebUtils.baseUrl();
+  Object fwdUri = request.getAttribute("jakarta.servlet.forward.request_uri");
+  String headUrl = siteBase + (fwdUri != null ? fwdUri : request.getRequestURI());
+  // error pages (404/500) must not end up in search results
+  boolean headIsError = request.getAttribute("jakarta.servlet.error.status_code") != null;
+  // link preview image/type: a page may set its own (a lyric page uses its video thumbnail)
+  String headImage = (String) request.getAttribute("pageImage");
+  String headType = request.getAttribute("pageType") != null ? (String) request.getAttribute("pageType") : "website";
+%>
+    <title><%= com.github.skeliit.WebUtils.escapeHtml(headFullTitle) %></title>
+    <meta name="description" content="<%= com.github.skeliit.WebUtils.escapeHtml(headDesc) %>" />
     <meta name="author" content="Skeli" />
-    <meta property="og:title" content="<%= t.getProperty("meta.title") %>" />
-    <meta property="og:description" content="<%= t.getProperty("meta.og.description") %>" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="/" />
-    <link rel="shortcut icon" href="<%= ctx %>/favicon.ico" type="image/x-icon" />
-    <link rel="icon" href="<%= ctx %>/favicon.ico" type="image/x-icon" />
+    <% if (headIsError) { %><meta name="robots" content="noindex" /><% } else { %><link rel="canonical" href="<%= com.github.skeliit.WebUtils.escapeHtml(headUrl) %>" /><% } %>
+    <meta property="og:site_name" content="Skeli" />
+    <meta property="og:title" content="<%= com.github.skeliit.WebUtils.escapeHtml(headFullTitle) %>" />
+    <meta property="og:description" content="<%= com.github.skeliit.WebUtils.escapeHtml(headDesc) %>" />
+    <meta property="og:type" content="<%= com.github.skeliit.WebUtils.escapeHtml(headType) %>" />
+    <meta property="og:url" content="<%= com.github.skeliit.WebUtils.escapeHtml(headUrl) %>" />
+    <% if (headImage != null) { %>
+    <meta property="og:image" content="<%= com.github.skeliit.WebUtils.escapeHtml(headImage) %>" />
+    <meta property="og:image:width" content="480" />
+    <meta property="og:image:height" content="360" />
+    <% } else { %>
+    <meta property="og:image" content="<%= siteBase %>/img/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <% } %>
+    <meta property="og:image:alt" content="<%= com.github.skeliit.WebUtils.escapeHtml(headFullTitle) %>" />
+    <meta property="og:locale" content="<%= t.getProperty("meta.locale", "cs-CZ").replace('-', '_') %>" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="<%= ctx %>/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="<%= ctx %>/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="<%= ctx %>/apple-touch-icon.png" />
     <meta name="theme-color" content="#09090b" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -85,7 +136,12 @@
               <% } else { %>
                 <div class="user-menu">
                   <button type="button" class="user-btn">
+                    <% String headerAvatar = com.github.skeliit.WebUtils.safeUrl((String) session.getAttribute("avatar_url"), null); %>
+                    <% if (headerAvatar != null) { %>
+                    <img class="user-avatar" src="<%= com.github.skeliit.WebUtils.escapeHtml(headerAvatar) %>" alt="">
+                    <% } else { %>
                     <span class="user-avatar"><%= com.github.skeliit.WebUtils.escapeHtml(currentUser.substring(0, 1).toUpperCase()) %></span>
+                    <% } %>
                     <span class="user-name"><%= com.github.skeliit.WebUtils.escapeHtml(currentUser) %></span>
                     <% if ("ADMIN".equals(currentRole)) { %><span class="user-star">★</span><% } %>
                     <i class="fa-solid fa-chevron-down"></i>
@@ -102,6 +158,26 @@
             </div>
           </div>
         </header>
+<%
+  // One-line messages after a redirect, chosen by fixed query parameters (never echoed back)
+  String flashKey = null; boolean flashOk = true;
+  String pVerified = request.getParameter("verified"), pVerify = request.getParameter("verify");
+  if ("1".equals(pVerified)) flashKey = "flash.verified";
+  else if ("invalid".equals(pVerified)) { flashKey = "flash.verifyInvalid"; flashOk = false; }
+  else if ("sent".equals(pVerify)) flashKey = "flash.verifySent";
+  else if ("resent".equals(pVerify)) flashKey = "flash.verifyResent";
+  else if ("limit".equals(pVerify)) { flashKey = "flash.verifyLimit"; flashOk = false; }
+  else if ("required".equals(pVerify)) { flashKey = "flash.verifyRequired"; flashOk = false; }
+  else if ("1".equals(request.getParameter("reported"))) flashKey = "flash.reported";
+  else if ("0".equals(request.getParameter("reported"))) { flashKey = "flash.reportFailed"; flashOk = false; }
+  else if ("limit".equals(request.getParameter("comment"))) { flashKey = "flash.commentLimit"; flashOk = false; }
+  if (flashKey != null) {
+%>
+        <div class="flash <%= flashOk ? "flash-ok" : "flash-warn" %>" role="status">
+          <i class="fa-solid <%= flashOk ? "fa-circle-check" : "fa-circle-exclamation" %>"></i>
+          <span><%= t.getProperty(flashKey) %></span>
+        </div>
+<% } %>
         <script>
           (function () {
             const fwKey = 'fontWeight';

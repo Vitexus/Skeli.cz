@@ -53,7 +53,7 @@
       <div class="videos">
         <%
           // Title falls back to the linked song name; videos without either show just "YouTube"
-          String sql = "SELECT v.youtube_id, COALESCE(v.title, s.name) AS title, v.published_at FROM videos v LEFT JOIN songs s ON s.id = v.song_id ORDER BY v.published_at DESC, v.id DESC LIMIT 4";
+          String sql = "SELECT v.youtube_id, v.title, v.published_at, s.name FROM videos v LEFT JOIN songs s ON s.id = v.song_id ORDER BY v.published_at DESC, v.id DESC LIMIT 4";
           java.time.format.DateTimeFormatter dateFmt = java.time.format.DateTimeFormatter
               .ofLocalizedDate(java.time.format.FormatStyle.MEDIUM).withLocale(java.util.Locale.forLanguageTag(cur));
           try (Connection conn = Db.get()){
@@ -61,7 +61,8 @@
               try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()){
                 while (rs.next()){
                   String vid = com.github.skeliit.WebUtils.escapeHtml(rs.getString(1));
-                  String rawTitle = rs.getString(2);
+                  String rawTitle = com.github.skeliit.VideoTitles.display(rs.getString(2));
+                  if (rawTitle == null) rawTitle = rs.getString(4);
                   String title = rawTitle == null ? "" : com.github.skeliit.WebUtils.escapeHtml(rawTitle);
                   java.sql.Timestamp ts = rs.getTimestamp(3);
                   String dateStr = ts == null ? "" : dateFmt.format(ts.toLocalDateTime().toLocalDate());

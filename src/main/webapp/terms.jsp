@@ -3,11 +3,13 @@
 
 <main>
   <h2><%= t.getProperty("terms.heading") %></h2>
-  <ul>
-    <li><%= t.getProperty("terms.r1") %></li>
-    <li><%= t.getProperty("terms.r2") %></li>
-    <li><%= t.getProperty("terms.r3") %></li>
-  </ul>
+  <div class="card prose-card">
+    <ul>
+      <li><%= t.getProperty("terms.r1") %></li>
+      <li><%= t.getProperty("terms.r2") %></li>
+      <li><%= t.getProperty("terms.r3") %></li>
+    </ul>
+  </div>
 </main>
 
 <%@ include file="includes/footer.jsp" %>

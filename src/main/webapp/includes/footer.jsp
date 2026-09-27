@@ -53,6 +53,34 @@
     document.getElementById('cookieReject').onclick=function(){ localStorage.setItem(k,'false'); document.getElementById('cookieBar').style.display='none'; if(window._paq) window._paq.push(['forgetConsentGiven']); };
   })();
 </script>
+<script>
+  // Eye button in every password field to show / hide what was typed
+  (function(){
+    const show = '<%= com.github.skeliit.WebUtils.escapeJs(t.getProperty("auth.password.show")) %>';
+    const hide = '<%= com.github.skeliit.WebUtils.escapeJs(t.getProperty("auth.password.hide")) %>';
+    document.querySelectorAll('input[type=password]').forEach(function(input){
+      const wrap = document.createElement('span');
+      wrap.className = 'pw-wrap';
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'pw-toggle';
+      btn.setAttribute('aria-label', show);
+      btn.title = show;
+      btn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+      btn.addEventListener('click', function(){
+        const visible = input.type === 'text';
+        input.type = visible ? 'password' : 'text';
+        btn.innerHTML = visible ? '<i class="fa-solid fa-eye"></i>' : '<i class="fa-solid fa-eye-slash"></i>';
+        btn.setAttribute('aria-label', visible ? show : hide);
+        btn.title = visible ? show : hide;
+        input.focus();
+      });
+      wrap.appendChild(btn);
+    });
+  })();
+</script>
 <!-- Matomo -->
 <script>
   var _paq = window._paq = window._paq || [];

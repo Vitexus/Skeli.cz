@@ -189,6 +189,7 @@ body.light .user-dropdown a:hover { background: rgba(0, 0, 0, 0.05); }
   font-size: 0.8rem;
   font-weight: 700;
 }
+img.user-avatar { object-fit: cover; background: var(--panel-strong); }
 .user-star { color: var(--accent); }
 
 .menu-toggle { display: none; }
@@ -264,6 +265,8 @@ body.light .user-dropdown a:hover { background: rgba(0, 0, 0, 0.05); }
   color: var(--accent-ink);
 }
 :where(button[type=submit], .btn-primary):hover { filter: brightness(1.08); transform: translateY(-1px); }
+/* a link styled as a primary button would otherwise get the gold link color on a gold background */
+a.btn-primary, a.btn-primary:hover { color: var(--accent-ink); }
 :where(button):disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 .btn-lg { padding: 14px 26px; font-size: var(--fs-body); }
@@ -474,3 +477,49 @@ body.light .site-footer { background: linear-gradient(to bottom, rgba(255, 255, 
 @media (max-width: 600px) {
   .cookie-bar { left: 12px; right: 12px; bottom: 12px; }
 }
+
+/* ---------- Honeypot field: off-screen, only bots fill it in ---------- */
+.hp-field { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+/* ---------- Show / hide password ---------- */
+.pw-wrap { position: relative; display: block; }
+.pw-wrap input { padding-right: 46px; }
+.pw-toggle,
+body.light .pw-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.pw-toggle:hover { color: var(--accent); transform: translateY(-50%); }
+/* inputs in auth cards have a top margin; keep the eye centred on the field */
+.auth-card .pw-wrap, .settings-form .pw-wrap { margin-top: 6px; }
+.auth-card .pw-wrap input, .settings-form .pw-wrap input { margin-top: 0; }
+
+/* ---------- Flash message after a redirect ---------- */
+.flash {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  max-width: min(760px, calc(100% - 32px));
+  margin: 18px auto 0;
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: 1px solid;
+  font-size: var(--fs-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.flash-ok { background: rgba(40, 200, 110, 0.12); border-color: rgba(40, 200, 110, 0.4); color: #4fdc8c; }
+.flash-warn { background: rgba(255, 170, 40, 0.12); border-color: rgba(255, 170, 40, 0.45); color: #ffb84d; }
+body.light .flash-ok { background: rgba(40, 200, 110, 0.14); color: #136b36; }
+body.light .flash-warn { background: rgba(255, 170, 40, 0.16); color: #8a4b00; }
