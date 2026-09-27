@@ -47,10 +47,14 @@ public class LyricRouterServlet extends HttpServlet {
             // <title> and meta description for search results and link previews
             req.setAttribute("pageTitle", v.songName);
             req.setAttribute("pageDescription", firstLines(v.words, 160));
-            // link previews: the song's own video thumbnail, typed as a song
+            // link previews: custom song image, else YouTube thumbnail
             req.setAttribute("pageType", "music.song");
-            if (v.youtubeId != null && v.youtubeId.matches("[A-Za-z0-9_-]{6,20}")) {
-                req.setAttribute("pageImage", "https://i.ytimg.com/vi/" + v.youtubeId + "/hqdefault.jpg");
+            String pageImage = absoluteImage(v.previewImageUrl);
+            if (pageImage == null && v.youtubeId != null && v.youtubeId.matches("[A-Za-z0-9_-]{6,20}")) {
+                pageImage = "https://i.ytimg.com/vi/" + v.youtubeId + "/hqdefault.jpg";
+            }
+            if (pageImage != null) {
+                req.setAttribute("pageImage", pageImage);
             }
             req.setAttribute("comments", svc.comments(id));
             req.getRequestDispatcher("/WEB-INF/views/lyric.jsp").forward(req, resp);
@@ -64,5 +68,13 @@ public class LyricRouterServlet extends HttpServlet {
         if (s.length() <= max) return s;
         int cut = s.lastIndexOf(' ', max);
         return s.substring(0, cut > 0 ? cut : max).replaceAll("[ /,]+$", "") + "…";
+    }
+
+    /** Makes a site-relative upload path absolute for Open Graph; leaves http(s) URLs alone. */
+    static String absoluteImage(String url) {
+        if (url == null || url.isBlank()) return null;
+        if (url.startsWith("http://") || url.startsWith("https://")) return url;
+        if (url.startsWith("/")) return WebUtils.baseUrl() + url;
+        return WebUtils.baseUrl() + "/" + url;
     }
 }

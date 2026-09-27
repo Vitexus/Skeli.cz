@@ -31,13 +31,35 @@
       <aside class="lyric-side">
         <c:if test="${not empty lyric.youtubeId}">
           <div class="content-box video-box">
-            <div class="video-wrapper">
-              <iframe src="https://www.youtube.com/embed/<c:out value='${lyric.youtubeId}'/>"
-                      frameborder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowfullscreen></iframe>
+            <div class="video-wrapper" id="ytFacade" data-yt="<c:out value='${lyric.youtubeId}'/>">
+              <button type="button" class="yt-facade" aria-label="<%= t.getProperty("lyric.openYoutube","Přehrát video") %>">
+                <c:choose>
+                  <c:when test="${not empty lyric.previewImageUrl}">
+                    <img class="yt-facade-img" src="<c:out value='${lyric.previewImageUrl}'/>" alt="">
+                  </c:when>
+                  <c:otherwise>
+                    <img class="yt-facade-img" src="https://i.ytimg.com/vi/<c:out value='${lyric.youtubeId}'/>/hqdefault.jpg" alt="">
+                  </c:otherwise>
+                </c:choose>
+                <span class="yt-facade-play" aria-hidden="true"><i class="fab fa-youtube"></i></span>
+              </button>
             </div>
           </div>
+          <script>
+          (function(){
+            var box = document.getElementById('ytFacade');
+            if (!box) return;
+            box.querySelector('.yt-facade').addEventListener('click', function(){
+              var iframe = document.createElement('iframe');
+              iframe.src = 'https://www.youtube.com/embed/' + box.getAttribute('data-yt') + '?autoplay=1&rel=0';
+              iframe.setAttribute('frameborder', '0');
+              iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+              iframe.setAttribute('allowfullscreen', '');
+              box.innerHTML = '';
+              box.appendChild(iframe);
+            });
+          })();
+          </script>
         </c:if>
 
         <div class="content-box lyric-links">

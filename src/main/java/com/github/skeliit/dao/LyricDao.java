@@ -14,7 +14,7 @@ public class LyricDao {
         if (lang == null || lang.isEmpty()) lang = "cs";
         
         // First try to find lyric in requested language
-        String sql = "SELECT s.name AS song_name, s.year AS song_year, s.apple_music_id, l.words, l.song_id, l.id, l.lang, " +
+        String sql = "SELECT s.name AS song_name, s.year AS song_year, s.apple_music_id, s.preview_image_url, l.words, l.song_id, l.id, l.lang, " +
                 "(SELECT v.youtube_id FROM videos v WHERE v.song_id = l.song_id ORDER BY v.published_at DESC, v.id DESC LIMIT 1) AS yt " +
                 "FROM lyrics l JOIN songs s ON s.id = l.song_id WHERE l.id = ? AND l.lang = ?";
         
@@ -26,7 +26,7 @@ public class LyricDao {
                 if (!rs.next()) {
                     // Fallback to Czech version if translation not found
                     try (PreparedStatement ps2 = c.prepareStatement(
-                            "SELECT s.name AS song_name, s.year AS song_year, s.apple_music_id, l.words, l.song_id, l.id, l.lang, " +
+                            "SELECT s.name AS song_name, s.year AS song_year, s.apple_music_id, s.preview_image_url, l.words, l.song_id, l.id, l.lang, " +
                             "(SELECT v.youtube_id FROM videos v WHERE v.song_id = l.song_id ORDER BY v.published_at DESC, v.id DESC LIMIT 1) AS yt " +
                             "FROM lyrics l JOIN songs s ON s.id = l.song_id WHERE l.id = ? AND l.lang = 'cs'")) {
                         ps2.setInt(1, lyricId);
@@ -52,6 +52,7 @@ public class LyricDao {
         v.words = rs.getString("words");
         v.youtubeId = rs.getString("yt");
         v.appleMusicId = rs.getString("apple_music_id");
+        v.previewImageUrl = rs.getString("preview_image_url");
         
         // YouTube fallback logic
         if (v.youtubeId == null || v.youtubeId.isBlank()) {

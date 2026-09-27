@@ -11,6 +11,7 @@ public class LyricView {
     public int votesUp;
     public int votesDown;
     public String appleMusicId;
+    public String previewImageUrl;
 
     // Getters for EL expressions
     public int getId() { return id; }
@@ -23,4 +24,5 @@ public class LyricView {
     public int getVotesUp() { return votesUp; }
     public int getVotesDown() { return votesDown; }
     public String getAppleMusicId() { return appleMusicId; }
+    public String getPreviewImageUrl() { return previewImageUrl; }
 }

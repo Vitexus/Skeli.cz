@@ -18,6 +18,7 @@ public class EllipticPlayerServlet extends HttpServlet {
                 String id;
                 String title;
                 String year;
+                String preview; // song preview image, optional
         }
 
         @Override
@@ -25,7 +26,7 @@ public class EllipticPlayerServlet extends HttpServlet {
                 resp.setContentType("text/html; charset=UTF-8");
                 List<Vid> vids = new ArrayList<>();
                 // Titles missing in the DB are filled from YouTube in the background (VideoTitles)
-                String sql = "SELECT v.youtube_id, v.title, s.name, s.year " +
+                String sql = "SELECT v.youtube_id, v.title, s.name, s.year, s.preview_image_url " +
                                 "FROM videos v LEFT JOIN songs s ON s.id=v.song_id " +
                                 "ORDER BY s.year DESC, v.id DESC";
                 try (Connection c = Db.get();
@@ -37,6 +38,7 @@ public class EllipticPlayerServlet extends HttpServlet {
                                 String title = VideoTitles.display(rs.getString(2));
                                 v.title = title != null ? title : (rs.getString(3) != null ? rs.getString(3) : "YouTube");
                                 v.year = rs.getString(4);
+                                v.preview = rs.getString(5);
                                 vids.add(v);
                         }
                 } catch (SQLException e) {
@@ -53,6 +55,7 @@ public class EllipticPlayerServlet extends HttpServlet {
                 out.println("  <div class='ep-layout'>");
                 out.println("    <div class='ep-left'>");
                 out.println("      <div class='ep-frame-wrap'>");
+                out.println("        <div id='ep-poster' class='ep-poster' hidden></div>");
                 out.println(
                                 "        <iframe id='ep-main' allow='autoplay; encrypted-media; picture-in-picture' allowfullscreen></iframe>");
                 out.println("      </div>");
@@ -83,9 +86,12 @@ public class EllipticPlayerServlet extends HttpServlet {
                 for (Vid v : vids) {
                         String escTitle = v.title == null ? ""
                                         : v.title.replace("\\", "\\\\").replace("\"", "\\\"").replace("'", "\\'");
-                        out.printf("videos.push({id:'%s', title:'%s'});%n", v.id, escTitle);
+                        String prev = v.preview == null ? ""
+                                        : v.preview.replace("\\", "\\\\").replace("\"", "\\\"").replace("'", "\\'");
+                        out.printf("videos.push({id:'%s', title:'%s', preview:'%s'});%n", v.id, escTitle, prev);
                 }
                 out.println("const frame = document.getElementById('ep-main');");
+                out.println("const poster = document.getElementById('ep-poster');");
                 out.println("const viewport = document.getElementById('ep-viewport');");
                 out.println("const commentsList = document.getElementById('ep-comments-list');");
                 out.println("const commentForm = document.getElementById('ep-comment-form');");
@@ -105,8 +111,9 @@ public class EllipticPlayerServlet extends HttpServlet {
                 out.println("    const item = document.createElement('div');");
                 out.println("    item.className = 'ep-item';");
                 out.println("    item.dataset.index = index;");
+                out.println("    const thumb = video.preview || `https://img.youtube.com/vi/${video.id}/hqdefault.jpg`;");
                 out.println("    item.innerHTML = `");
-                out.println("      <img src='https://img.youtube.com/vi/${video.id}/hqdefault.jpg' alt='${esc(video.title)}'>");
+                out.println("      <img src='${thumb}' alt='${esc(video.title)}'>");
                 out.println("      <div class='ep-title'>${esc(video.title)}</div>");
                 out.println("    `;");
                 out.println("    item.addEventListener('click', () => goTo(index, true));");
@@ -130,7 +137,16 @@ public class EllipticPlayerServlet extends HttpServlet {
                 out.println("}");
 
                 out.println("function play(id, autoplay){");
+                out.println("  const video = videos.find(v => v.id === id) || videos[currentIndex];");
                 out.println("  const ap = autoplay ? 1 : 0;");
+                out.println("  if (!autoplay && video && video.preview && poster) {");
+                out.println("    poster.style.backgroundImage = `url('${video.preview}')`;");
+                out.println("    poster.hidden = false;");
+                out.println("    poster.onclick = () => play(id, true);");
+                out.println("    frame.removeAttribute('src');");
+                out.println("    return;");
+                out.println("  }");
+                out.println("  if (poster) { poster.hidden = true; poster.onclick = null; }");
                 out.println(
                                 "  frame.src = `https://www.youtube.com/embed/${id}?autoplay=${ap}&rel=0&playsinline=1&enablejsapi=1`;");
                 out.println("}");

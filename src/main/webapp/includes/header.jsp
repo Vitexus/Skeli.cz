@@ -5,7 +5,7 @@
   if (ctx == null) {
     ctx = "";
   }
-  String assetVersion = "2.2.4";
+  String assetVersion = "2.2.5";
 %>
 <%@ include file="/WEB-INF/i18n/i18n.jspf" %>
   <html lang="<%= cur %>">
@@ -61,8 +61,8 @@
     <meta property="og:url" content="<%= com.github.skeliit.WebUtils.escapeHtml(headUrl) %>" />
     <% if (headImage != null) { %>
     <meta property="og:image" content="<%= com.github.skeliit.WebUtils.escapeHtml(headImage) %>" />
-    <meta property="og:image:width" content="480" />
-    <meta property="og:image:height" content="360" />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="720" />
     <% } else { %>
     <meta property="og:image" content="<%= siteBase %>/img/og-image.jpg" />
     <meta property="og:image:width" content="1200" />

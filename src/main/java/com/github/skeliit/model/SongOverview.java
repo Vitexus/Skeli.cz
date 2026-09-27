@@ -8,6 +8,7 @@ public class SongOverview {
     public boolean hasVideo;
     public boolean hasLyrics;
     public String[] languages;
+    public String previewImageUrl;
 
     // Getters for EL expressions
     public int getId() { return id; }
@@ -17,4 +18,5 @@ public class SongOverview {
     public boolean isHasVideo() { return hasVideo; }
     public boolean isHasLyrics() { return hasLyrics; }
     public String[] getLanguages() { return languages; }
+    public String getPreviewImageUrl() { return previewImageUrl; }
 }

@@ -33,13 +33,13 @@ public class AdminSongsServlet extends HttpServlet {
 
     private List<SongOverview> fetchSongsOverview(Connection conn) throws SQLException {
         List<SongOverview> songs = new ArrayList<>();
-        String sql = "SELECT s.id, s.uuid, s.name, s.year, " +
+        String sql = "SELECT s.id, s.uuid, s.name, s.year, s.preview_image_url, " +
                 "EXISTS(SELECT 1 FROM videos v WHERE v.song_id = s.id) AS has_video, " +
                 "EXISTS(SELECT 1 FROM lyrics l WHERE l.song_id = s.id AND l.lang = 'cs') AS has_lyrics, " +
                 "GROUP_CONCAT(DISTINCT l.lang ORDER BY l.lang SEPARATOR ',') AS languages " +
                 "FROM songs s " +
                 "LEFT JOIN lyrics l ON l.song_id = s.id " +
-                "GROUP BY s.id, s.uuid, s.name, s.year " +
+                "GROUP BY s.id, s.uuid, s.name, s.year, s.preview_image_url " +
                 "ORDER BY s.year DESC, s.name ASC";
 
         try (PreparedStatement ps = conn.prepareStatement(sql);
@@ -50,6 +50,7 @@ public class AdminSongsServlet extends HttpServlet {
                 song.uuid = rs.getString("uuid");
                 song.name = rs.getString("name");
                 song.year = rs.getObject("year") != null ? rs.getInt("year") : null;
+                song.previewImageUrl = rs.getString("preview_image_url");
                 song.hasVideo = rs.getBoolean("has_video");
                 song.hasLyrics = rs.getBoolean("has_lyrics");
                 String langs = rs.getString("languages");

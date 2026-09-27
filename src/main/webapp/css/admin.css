@@ -62,6 +62,46 @@ body.light .lang-flag { background: rgba(0,0,0,0.06); }
 .link-btn { color: var(--accent); text-decoration:none; padding:6px 14px; border:1px solid var(--accent); border-radius:999px; margin:0 4px; font-size: var(--fs-card); display:inline-block; transition: background-color .2s, color .2s; }
 .link-btn:hover { background: var(--accent); color: var(--accent-ink); text-decoration:none; }
 
+.admin-flash {
+  background: rgba(0,128,0,0.25);
+  border: 1px solid rgba(0,180,0,0.35);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+.song-preview-cell { min-width: 140px; vertical-align: top; }
+.song-preview-thumb {
+  width: 96px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 6px;
+  display: block;
+  margin-bottom: 6px;
+  background: #000;
+}
+.song-preview-empty { opacity: 0.5; display: block; margin-bottom: 6px; }
+.song-preview-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  margin-top: 4px;
+}
+.song-preview-form input[type="file"] {
+  max-width: 140px;
+  font-size: 0.8em;
+}
+.song-preview-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+.song-preview-form button {
+  font-size: 0.8em;
+  padding: 4px 8px;
+}
+
 /* Admin: reported comments */
 .admin-card-wide { grid-column: 1 / -1; }
 .admin-inline-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
