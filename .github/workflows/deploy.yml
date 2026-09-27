@@ -71,9 +71,38 @@ jobs:
           echo "Uploading $WAR_FILE to $DEPLOY_HOST..."
           scp -o StrictHostKeyChecking=no $WAR_FILE $DEPLOY_USER@$DEPLOY_HOST:/tmp/$WAR_FILE
 
-          echo "Deploying to Jetty..."
+          # Migrations matching this commit (Flyway needs pom.xml + SQL, not just the WAR)
+          tar -czf /tmp/skeli-flyway.tgz pom.xml src/main/resources/db/migration
+          scp -o StrictHostKeyChecking=no /tmp/skeli-flyway.tgz $DEPLOY_USER@$DEPLOY_HOST:/tmp/skeli-flyway.tgz
+
+          if [ "$APP_NAME" = "test.skeli.cz" ]; then
+            WEB_ENV="/home/skeli/WWW/skeli.cz/web/.env"
+          else
+            WEB_ENV="/home/skeli/WWW/production.skeli.cz/web/.env"
+          fi
+
+          echo "Deploying to Jetty (Flyway first)..."
           ssh $DEPLOY_USER@$DEPLOY_HOST "
-            set -e
+            set -euo pipefail
+            MIGRATE_DIR=\$(mktemp -d /tmp/skeli-flyway.XXXXXX)
+            tar -xzf /tmp/skeli-flyway.tgz -C \"\$MIGRATE_DIR\"
+            rm /tmp/skeli-flyway.tgz
+            if [ ! -f '$WEB_ENV' ]; then
+              echo \"ERROR: missing $WEB_ENV for Flyway credentials\" >&2
+              exit 1
+            fi
+            set -a
+            # shellcheck disable=SC1090
+            . '$WEB_ENV'
+            set +a
+            if [ -z \"\${DB_URL:-}\" ] || [ -z \"\${DB_USER:-}\" ]; then
+              echo 'ERROR: DB_URL/DB_USER missing in $WEB_ENV' >&2
+              exit 1
+            fi
+            echo 'Running Flyway migrations...'
+            (cd \"\$MIGRATE_DIR\" && mvn -q -Dflyway.url=\"\$DB_URL\" -Dflyway.user=\"\$DB_USER\" -Dflyway.password=\"\${DB_PASS:-}\" flyway:migrate)
+            rm -rf \"\$MIGRATE_DIR\"
+
             sudo cp /tmp/$WAR_FILE /var/lib/jetty9/webapps/$WAR_FILE
             rm /tmp/$WAR_FILE
             if [ '$RESTART_NEEDED' = 'true' ]; then
