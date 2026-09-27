@@ -36,6 +36,7 @@ public class AdminSongsServlet extends HttpServlet {
         String sql = "SELECT s.id, s.uuid, s.name, s.year, s.preview_image_url, " +
                 "EXISTS(SELECT 1 FROM videos v WHERE v.song_id = s.id) AS has_video, " +
                 "EXISTS(SELECT 1 FROM lyrics l WHERE l.song_id = s.id AND l.lang = 'cs') AS has_lyrics, " +
+                "(SELECT MIN(l2.id) FROM lyrics l2 WHERE l2.song_id = s.id AND l2.lang = 'cs') AS first_lyric_id, " +
                 "GROUP_CONCAT(DISTINCT l.lang ORDER BY l.lang SEPARATOR ',') AS languages " +
                 "FROM songs s " +
                 "LEFT JOIN lyrics l ON l.song_id = s.id " +
@@ -53,6 +54,8 @@ public class AdminSongsServlet extends HttpServlet {
                 song.previewImageUrl = rs.getString("preview_image_url");
                 song.hasVideo = rs.getBoolean("has_video");
                 song.hasLyrics = rs.getBoolean("has_lyrics");
+                int fl = rs.getInt("first_lyric_id");
+                song.firstLyricId = rs.wasNull() ? null : fl;
                 String langs = rs.getString("languages");
                 if (langs != null && !langs.isEmpty()) {
                     song.languages = langs.split(",");

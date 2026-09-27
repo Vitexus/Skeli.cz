@@ -98,8 +98,8 @@
             <c:if test="${song.hasVideo}">
               <a href="/music.jsp" class="link-btn" target="_blank">Video</a>
             </c:if>
-            <c:if test="${song.hasLyrics}">
-              <a href="/lyrics/${song.id}" class="link-btn" target="_blank">Text</a>
+            <c:if test="${song.hasLyrics and not empty song.firstLyricId}">
+              <a href="/lyrics/${song.firstLyricId}" class="link-btn" target="_blank">Text</a>
             </c:if>
           </td>
         </tr>

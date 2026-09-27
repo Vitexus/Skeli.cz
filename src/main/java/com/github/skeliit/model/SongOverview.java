@@ -9,6 +9,7 @@ public class SongOverview {
     public boolean hasLyrics;
     public String[] languages;
     public String previewImageUrl;
+    public Integer firstLyricId;
 
     // Getters for EL expressions
     public int getId() { return id; }
@@ -19,4 +20,5 @@ public class SongOverview {
     public boolean isHasLyrics() { return hasLyrics; }
     public String[] getLanguages() { return languages; }
     public String getPreviewImageUrl() { return previewImageUrl; }
+    public Integer getFirstLyricId() { return firstLyricId; }
 }
