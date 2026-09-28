@@ -15,6 +15,13 @@ Guidance for agents working in this repository.
 
 Config is loaded from `.env` via `Config` / dotenv (see `.env.example`).
 
+### Deploy (GitHub Actions `deploy.yml`, runs only in `SkeliIT/Skeli.cz`)
+- Host `magnymph.vitexsoftware.com`, user `skeli`; repo secrets `DEPLOY_KEY` (ed25519 private key), `DEPLOY_HOST`, `DEPLOY_USER`.
+- Server apps are git checkouts run by `mvn jetty:run` (no WAR, no system jetty9):
+  - `main` → `/home/skeli/WWW/skeli.cz/web`, `skeli-test.service`
+  - `production` → `/home/skeli/WWW/production.skeli.cz/web`, `skeli-production.service`
+- Workflow: build check → ssh → stash manual edits → `git reset --hard $GITHUB_SHA` → Flyway (creds from that dir's `.env`) → `sudo /bin/systemctl restart <service>` (sudoers allows only that exact path).
+
 ## Key commands
 ```bash
 mvn -q clean package
@@ -44,7 +51,7 @@ mvn -q -Dtest=ClassName#method test
 1. Change sources / add next Flyway `V{n}__….sql`.
 2. `mvn -q clean package` (or compile on the server tree).
 3. Run Flyway on the target DB **before** restarting the app.
-4. Deploy WAR or restart Jetty / `skeli-test` / `skeli-production`.
+4. Push to `main` / `production` (CI deploys) or manually pull + restart `skeli-test` / `skeli-production`.
 
 ## Architecture
 - Mostly JSP + servlets (no heavy MVC framework).
