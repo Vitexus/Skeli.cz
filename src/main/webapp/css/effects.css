@@ -500,6 +500,50 @@ body.light .photo-band::before {
 }
 .kevin-paw[hidden] { display: none; }
 .kevin-paw:hover { transform: translateY(-2px) rotate(-12deg); }
+/* in the header bar (js/kevin.js placePaw): a round button like the others there, the paw in gold */
+.kevin-paw.in-header {
+  position: static;
+  width: 36px; height: 36px;
+  border: 1px solid transparent; background: transparent;
+  color: var(--accent); font-size: 1rem; box-shadow: none;
+  transition: transform .2s ease, border-color .2s ease;
+}
+.kevin-paw.in-header:hover { border-color: var(--accent); transform: rotate(-12deg); }
+@media (max-width: 1024px) {
+  .header-inner > .kevin-paw.in-header {
+    width: 40px; height: 40px; margin-left: auto;
+    border-color: var(--panel-border); background: var(--panel); bottom: auto;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+  .header-inner > .kevin-paw.in-header:not([hidden]) + .menu-toggle { margin-left: 8px; }
+}
+.kevin-paw.in-header { position: relative; }
+.kevin-paw.in-header.is-out { border-color: var(--accent); }
+/* he has something to say: a gold dot on the paw, nothing jumps over the page */
+.kevin-paw.in-header.has-news::after {
+  content: ""; position: absolute; top: 3px; right: 3px; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 2px var(--bg); animation: paw-ping 2.2s ease-out infinite;
+}
+@keyframes paw-ping { 0% { box-shadow: 0 0 0 2px var(--bg), 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent); } 70%, 100% { box-shadow: 0 0 0 2px var(--bg), 0 0 0 9px transparent; } }
+@media (prefers-reduced-motion: reduce) { .kevin-paw.in-header.has-news::after { animation: none; } }
+
+/* Out of the paw: he drops in under the header bar on the right (under his paw), the bubble on his
+   left, his buttons under him – like an opened menu, never left standing over the page */
+.kevin.from-header { left: auto; right: 12px; bottom: auto; top: calc(var(--header-h) + 4px); }
+.kevin.from-header.kevin-in { animation-name: kevin-drop; }
+@keyframes kevin-drop { from { opacity: 0; transform: translateY(-24px) scale(.85); } }
+.kevin.from-header .kevin-bubble {
+  left: auto; right: calc(100% - 8px); bottom: auto; top: 14px;
+  max-width: min(300px, calc(100vw - 170px)); border-radius: 18px 6px 18px 18px;
+}
+.kevin.from-header .kevin-bubble::after { left: auto; right: -7px; bottom: auto; top: 14px; transform: rotate(-45deg); }
+.kevin.from-header .kevin-tools { top: 100%; right: 50%; transform: translateX(50%); flex-direction: row; }
+.kevin.from-header.ducked { translate: none; opacity: 1; }
+body:has(.kevin.from-header) .kevin-tv { top: calc(var(--header-h) + 12px); bottom: auto; left: auto; right: 176px; width: min(380px, calc(100vw - 200px)); }
+@media (max-width: 600px) {
+  .kevin.from-header .kevin-bubble { max-width: calc(100vw - 110px); }
+  body:has(.kevin.from-header) .kevin-tv { left: 12px; right: 12px; width: auto; top: calc(var(--header-h) + 140px); }
+}
 @media (max-width: 1024px) {
   .kevin { width: 104px; height: 120px; left: 4px; bottom: calc(14px + env(safe-area-inset-bottom)); }
   .kevin-paw { width: 40px; height: 40px; bottom: calc(22px + env(safe-area-inset-bottom)); }
@@ -922,6 +966,13 @@ button.is-sending { cursor: progress; opacity: 0.85; }
 @keyframes kevin-peek-out-right { to { translate: 130% 0; } }
 @keyframes kevin-peek-out-left { to { translate: -130% 0; } }
 .kevin.peek .kevin-tools { display: none; }
+/* peeking, he fits a free edge of the screen (js/kevin.js findPeekSpot measures 104 + 236 px) */
+.kevin.peek .kevin-bubble { max-width: var(--peek-bubble-w, 236px); }
+/* a narrower free edge: the bubble above his head, inside the edge */
+.kevin.peek-stack.peek-left .kevin-bubble { left: 56px; right: auto; bottom: 90%; }
+.kevin.peek-stack.peek-right .kevin-bubble { right: 56px; left: auto; bottom: 90%; }
+.kevin.peek-stack.peek-left .kevin-bubble::after { left: 30px; }
+.kevin.peek-stack.peek-right .kevin-bubble::after { left: auto; right: 30px; }
 /* the bubble beside him, kept upright, its tail pointing at him */
 .kevin.peek-right .kevin-bubble { left: auto; right: 72%; bottom: 58%; rotate: 18deg; border-radius: 18px 18px 6px 18px; }
 .kevin.peek-right .kevin-bubble::after { left: auto; right: 22px; }
@@ -998,7 +1049,7 @@ button.is-sending { cursor: progress; opacity: 0.85; }
 /* A phone on its side has little height: everything that floats over the page would cover the
    content (Kevin, his bubble, the player, a big cookie card). Only the page stays. */
 @media (orientation: landscape) and (max-height: 500px) {
-  .kevin, .kevin-paw, .kevin-tv { display: none !important; }
+  .kevin:not(.from-header), .kevin-paw:not(.in-header), .kevin-tv { display: none !important; }
   .cookie-bar { left: 10px; right: 10px; max-width: none; padding: 10px 14px; font-size: 0.78rem; }
   .cookie-bar p { margin-bottom: 8px; }
   .cookie-btn { min-height: 32px; padding: 5px 12px; font-size: 0.78rem; }

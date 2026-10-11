@@ -1,5 +1,5 @@
 /* Karaoke on the song page, the light version: while the clip plays, the line being sung fills with gold
-   from left to right, the lines already sung stay gold and the page follows the song. (A full karaoke
+   from left to right, the lines already sung stay gold; the lyrics scroll in a window under the clip. (A full karaoke
    with its own place in the menu comes later.)
 
    Timings: /api/karaoke?yt=<clip> = [start, end] for every non-empty line of the lyrics (made by
@@ -93,31 +93,92 @@
   });
   function now() { return base + (playing ? (performance.now() - baseAt) / 1000 : 0); }
 
-  // ---------- colouring: the sung line fills with gold from left to right ----------
-  var running = false;
+  // ---------- the karaoke window: the clip stays big where it is, the lyrics scroll inside a box under it ----------
+  // On start the page lines up once (the clip just under the header bar) and then keeps still; the box
+  // fills the rest of the screen. The sung line sits in its upper third, the sung ones slide up and fade.
+  // Scrolling the box yourself stops the following and shows "Back to the song" (it comes back by itself
+  // after a few seconds). A tap on a line plays the clip from that line.
+  var box = pre.closest('.lyric-body') || pre.parentNode;
+  var grid = pre.closest('.lyric-grid');
+  var backBtn = null, running = false, userAt = 0, ourAt = 0;
+  var RESUME_MS = 6000;
+
+  function sizeBox() {
+    var top = box.getBoundingClientRect().top;
+    box.style.setProperty('--k-win', Math.max(220, Math.round(innerHeight - Math.max(top, 0) - 14)) + 'px');
+  }
+  function lineUp() {
+    var stage = player.closest('.lyric-stage') || player;
+    var head = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 68;
+    var y = stage.getBoundingClientRect().top - head - 8;
+    if (Math.abs(y) > 4) scrollBy({ top: y, behavior: 'auto' });
+  }
   function start() {
     if (running) return;
     running = true;
     if (!lines.length) split();
+    lines.forEach(function (l, n) { l.dataset.i = n; });
     pre.classList.add('karaoke');
+    if (grid) grid.classList.add('k-mode');   // wide screens: clip and lyrics side by side (pages.css)
+    lineUp();
+    box.classList.add('k-window');
+    sizeBox();
+    if (!backBtn) {
+      backBtn = document.createElement('button');
+      backBtn.type = 'button';
+      backBtn.className = 'k-back';
+      backBtn.hidden = true;
+      backBtn.innerHTML = '<i class="fa-solid fa-arrow-down" aria-hidden="true"></i> ';
+      backBtn.appendChild(document.createTextNode(button.dataset.back || '↓'));
+      backBtn.addEventListener('click', function () { userAt = 0; backBtn.hidden = true; follow(true); });
+    }
+    var tools = document.querySelector('.lyric-tools');
+    if (tools) tools.insertBefore(backBtn, tools.firstChild); else box.appendChild(backBtn);
     requestAnimationFrame(tick);
   }
   function stop() {
     running = false; cur = -1;
     pre.classList.remove('karaoke');
+    box.classList.remove('k-window');
+    if (grid) grid.classList.remove('k-mode');
+    box.style.removeProperty('--k-win');
+    if (backBtn) { backBtn.hidden = true; backBtn.remove(); }
     if (lines.length) unsplit();
   }
+  addEventListener('resize', function () { if (running) sizeBox(); });
 
-  var userScrolledAt = 0, ourScroll = 0;
-  window.addEventListener('scroll', function () { if (performance.now() > ourScroll) userScrolledAt = performance.now(); }, { passive: true });
-  function follow(el) {
-    // keep the line in the upper middle of the window, unless the visitor scrolled a moment ago
-    if (performance.now() - userScrolledAt < 4000) return;
-    var r = el.getBoundingClientRect(), h = innerHeight;
-    if (r.top > h * 0.22 && r.bottom < h * 0.7) return;
-    ourScroll = performance.now() + 900;
-    scrollBy({ top: r.top - h * 0.38, behavior: reduce ? 'auto' : 'smooth' });
+  // the visitor's own scrolling inside the box (ours is told apart by the time it was started)
+  function userScroll() {
+    if (!running || performance.now() < ourAt) return;
+    userAt = performance.now();
+    if (backBtn) backBtn.hidden = false;
   }
+  box.addEventListener('wheel', userScroll, { passive: true });
+  box.addEventListener('touchmove', userScroll, { passive: true });
+  box.addEventListener('scroll', function () { if (performance.now() >= ourAt) userScroll(); }, { passive: true });
+
+  function follow(force) {
+    var el = lines[cur];
+    if (!el || !running) return;
+    if (!force && userAt && performance.now() - userAt < RESUME_MS) return;
+    if (userAt && backBtn) backBtn.hidden = true;
+    userAt = 0;
+    var target = el.offsetTop - box.clientHeight * 0.33;
+    if (Math.abs(box.scrollTop - target) < 4) return;
+    ourAt = performance.now() + 700;
+    box.scrollTo({ top: target, behavior: reduce ? 'auto' : 'smooth' });
+  }
+
+  // a tap on a line: the clip jumps to it (the IFrame API's seekTo, by postMessage)
+  pre.addEventListener('click', function (e) {
+    if (!running || !data || !frame) return;
+    var l = e.target.closest && e.target.closest('.k-line');
+    if (!l || l.dataset.i == null) return;
+    var t = data.times[+l.dataset.i][0];
+    try { frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'seekTo', args: [t, true] }), '*'); } catch (er) { return; }
+    base = t; baseAt = performance.now(); userAt = 0;
+    if (backBtn) backBtn.hidden = true;
+  });
 
   function tick() {
     if (!running) return;
@@ -132,7 +193,10 @@
       if (lines[cur]) lines[cur].classList.remove('k-now');
       cur = i;
       lines.forEach(function (l, n) { l.classList.toggle('k-past', n < i); });
-      if (lines[i]) { lines[i].classList.add('k-now'); follow(lines[i]); }
+      if (lines[i]) lines[i].classList.add('k-now');
+      follow(false);
+    } else if (userAt && performance.now() - userAt >= RESUME_MS) {
+      follow(false);   // a while after the visitor's own scrolling: back to the song
     }
     // how far into the line the singing is: one CSS variable, the gradient does the rest
     if (lines[cur]) {

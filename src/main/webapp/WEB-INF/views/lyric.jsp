@@ -180,7 +180,7 @@
       <%-- reading the lyrics: karaoke (when the clip has timings) and Aa = size and font, in the corner of the frame --%>
       <div class="lyric-tools">
         <c:if test="${not empty lyric.youtubeId}">
-          <button type="button" class="tool-btn karaoke-btn" id="karaokeToggle" hidden aria-pressed="true" title="<%= t.getProperty("lyric.karaokeHint") %>" aria-label="<%= t.getProperty("lyric.karaokeHint") %>">
+          <button type="button" class="tool-btn karaoke-btn" id="karaokeToggle" hidden aria-pressed="true" data-back="<%= t.getProperty("karaoke.back") %>" title="<%= t.getProperty("lyric.karaokeHint") %>" aria-label="<%= t.getProperty("lyric.karaokeHint") %>">
             <i class="fa-solid fa-microphone-lines" aria-hidden="true"></i>
           </button>
         </c:if>

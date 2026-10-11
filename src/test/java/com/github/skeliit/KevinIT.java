@@ -31,6 +31,14 @@ class KevinIT extends UiTestSupport {
                 .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(css)));
     }
 
+    /** What Kevin said on his own: in the bubble when he peeked out, or behind the gold dot on his paw. */
+    private String heard() {
+        new WebDriverWait(driver, Duration.ofSeconds(15)).until(d -> !d.findElements(By.cssSelector(".kevin-paw.has-news")).isEmpty()
+                || d.findElement(By.cssSelector(".kevin-bubble")).isDisplayed());
+        if (!driver.findElements(By.cssSelector(".kevin-paw.has-news")).isEmpty()) jsClick(driver.findElement(By.cssSelector(".kevin-paw")));
+        return waitFor(".kevin-bubble .kevin-text").getText();
+    }
+
     private void menuItem(int index) {
         jsClick(driver.findElement(By.cssSelector(".kevin-body")));
         List<WebElement> chips = new WebDriverWait(driver, Duration.ofSeconds(5))
@@ -73,7 +81,7 @@ class KevinIT extends UiTestSupport {
                 + " + (SELECT COUNT(*) FROM shorts WHERE published_at > NOW() - INTERVAL 25 DAY)");
         long lastVisit = System.currentTimeMillis() - 25L * 24 * 3600 * 1000;
         openWithKevin("/", "localStorage.setItem('kevinLastVisit','" + lastVisit + "');");
-        String said = waitFor(".kevin-bubble .kevin-text").getText();
+        String said = heard();
         if (clips + posts > 0) {
             assertTrue(said.startsWith("Od tvý minulý návštěvy"), "news, got: " + said);
         } else {
@@ -95,23 +103,51 @@ class KevinIT extends UiTestSupport {
         login(admin, PASSWORD);
         assertEquals(200, httpStatus("/admin/kevin"), "admin");
         openWithKevin("/admin.jsp", "");
-        String said = waitFor(".kevin-bubble .kevin-text").getText();
+        String said = heard();
         assertTrue(said.startsWith("Šéfe") || said.startsWith("Všechno čistý"), "admin status, got: " + said);
     }
     @Test
-    @DisplayName("Phone: Kevin waits as the paw, comes out to say hello, goes back; the paw opens his menu")
+    @DisplayName("Phone: Kevin is a paw in the header bar; his hello waits behind a dot, a tap brings him out and back")
     void phoneKeepsHimInThePaw() throws Exception {
         driver.manage().window().setSize(new org.openqa.selenium.Dimension(390, 844));
         try {
             openWithKevin("/", "localStorage.removeItem('kevin');");
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-            // the hello brings him out ...
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".kevin-bubble .kevin-text")));
-            // ... and when the bubble is gone he is back in the paw, nothing of him over the page
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".kevin-paw")));
-            assertFalse(driver.findElement(By.cssSelector(".kevin")).isDisplayed(), "Kevin is tucked away on a phone");
-            jsClick(driver.findElement(By.cssSelector(".kevin-paw")));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+            // no free edge on a phone: the hello waits behind a gold dot on the paw, in the header bar
+            WebElement paw = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".site-header .kevin-paw.has-news")));
+            assertFalse(driver.findElement(By.cssSelector(".kevin")).isDisplayed(), "nothing of him over the page");
+            jsClick(paw);
+            assertFalse(waitFor(".kevin-bubble .kevin-text").getText().isBlank(), "a tap: he says it");
+            jsClick(paw);   // a second tap: back in
+            wait.until(d -> !d.findElement(By.cssSelector(".kevin")).isDisplayed());
+            jsClick(paw);   // nothing waiting: his menu
             assertTrue(waitFor(".kevin-menu .kevin-chip").isDisplayed(), "the paw opens his menu");
+        } finally {
+            driver.manage().window().setSize(new org.openqa.selenium.Dimension(1400, 900));
+        }
+    }
+
+    @Test
+    @DisplayName("Wide screen: a tip makes him peek out only where nothing of the page is under him")
+    void peeksOnlyIntoFreeSpace() throws Exception {
+        driver.manage().window().setSize(new org.openqa.selenium.Dimension(1920, 1080));
+        try {
+            for (String page : new String[]{"/texty.jsp", "/", "/about.jsp"}) {
+                openWithKevin(page, "localStorage.removeItem('kevin');");
+                Thread.sleep(2500);
+                ((JavascriptExecutor) driver).executeScript("window.dispatchEvent(new CustomEvent('kevin', { detail: { tip: true } }))");
+                Thread.sleep(1500);
+                Object hit = ((JavascriptExecutor) driver).executeScript(
+                        "const k = document.querySelector('.kevin'); if (!k || k.hidden) return document.querySelector('.kevin-paw.has-news') ? 'dot' : 'nothing';"
+                        + "const boxes = [k.querySelector('.kevin-body'), k.querySelector('.kevin-bubble')].filter(e => e && !e.hidden).map(e => e.getBoundingClientRect());"
+                        + "const sel = 'a, button, img, p, h1, h2, h3, li, pre, iframe, video, canvas, input, .card';"
+                        + "for (const el of document.querySelectorAll(sel)) { if (k.contains(el) || el.closest('.site-header, .kevin-paw')) continue;"
+                        + "  const r = el.getBoundingClientRect(); if (!r.width || !r.height || getComputedStyle(el).visibility === 'hidden') continue;"
+                        + "  for (const b of boxes) if (r.left < b.right - 30 && r.right > b.left + 30 && r.top < b.bottom - 10 && r.bottom > b.top + 10) return 'covers ' + el.tagName + '.' + el.className; }"
+                        + "return 'peek';");
+                assertFalse(String.valueOf(hit).startsWith("covers"), page + ": " + hit);
+                assertNotEquals("nothing", hit, page + ": the tip got lost");
+            }
         } finally {
             driver.manage().window().setSize(new org.openqa.selenium.Dimension(1400, 900));
         }
