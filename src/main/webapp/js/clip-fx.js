@@ -238,7 +238,8 @@
     // the room: an ellipse round the video (through its corners when there is space)
     var sr = glCanvas.getBoundingClientRect(), vr = player.getBoundingClientRect();
     var X0 = vr.left - sr.left, Y0 = vr.top - sr.top, X1 = vr.right - sr.left, Y1 = vr.bottom - sr.top, vw = X1 - X0, vh = Y1 - Y0;
-    var ea = Math.min(vw / Math.SQRT2 * 1.12, vw / 2 + X0 * .95), eb = Math.min(vh / Math.SQRT2 * 1.18, vh / 2 + (h - Y1) * .95);
+    // as wide as the narrower side allows: the effect fades out before either edge of its canvas, never cut off
+    var ea = Math.min(vw / Math.SQRT2 * 1.12, vw / 2 + Math.min(X0, w - X1) * .95), eb = Math.min(vh / Math.SQRT2 * 1.18, vh / 2 + (h - Y1) * .95);
     if (X0 < 60) eb = vh / 2 + (h - Y1) * .92;                 // phone: no room beside the video, so it all flows down under it
     var scale = soft ? .55 : 1;
 

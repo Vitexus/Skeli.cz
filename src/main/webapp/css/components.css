@@ -51,10 +51,10 @@ body.light .masthead-brand { filter: drop-shadow(0 1px 6px rgba(255, 255, 255, 0
   opacity: 0;
   transition: opacity .3s ease;
   /* only a soft shade behind the floating pills once docked, the pills carry the glass */
-  background: linear-gradient(to bottom, rgba(9, 9, 11, 0.55), rgba(9, 9, 11, 0));
+  background: linear-gradient(to bottom, rgba(9, 9, 11, 0.86) 0%, rgba(9, 9, 11, 0.7) 60%, rgba(9, 9, 11, 0));
 }
 .site-header.scrolled::before { opacity: 1; }
-body.light .site-header::before { background: linear-gradient(to bottom, rgba(244, 242, 238, 0.6), rgba(244, 242, 238, 0)); }
+body.light .site-header::before { background: linear-gradient(to bottom, rgba(244, 242, 238, 0.9) 0%, rgba(244, 242, 238, 0.72) 60%, rgba(244, 242, 238, 0)); }
 
 /* Floating glass pills: the menu in the middle and the controls on the right */
 .main-nav,

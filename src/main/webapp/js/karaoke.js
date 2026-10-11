@@ -108,7 +108,9 @@
     box.style.setProperty('--k-win', Math.max(220, Math.round(innerHeight - Math.max(top, 0) - 14)) + 'px');
   }
   function lineUp() {
-    var stage = player.closest('.lyric-stage') || player;
+    // wide screens: the title, the heart and Share stay in sight just under the bar; phones: the clip itself
+    var actions = innerWidth >= 1100 && document.querySelector('.lyric-head');
+    var stage = actions || player.closest('.lyric-stage') || player;
     var head = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 68;
     var y = stage.getBoundingClientRect().top - head - 8;
     if (Math.abs(y) > 4) scrollBy({ top: y, behavior: 'auto' });
