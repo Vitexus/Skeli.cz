@@ -244,7 +244,7 @@ body.light .hero-particles span { top: -10px; bottom: auto; background: #fff; bo
 }
 .hero-latest:hover { text-decoration: none; transform: translateY(-3px); border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
 .hero-latest img { width: 104px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 11px; }
-.hero-latest small { display: flex; align-items: center; gap: 8px; font-size: 0.62rem; letter-spacing: 0.2em; color: var(--accent); }
+.hero-latest small { display: flex; align-items: center; gap: 8px; font-size: var(--fs-small); letter-spacing: 0.16em; color: var(--accent); }
 .hero-latest small .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse-dot 2s infinite; }
 @keyframes pulse-dot { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); } 70%, 100% { box-shadow: 0 0 0 9px transparent; } }
 .hero-latest b { display: block; max-width: 260px; margin-top: 3px; font-weight: 400; font-size: var(--fs-card); line-height: 1.35; }
@@ -445,6 +445,7 @@ body.light .photo-band::before {
   backdrop-filter: blur(10px);
 }
 .kevin-tools button:hover { color: var(--accent); border-color: var(--accent); }
+@media (pointer: coarse) { .kevin-tools button { width: 36px; height: 36px; font-size: .85rem; } }
 /* speech bubble above his head */
 .kevin-bubble {
   position: absolute;
@@ -506,7 +507,7 @@ body.light .photo-band::before {
 }
 @media (max-width: 600px) {
   .kevin { width: 84px; height: 97px; }
-  .kevin-tools { right: -24px; }
+  .kevin-tools { right: -30px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .kevin.kevin-in, .kevin-bubble, .kevin-word { animation: none; }

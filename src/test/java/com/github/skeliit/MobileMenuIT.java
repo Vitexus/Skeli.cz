@@ -68,6 +68,24 @@ class MobileMenuIT extends UiTestSupport {
         assertTrue(langs.get(0).getAttribute("class").contains("active"), "current language is marked");
     }
 
+    @Test
+    void menuStaysWithinReachWhileScrollingDown() throws Exception {
+        driver.manage().window().setSize(new Dimension(390, 844));
+        driver.get(BASE_URL + "/texty.jsp");
+        org.openqa.selenium.JavascriptExecutor js = (org.openqa.selenium.JavascriptExecutor) driver;
+        String reach = "const b = document.getElementById('menuToggle'), r = b.getBoundingClientRect();"
+                + "const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);"
+                + "return r.top >= 0 && r.bottom <= innerHeight && (hit === b || b.contains(hit));";
+        // step down like a thumb does, the button must be tappable after every step
+        for (int i = 1; i <= 6; i++) {
+            js.executeScript("window.scrollBy(0, 400)");
+            Thread.sleep(450);
+            assertTrue((Boolean) js.executeScript(reach), "Menu button is on screen and not covered after scrolling " + (i * 400) + " px");
+        }
+        driver.findElement(By.id("menuToggle")).click();
+        assertTrue(driver.findElement(By.id("mainNav")).isDisplayed(), "menu opens from the middle of the page");
+    }
+
     private void shot(String name) throws Exception {
         String dir = System.getProperty("it.shots");
         if (dir == null) return;

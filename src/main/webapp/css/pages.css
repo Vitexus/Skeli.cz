@@ -110,7 +110,7 @@ body.light .hero-actions .btn-ghost { background: rgba(255, 255, 255, 0.5); }
 .video-featured .video-play { opacity: 1; transform: none; width: 72px; height: 72px; margin: -36px 0 0 -36px; background: var(--accent); color: var(--accent-ink); border: 0; font-size: 1.3rem; box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent) 18%, transparent); }
 .video-featured .meta { padding: 18px 22px 22px; }
 .video-featured .video-title { font-size: var(--fs-h3); }
-.video-badge { display: inline-block; margin-bottom: 8px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); font-size: 0.6rem; letter-spacing: 0.16em; }
+.video-badge { display: inline-block; margin-bottom: 8px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); font-size: var(--fs-small); letter-spacing: 0.12em; }
 .video {
   position: relative;
   display: block;
@@ -1334,8 +1334,8 @@ html.bold-text body :where(.feature-card p,
 .split-tag-top { top: 10px; }
 .split-tag-bottom { bottom: 10px; }
 @media (max-width: 600px) {
-  /* narrow cards: smaller tags, so the top one stays clear of the link icons on the right */
-  .split-tag { left: 6px; padding: 2px 6px; font-size: 0.6rem; }
+  /* narrow cards: the tags sit closer to the corners */
+  .split-tag { left: 6px; padding: 2px 7px; }
   .split-tag-top { top: 6px; }
   .split-tag-bottom { bottom: 6px; }
 }
