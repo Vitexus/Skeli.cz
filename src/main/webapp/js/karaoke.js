@@ -1,11 +1,11 @@
-/* Karaoke on the song page: while the clip plays, the line being sung is burnt in by the laser
-   (the same white-hot spot, sparks and cooling embers as the quote on the home page), the lines
-   already sung glow like embers (dark scorch marks in the light theme) and the page follows the song.
+/* Karaoke on the song page, the light version: while the clip plays, the line being sung fills with gold
+   from left to right, the lines already sung stay gold and the page follows the song. (A full karaoke
+   with its own place in the menu comes later.)
 
    Timings: /api/karaoke?yt=<clip> = [start, end] for every non-empty line of the lyrics (made by
    tools/karaoke-align.py, corrected in the admin). They count lines of the Czech text; a translation
    with the same lines uses them too, otherwise karaoke stays off. Time: the YouTube player reports it
-   by postMessage (the same messages the IFrame API uses). The "Karaoke" button turns it off. */
+   by postMessage (the same messages the IFrame API uses). The microphone button or the K key turns it off. */
 (function () {
   var pre = document.querySelector('.lyric-page .lyrics-text pre');
   var player = document.getElementById('ytFacade');
@@ -93,53 +93,19 @@
   });
   function now() { return base + (playing ? (performance.now() - baseAt) / 1000 : 0); }
 
-  // ---------- the laser: a canvas over the whole window for the hot spot and the sparks ----------
-  var cv = null, g = null, spot = null, sparks = [], last = 0, running = false;
-  var burning = null, letters = [];
-  function canvas() {
-    if (cv) return;
-    cv = document.createElement('canvas');
-    cv.className = 'karaoke-fx';
-    cv.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(cv);
-    g = cv.getContext('2d');
-  }
-
+  // ---------- colouring: the sung line fills with gold from left to right ----------
+  var running = false;
   function start() {
     if (running) return;
     running = true;
     if (!lines.length) split();
     pre.classList.add('karaoke');
-    canvas();
-    last = performance.now();
     requestAnimationFrame(tick);
   }
   function stop() {
-    running = false; spot = null; sparks = []; cur = -1; burning = null; letters = [];
-    if (cv) { cv.remove(); cv = null; }
+    running = false; cur = -1;
     pre.classList.remove('karaoke');
     if (lines.length) unsplit();
-  }
-
-  // the current line burns letter by letter: it is split into letters while it burns
-  function burn(i) {
-    if (burning) {                               // the previous line cools down to plain text
-      burning.textContent = burning.textContent;
-      burning.classList.remove('k-now');
-    }
-    burning = lines[i] || null;
-    letters = [];
-    if (!burning) return;
-    var text = burning.textContent;
-    burning.textContent = '';
-    Array.from(text).forEach(function (c) {
-      var s = document.createElement('span');
-      s.className = 'k-ch';
-      s.textContent = c;
-      burning.appendChild(s);
-      letters.push(s);
-    });
-    burning.classList.add('k-now');
   }
 
   var userScrolledAt = 0, ourScroll = 0;
@@ -153,71 +119,37 @@
     scrollBy({ top: r.top - h * 0.38, behavior: reduce ? 'auto' : 'smooth' });
   }
 
-  function tick(t) {
+  function tick() {
     if (!running) return;
     if (!document.body.contains(pre)) { stop(); return; }    // the page was left (PJAX)
     if (!on || !data || !frame) { stop(); return; }
-    var dt = Math.min(0.05, (t - last) / 1000); last = t;
     var time = now(), times = data.times;
 
     // which line is sung now: the last one that has started
     var i = -1;
     for (var k = 0; k < times.length; k++) { if (times[k][0] <= time) i = k; else break; }
     if (i !== cur) {
+      if (lines[cur]) lines[cur].classList.remove('k-now');
       cur = i;
-      lines.forEach(function (l, n) { l.classList.toggle('k-past', n < i || (n === i && time >= times[n][1])); });
-      burn(i);
-      if (lines[i]) follow(lines[i]);
+      lines.forEach(function (l, n) { l.classList.toggle('k-past', n < i); });
+      if (lines[i]) { lines[i].classList.add('k-now'); follow(lines[i]); }
     }
-    spot = null;
-    if (burning && letters.length) {
+    // how far into the line the singing is: one CSS variable, the gradient does the rest
+    if (lines[cur]) {
       var s = times[cur][0], e = times[cur][1];
       var p = Math.max(0, Math.min(1, (time - s) / Math.max(0.3, e - s)));
-      var done = Math.floor(p * letters.length);
-      for (var n = 0; n < letters.length; n++) {
-        var c = letters[n].classList;
-        c.toggle('b', n < done);
-        c.toggle('hot', n >= done - 2 && n < done);
-      }
-      if (p >= 1) { burning.classList.add('k-past'); }
-      else if (playing && letters[done]) {
-        var r = letters[done].getBoundingClientRect(), frac = p * letters.length - done;
-        spot = { x: r.left + r.width * frac, y: r.top + r.height * (0.55 - 0.15 * Math.sin(t / 90)) };
-      }
+      lines[cur].style.setProperty('--k', (p * 100).toFixed(1) + '%');
     }
-    draw(dt);
     requestAnimationFrame(tick);
   }
 
-  function draw(dt) {
-    if (!cv) return;
-    var dpr = Math.min(2, devicePixelRatio || 1), W = innerWidth, H = innerHeight;
-    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, W, H);
-    if (reduce) return;
-    var light = document.body.classList.contains('light');
-    g.globalCompositeOperation = light ? 'source-over' : 'lighter';
-    if (spot) {
-      var fl = 0.85 + 0.15 * Math.random();
-      var hot = g.createRadialGradient(spot.x, spot.y, 0, spot.x, spot.y, 13);
-      hot.addColorStop(0, 'rgba(255,255,240,' + fl + ')');
-      hot.addColorStop(0.3, 'rgba(255,180,60,' + (0.75 * fl) + ')');
-      hot.addColorStop(1, 'rgba(255,60,0,0)');
-      g.fillStyle = hot; g.beginPath(); g.arc(spot.x, spot.y, 13, 0, 6.283); g.fill();
-      for (var k = 0; k < 2; k++) sparks.push({ x: spot.x, y: spot.y, vx: (Math.random() - 0.5) * 220, vy: -50 - Math.random() * 170, life: 0.2 + Math.random() * 0.4, age: 0 });
-    }
-    g.lineWidth = 1.2;
-    for (var i = sparks.length - 1; i >= 0; i--) {
-      var p = sparks[i]; p.age += dt;
-      if (p.age > p.life) { sparks.splice(i, 1); continue; }
-      var ox = p.x, oy = p.y; p.vy += 500 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
-      var a = 1 - p.age / p.life;
-      g.strokeStyle = 'rgba(255,' + Math.round(150 + 100 * a) + ',' + Math.round(60 * a) + ',' + a + ')';
-      g.beginPath(); g.moveTo(ox, oy); g.lineTo(p.x, p.y); g.stroke();
-    }
-    g.globalCompositeOperation = 'source-over';
-  }
+  // K turns it on and off (not while typing)
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'k' && e.key !== 'K') return;
+    if (e.ctrlKey || e.metaKey || e.altKey || button.hidden || !document.body.contains(pre)) return;
+    if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+    button.click();
+  });
 
   paintButton();
   watchFrame();
