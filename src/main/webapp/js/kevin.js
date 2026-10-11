@@ -82,6 +82,7 @@
   // a search field, results), href + linkText (a link under the text)
   function show(msg, opts) {
     opts = opts || {};
+    if (root.hidden) { if (!canPop()) return; popOut(); }
     clearTimeout(hideTimer);
     text.textContent = msg;
     link.hidden = !opts.href;
@@ -106,6 +107,7 @@
     root.classList.remove('talking');
     model().setTalking(false);
     model().setPose(pose || 'idle');
+    scheduleTuck();
   }
   // the bubble stays while the visitor points at it or types in it
   function holdBubble() { clearTimeout(hideTimer); }
@@ -138,7 +140,7 @@
   // lines the visitor did not ask for: at most one in 40 s and six per page
   function auto(msg, pose, peekChance) {
     var now = Date.now();
-    if (busy || root.hidden || autoCount >= 6 || now - lastAuto < 40000 || !bubble.hidden) return;
+    if (busy || (root.hidden && !canPop()) || autoCount >= 6 || now - lastAuto < 40000 || !bubble.hidden) return;
     autoCount++;
     lastAuto = now;
     if (Math.random() < (peekChance == null ? 0.5 : peekChance)) startPeek();
@@ -495,13 +497,43 @@
   }
 
   // ---------- show / hide ----------
-  function setHidden(h) {
-    root.hidden = h;
-    paw.hidden = !h;
-    store.set('kevin', h ? 'hidden' : 'shown');
-    model().setPaused(h);
-    if (h) { endRap(); clearTimeout(idleTimer); } else { wake(); }
+  // Phones (pocket): he waits as the gold paw and only comes out to say something or when the paw is
+  // tapped, then goes back, so he never sits over the page. The cross = the visitor wants peace: he
+  // stays in the paw and does not come out on his own (remembered, on every screen).
+  var pocketMq = window.matchMedia('(max-width: 767px)');
+  var userHidden = store.get('kevin') === 'hidden';
+  function pocket() { return pocketMq.matches; }
+  function canPop() { return pocket() && !userHidden; }
+  function place(out) {
+    root.hidden = !out;
+    paw.hidden = out;
+    model().setPaused(!out);
+    if (!out) { endRap(); clearTimeout(idleTimer); }
   }
+  function popOut() {
+    place(true);
+    root.classList.remove('kevin-in');
+    void root.offsetWidth;   // restart the jump-in animation
+    root.classList.add('kevin-in');
+  }
+  var tuckTimer = 0;
+  function scheduleTuck() {
+    clearTimeout(tuckTimer);
+    if (!pocket()) return;
+    tuckTimer = setTimeout(function () {
+      if (pocket() && !root.hidden && !busy && !tv && bubble.hidden) place(false);
+    }, 900);
+  }
+  function setHidden(h) {
+    userHidden = h;
+    store.set('kevin', h ? 'hidden' : 'shown');
+    place(!h);
+    if (!h) wake();
+  }
+  pocketMq.addEventListener('change', function () {
+    if (!root.isConnected) return;
+    if (!pocket() && !userHidden) { place(true); wake(); } else if (pocket() && bubble.hidden && !busy && !tv) place(false);
+  });
   function start() {
     document.body.appendChild(root);
     document.body.appendChild(paw);
@@ -513,7 +545,8 @@
       root.classList.remove('kevin-in');
     });
     load3d();
-    if (store.get('kevin') === 'hidden') { setHidden(true); return; }
+    if (userHidden) { place(false); return; }
+    if (pocket()) place(false);   // in the paw until he has something to say (greet below)
     wake();
     greet();
     if (!adminPage) scheduleTip();
@@ -531,7 +564,11 @@
     if (!soundOn && stopBeat) { stopBeat(); stopBeat = null; }
   });
   root.querySelector('.kevin-hide').addEventListener('click', function () { setHidden(true); });
-  paw.addEventListener('click', function () { setHidden(false); show(pick(L.wake), { pose: 'point' }); });
+  // the paw: on a phone straight to his menu (that is why it was tapped), elsewhere a hello
+  paw.addEventListener('click', function () {
+    setHidden(false);
+    if (pocket()) menu(); else show(pick(L.wake), { pose: 'point' });
+  });
 
   // he looks at the mouse
   var raf = 0, mx = 0, my = 0;
@@ -562,7 +599,7 @@
   // hooks from the rest of the site
   window.addEventListener('kevin', function (e) {
     var d = e.detail || {};
-    if (root.hidden) return;
+    if (root.hidden && !canPop()) return;
     if (d.pw && L.pw[d.pw]) {
       lastAuto = 0;   // the visitor is typing: answering is fine
       show(pick(L.pw[d.pw]), { pose: d.pw === 'strong' ? 'cool' : d.pw === 'weak' ? 'sulk' : 'idle', after: 'idle' });

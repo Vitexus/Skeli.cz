@@ -98,4 +98,22 @@ class KevinIT extends UiTestSupport {
         String said = waitFor(".kevin-bubble .kevin-text").getText();
         assertTrue(said.startsWith("Šéfe") || said.startsWith("Všechno čistý"), "admin status, got: " + said);
     }
+    @Test
+    @DisplayName("Phone: Kevin waits as the paw, comes out to say hello, goes back; the paw opens his menu")
+    void phoneKeepsHimInThePaw() throws Exception {
+        driver.manage().window().setSize(new org.openqa.selenium.Dimension(390, 844));
+        try {
+            openWithKevin("/", "localStorage.removeItem('kevin');");
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+            // the hello brings him out ...
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".kevin-bubble .kevin-text")));
+            // ... and when the bubble is gone he is back in the paw, nothing of him over the page
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".kevin-paw")));
+            assertFalse(driver.findElement(By.cssSelector(".kevin")).isDisplayed(), "Kevin is tucked away on a phone");
+            jsClick(driver.findElement(By.cssSelector(".kevin-paw")));
+            assertTrue(waitFor(".kevin-menu .kevin-chip").isDisplayed(), "the paw opens his menu");
+        } finally {
+            driver.manage().window().setSize(new org.openqa.selenium.Dimension(1400, 900));
+        }
+    }
 }
