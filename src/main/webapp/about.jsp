@@ -33,17 +33,12 @@
       </script>
       <p class="about-lead"><%= t.getProperty("about.intro1") %></p>
       <div class="about-text">
-        <p><%= t.getProperty("about.intro2") %></p>
         <p><%= t.getProperty("about.selftaught.text") %></p>
-        <p><%= t.getProperty("about.work.text") %></p>
-        <blockquote class="about-quote"><%= t.getProperty("about.work.quote") %></blockquote>
-        <p><%= t.getProperty("about.why.p1") %></p>
-        <p><%= t.getProperty("about.why.p2") %></p>
+        <p><%= t.getProperty("about.web.text") %></p>
+        <h3 class="about-squad-title"><%= t.getProperty("about.squad.title") %></h3>
         <p><%= t.getProperty("about.squad.p1") %></p>
         <p><%= t.getProperty("about.squad.p2") %></p>
         <p><%= t.getProperty("about.squad.p3") %></p>
-        <p class="about-highlight"><%= t.getProperty("about.squad.p4") %><br><%= t.getProperty("about.squad.p5") %></p>
-        <p><%= t.getProperty("about.squad.p6") %></p>
         <p class="about-outro"><%= t.getProperty("about.outro") %></p>
         <div class="about-signature"><span class="squad-mark" aria-hidden="true"></span><span class="sr-only"><%= t.getProperty("about.signature") %></span></div>
       </div>
