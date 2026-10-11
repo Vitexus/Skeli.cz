@@ -79,27 +79,6 @@
   </section>
   <% } %>
 
-  <section class="feature-grid" data-reveal>
-    <a class="feature-card" href="/music.jsp">
-      <span class="feature-icon"><i class="fas fa-music"></i></span>
-      <h3><%= t.getProperty("tile.music.title","Music") %></h3>
-      <p><%= t.getProperty("tile.music.desc","YouTube videos and Spotify playlist.") %></p>
-      <span class="feature-arrow"><i class="fa-solid fa-arrow-right"></i></span>
-    </a>
-    <a class="feature-card" href="/texty.jsp">
-      <span class="feature-icon"><i class="fas fa-align-left"></i></span>
-      <h3><%= t.getProperty("tile.lyrics.title","Lyrics") %></h3>
-      <p><%= t.getProperty("tile.lyrics.desc","Browse lyrics, vote and comment.") %></p>
-      <span class="feature-arrow"><i class="fa-solid fa-arrow-right"></i></span>
-    </a>
-    <a class="feature-card" href="/about.jsp">
-      <span class="feature-icon"><i class="fas fa-user"></i></span>
-      <h3><%= t.getProperty("tile.about.title","About") %></h3>
-      <p><%= t.getProperty("tile.about.desc","Who I am and how I create.") %></p>
-      <span class="feature-arrow"><i class="fa-solid fa-arrow-right"></i></span>
-    </a>
-  </section>
-
   <section class="home-grid" data-reveal>
     <div class="home-main">
       <div class="section-head">

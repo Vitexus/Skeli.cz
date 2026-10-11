@@ -87,7 +87,6 @@ body.light .hero-title { filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.9)) d
 body.light .masthead-brand { filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.9)); }
 
 /* ---------- Cards: a gold edge and a soft glow on hover ---------- */
-.feature-card,
 .video,
 .side-card,
 .song-card,
@@ -95,7 +94,6 @@ body.light .masthead-brand { filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0
 .disco-card {
   transition: transform .35s cubic-bezier(.2, .7, .2, 1), border-color .35s ease, box-shadow .35s ease;
 }
-.feature-card:hover,
 .video:hover,
 .side-card:hover,
 .song-card:hover,

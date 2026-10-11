@@ -54,48 +54,6 @@ body.light .hero-title { filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.18)); }
 body.light .hero-actions .btn-ghost { background: rgba(255, 255, 255, 0.5); }
 .hero-social { justify-content: center; margin-top: 36px; }
 
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin-bottom: 64px;
-}
-.feature-card {
-  position: relative;
-  display: block;
-  padding: 26px 26px 30px;
-  color: var(--text);
-  background: var(--panel);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  transition: transform .2s ease, border-color .2s ease;
-}
-.feature-card:hover { transform: translateY(-4px); border-color: rgba(255, 210, 63, 0.4); text-decoration: none; }
-.feature-card h3 { margin: 18px 0 6px; }
-.feature-card p { margin: 0; font-size: var(--fs-card); line-height: 1.7; color: var(--text-dim); }
-.feature-icon {
-  width: 48px;
-  height: 48px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 1.2rem;
-}
-.feature-arrow {
-  position: absolute;
-  top: 26px;
-  right: 26px;
-  color: var(--text-dim);
-  transition: transform .2s ease, color .2s ease;
-}
-.feature-card:hover .feature-arrow { transform: translateX(4px); color: var(--accent); }
-
 .home-grid {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
@@ -203,13 +161,6 @@ body.light .hero-actions .btn-ghost { background: rgba(255, 255, 255, 0.5); }
   .home-aside { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 }
 @media (max-width: 760px) {
-  .feature-grid { grid-template-columns: 1fr; }
-  /* phones: compact rows, icon beside the text */
-  .feature-grid { gap: 10px; margin-bottom: 44px; }
-  .feature-card { display: grid; grid-template-columns: auto 1fr; column-gap: 16px; align-items: center; padding: 16px 44px 16px 16px; }
-  .feature-card h3 { margin: 0 0 2px; }
-  .feature-card .feature-icon { grid-row: span 2; width: 44px; height: 44px; }
-  .feature-arrow { top: 50%; right: 18px; margin-top: -8px; }
   .hero { min-height: calc(70vh - var(--header-h)); }
 }
 @media (max-width: 560px) {
@@ -1017,7 +968,6 @@ body.light .form-success { color: #16803f; }
 
 /* Paragraph text inside cards, site-wide: Oswald Light.
    Kept last so it wins over the per-card rules above. */
-.feature-card p,
 .side-card p,
 .about-card p,
 .news-title,
@@ -1341,8 +1291,7 @@ body.light .clip-version {
 body.light .clip-version.active { color: var(--accent); border-color: var(--accent); }
 
 /* Card text in Oswald: medium instead of light in the easier-reading mode */
-html.bold-text body :where(.feature-card p,
-.side-card p,
+html.bold-text body :where(.side-card p,
 .about-card p,
 .news-title,
 .home-social-caption,
