@@ -68,7 +68,7 @@
       <h3><%= t.getProperty("about.music.title","Music journey") %></h3>
       <p><%= t.getProperty("about.music.text","From the first tracks to the current work. Find clips and playlists on the Music page.") %></p>
     </div>
-    <div class="about-card">
+    <div class="about-card card-gold">
       <h3><%= t.getProperty("about.collab.title","Collaboration") %></h3>
       <p><%= t.getProperty("about.collab.text","If you enjoy my work, get in touch. I welcome rap features, beat production and visuals.") %></p>
     </div>

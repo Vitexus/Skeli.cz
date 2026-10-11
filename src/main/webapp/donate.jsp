@@ -8,7 +8,7 @@
   <div class="donate-card">
 
     <div class="donate-grid">
-      <section class="donate-section">
+      <section class="donate-section card-gold">
         <h3><%= t.getProperty("donate.options.title","💰 Možnosti") %></h3>
         <ul>
           <li><%= t.getProperty("donate.revolut.label","💳 Revolut") %>: <a href="https://revolut.me/skelimc" target="_blank" rel="noopener">revolut.me/skelimc</a></li>

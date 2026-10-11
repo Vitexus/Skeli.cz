@@ -870,3 +870,20 @@ body.light .flash-warn { background: rgba(255, 170, 40, 0.16); color: #8a4b00; }
   .checkbox-label input[type="checkbox"] { width: 22px; height: 22px; flex-shrink: 0; }
   .ep-arrow { width: 40px; height: 40px; }
 }
+
+/* ---------- The one golden card of a page: what we would like the visitor to do ----------
+   (home: news by e-mail, About: collaboration, Donate: the ways to support). At most one per page,
+   otherwise none of them stands out. */
+body .card-gold {
+  background: radial-gradient(120% 70% at 100% 100%, rgba(255, 190, 50, 0.12), rgba(255, 190, 50, 0) 65%),
+    linear-gradient(155deg, rgba(255, 210, 63, 0.17) 0%, rgba(255, 165, 40, 0.06) 45%, rgba(255, 165, 40, 0) 75%), var(--panel);
+  border-color: rgba(255, 210, 63, 0.38);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 225, 120, 0.16), 0 0 44px -20px rgba(255, 190, 40, 0.5);
+}
+body .card-gold h3 { color: var(--accent); }
+body.light .card-gold {
+  background: radial-gradient(120% 70% at 100% 100%, rgba(230, 170, 30, 0.2), rgba(230, 170, 30, 0) 65%),
+    linear-gradient(155deg, rgba(235, 180, 40, 0.24) 0%, rgba(255, 225, 150, 0.16) 45%, rgba(255, 255, 255, 0) 75%), var(--panel);
+  border-color: rgba(163, 123, 0, 0.32);
+  box-shadow: var(--shadow), 0 0 32px -18px rgba(200, 150, 20, 0.45);
+}

@@ -124,7 +124,7 @@
         <a class="side-link" href="/aktuality.jsp"><%= t.getProperty("home.allNews") %></a>
       </div>
 
-      <div class="card side-card newsletter">
+      <div class="card side-card newsletter card-gold">
         <div class="nl-photo" aria-hidden="true"><img src="/img/photos/point-sm.webp" alt="" loading="lazy" width="640" height="480"></div>
         <p class="nl-lead"><%= t.getProperty("home.newsletter.lead") %></p>
         <h3><i class="fa-solid fa-envelope"></i> <%= t.getProperty("home.newsletter.title","Novinky e-mailem") %></h3>
