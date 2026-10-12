@@ -175,7 +175,7 @@
         </nav>
       </c:if>
       </div>
-      <c:if test="${not empty lyric.youtubeId}"><div class="stage-under"><%@ include file="/includes/clip-fx-switch.jspf" %></div></c:if>
+      <c:if test="${not empty lyric.youtubeId}"><div class="stage-under"><%-- the karaoke cinema, shown by js/karaoke.js once the clip has timings --%><a class="kino-link" id="kinoLink" hidden href="/karaoke-kino/<c:out value='${lyric.songUuid}'/>"><i class="fa-solid fa-film" aria-hidden="true"></i> <%= t.getProperty("karaoke.cinema") %></a><%@ include file="/includes/clip-fx-switch.jspf" %></div></c:if>
       </section>
       </c:if>
 
