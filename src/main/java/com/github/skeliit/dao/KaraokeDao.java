@@ -77,6 +77,24 @@ public class KaraokeDao {
         return null;
     }
 
+    /**
+     * The song for the karaoke cinema (/karaoke/{uuid}): its newest clip, name, year and Czech lyrics, or null
+     * when it has no clip or no Czech lyrics. [youtubeId, name, year (may be null), words]
+     */
+    public String[] cinemaSong(String uuid) throws SQLException {
+        try (Connection c = Db.get(); PreparedStatement ps = c.prepareStatement(
+                "SELECT v.youtube_id, s.name, s.year, l.words FROM songs s "
+                        + "JOIN videos v ON v.song_id = s.id JOIN lyrics l ON l.song_id = s.id AND l.lang = 'cs' "
+                        + "WHERE s.uuid = ? AND l.words IS NOT NULL AND l.words <> '' "
+                        + "ORDER BY v.published_at IS NULL, v.published_at DESC LIMIT 1")) {
+            ps.setString(1, uuid);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return null;
+                return new String[] {rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)};
+            }
+        }
+    }
+
     /** The non-empty lines, as js/karaoke.js and tools/karaoke-align.py count them. */
     public static String[] lines(String words) {
         if (words == null) return new String[0];

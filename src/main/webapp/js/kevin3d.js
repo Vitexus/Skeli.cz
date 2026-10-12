@@ -34,7 +34,7 @@ function logoTexture(src, w, h, bold = 0) {
   return tex;
 }
 
-function buildKevin(imgBase) {
+export function buildKevin(imgBase) {
   const capLogo = logoTexture(imgBase + 'logo-skelosquad.svg', 1024, 260, 3);
   const squadLogo = logoTexture(imgBase + 'squad-logo.webp', 1024, 300, 3);
   const gold = new THREE.MeshPhysicalMaterial({ color: 0xffc83a, metalness: 1, roughness: 0.22, clearcoat: 0.6, clearcoatRoughness: 0.15 });
@@ -286,7 +286,7 @@ function buildKevin(imgBase) {
 }
 
 // arm angles per pose: [right x, right z, left x, left z]
-const ARMS = {
+export const ARMS = {
   idle: [0, 0.22, 0, -0.22],
   rap: [-2.45, 0.32, -1.6, -0.22],      // the mic in front of his mouth
   beatbox: [-2.25, -0.85, -2.25, 0.85],
