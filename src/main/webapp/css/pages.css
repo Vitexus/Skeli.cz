@@ -1443,12 +1443,14 @@ p.acct-dim { font-family: var(--font-text); font-weight: 300; font-size: var(--f
 .lyric-page { --k-fill: var(--accent); --k-done: color-mix(in srgb, var(--accent) 65%, var(--text-dim)); }
 .lyric-page .lyrics-text pre.karaoke .k-line { color: var(--text-dim); transition: color .6s ease; }
 .lyric-page .lyrics-text pre.karaoke .k-line.k-past { color: var(--k-done); }
-.lyric-page .lyrics-text pre.karaoke .k-line.k-now {
+.lyric-page .lyrics-text pre.karaoke .k-line.k-now { color: var(--text); transition: none; }
+/* each word fills on its own (js/karaoke.js sets --k per word), so a wrapped line fills row by row */
+.lyric-page .lyrics-text pre.karaoke .k-line.k-now .k-w,
+.fs-now .k-w {
   color: transparent;
-  background: linear-gradient(90deg, var(--k-fill) calc(var(--k, 0%) - 4%), var(--text) calc(var(--k, 0%) + 4%));
+  background: linear-gradient(90deg, var(--k-fill, #ffd23f) calc(var(--k, 0%) - 6%), var(--k-rest, var(--text)) calc(var(--k, 0%) + 6%));
   -webkit-background-clip: text;
   background-clip: text;
-  transition: none;
 }
 /* the karaoke window: while karaoke runs, the lyrics scroll inside a box that fills the screen under the clip */
 .lyric-page .lyric-body.k-window {
@@ -1515,11 +1517,7 @@ html.fs-lock { overflow: hidden; }
 .lyric-media.is-fs .fs-lyrics:has(.fs-now:empty):has(.fs-next:empty) { visibility: hidden; }
 .lyric-media.is-fs .fs-lyrics[hidden] { display: none; }
 .fs-now, .fs-next { margin: 0; font-family: var(--font-body); filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 2px #000); }
-.fs-now {
-  font-size: clamp(1.1rem, 2.6vw, 2.3rem); line-height: 1.3; color: transparent;
-  background: linear-gradient(90deg, #ffd23f calc(var(--k, 0%) - 3%), #fff calc(var(--k, 0%) + 3%));
-  -webkit-background-clip: text; background-clip: text;
-}
+.fs-now { font-size: clamp(1.1rem, 2.6vw, 2.3rem); line-height: 1.3; color: #fff; --k-fill: #ffd23f; --k-rest: #fff; }
 .fs-next { margin-top: 0.45em; font-size: clamp(0.85rem, 1.7vw, 1.4rem); color: rgba(255, 255, 255, 0.62); }
 .fs-next:empty { display: none; }
 html.lyric-plain .fs-now, html.lyric-plain .fs-next { font-family: 'Exo 2', system-ui, sans-serif; font-weight: 600; }

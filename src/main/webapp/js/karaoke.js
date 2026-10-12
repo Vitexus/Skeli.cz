@@ -37,6 +37,37 @@
   }
   function unsplit() { pre.textContent = original; lines = []; }
 
+  // ---------- word by word: each word fills with gold on its own (a wrapped line no longer fills both rows) ----------
+  // The words of line i get their sung times from data.words; without them the line's time is shared by length.
+  function wordTimes(i, count, text) {
+    var w = data && data.words && data.words[i];
+    if (w && w.length === count) return w;
+    var t = data.times[i], toks = text.trim().split(/\s+/), total = toks.join('').length || 1, at = t[0], out = [];
+    toks.forEach(function (tok) { var d = (t[1] - t[0]) * tok.length / total; out.push([at, at + d]); at += d; });
+    return out;
+  }
+  // puts the line's text into el as one span per word (the spaces stay as they are)
+  function wordSpans(el, text) {
+    el.textContent = '';
+    text.split(/(\s+)/).forEach(function (part) {
+      if (!part) return;
+      if (/^\s+$/.test(part)) { el.appendChild(document.createTextNode(part)); return; }
+      var w = document.createElement('span');
+      w.className = 'k-w';
+      w.textContent = part;
+      el.appendChild(w);
+    });
+    return el.querySelectorAll('.k-w');
+  }
+  // every word of line i at this time: 0 % before it is sung, filling while it is, 100 % after
+  function paintWords(words, i, time) {
+    var t = wordTimes(i, words.length, Array.prototype.map.call(words, function (w) { return w.textContent; }).join(' '));
+    for (var n = 0; n < words.length; n++) {
+      var p = Math.max(0, Math.min(1, (time - t[n][0]) / Math.max(0.12, t[n][1] - t[n][0])));
+      words[n].style.setProperty('--k', (p * 100).toFixed(0) + '%');
+    }
+  }
+
   // ---------- timings of the clip that shows ----------
   function load(id) {
     if (!/^[A-Za-z0-9_-]{6,20}$/.test(id || '') || id === clipId) return;
@@ -173,6 +204,7 @@
     if (backBtn) backBtn.hidden = true;
   });
 
+  var curWords = null;
   function tick() {
     if (!running) return;
     if (!document.body.contains(pre)) { stop(); return; }    // the page was left (PJAX)
@@ -183,20 +215,16 @@
     var i = -1;
     for (var k = 0; k < times.length; k++) { if (times[k][0] <= time) i = k; else break; }
     if (i !== cur) {
-      if (lines[cur]) lines[cur].classList.remove('k-now');
+      if (lines[cur]) { lines[cur].classList.remove('k-now'); lines[cur].textContent = lines[cur].textContent; }
       cur = i;
       lines.forEach(function (l, n) { l.classList.toggle('k-past', n < i); });
-      if (lines[i]) lines[i].classList.add('k-now');
+      if (lines[i]) { lines[i].classList.add('k-now'); curWords = wordSpans(lines[i], lines[i].textContent); }
       follow(false);
     } else if (userAt && performance.now() - userAt >= RESUME_MS) {
       follow(false);   // a while after the visitor's own scrolling: back to the song
     }
-    // how far into the line the singing is: one CSS variable, the gradient does the rest
-    if (lines[cur]) {
-      var s = times[cur][0], e = times[cur][1];
-      var p = Math.max(0, Math.min(1, (time - s) / Math.max(0.3, e - s)));
-      lines[cur].style.setProperty('--k', (p * 100).toFixed(1) + '%');
-    }
+    // how far into each word the singing is: one CSS variable per word, the gradient does the rest
+    if (lines[cur] && curWords) paintWords(curWords, cur, time);
     requestAnimationFrame(tick);
   }
 
@@ -207,7 +235,7 @@
   // top hides them. Where a box cannot go full screen (iPhone), it is stretched over the whole window.
   var media = player.closest('.lyric-media') || player.parentNode;
   var allLines = original.split('\n').filter(function (l) { return l.trim(); });
-  var fsBtn = null, fsBox = null, fsNow = null, fsNext = null, fsText = null, fsShow = true, fsIdx = -2, fsLoop = false;
+  var fsWords = null, fsBtn = null, fsBox = null, fsNow = null, fsNext = null, fsText = null, fsShow = true, fsIdx = -2, fsLoop = false;
   try { fsShow = localStorage.getItem('fsLyrics') !== 'off'; } catch (e) {}
   function isFs() { return document.fullscreenElement === media || media.classList.contains('fake-fs'); }
   function makeFs() {
@@ -274,11 +302,10 @@
       for (var k = 0; k < times.length; k++) { if (times[k][0] <= time) i = k; else break; }
       if (i !== fsIdx) {
         fsIdx = i;
-        fsNow.textContent = i >= 0 ? allLines[i] : '';
+        fsWords = wordSpans(fsNow, i >= 0 ? allLines[i] : '');
         fsNext.textContent = allLines[i + 1] || '';
       }
-      var p = i >= 0 ? Math.max(0, Math.min(1, (time - times[i][0]) / Math.max(0.3, times[i][1] - times[i][0]))) : 0;
-      fsNow.style.setProperty('--k', (p * 100).toFixed(1) + '%');
+      if (i >= 0 && fsWords) paintWords(fsWords, i, time);
     }
     requestAnimationFrame(fsTick);
   }
