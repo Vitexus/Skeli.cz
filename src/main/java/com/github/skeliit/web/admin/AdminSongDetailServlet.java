@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * Song hub in admin: media + per-language lyrics / SEO / meta description.
  * GET  /admin/song?uuid=…
- * POST action=save|save_locale|save_art|link_video|unlink_video|translate_locale
+ * POST action=save|save_locale|save_art|save_poster|link_video|unlink_video|translate_locale
  */
 @WebServlet(name = "AdminSongDetailServlet", urlPatterns = { "/admin/song" })
 public class AdminSongDetailServlet extends HttpServlet {
@@ -61,6 +61,8 @@ public class AdminSongDetailServlet extends HttpServlet {
                     ? "/yt-thumb/" + videos.get(0).youtubeId + "/hqdefault.jpg"
                     : WebUtils.safeUrl(song.previewImageUrl, null);
             req.setAttribute("rowArt", rowArt);
+            // the Karaoke poster always shows the newest clip (songs without a clip have no karaoke)
+            req.setAttribute("posterArt", !videos.isEmpty() && videos.get(0).youtubeId != null ? "/yt-thumb/" + videos.get(0).youtubeId + "/hqdefault.jpg" : null);
             req.setAttribute("songTitle", com.github.skeliit.model.SongTitle.of(song.name));
             req.setAttribute("locales", buildLocaleMap(song.id));
             req.setAttribute("langs", LANGS);
@@ -150,6 +152,21 @@ public class AdminSongDetailServlet extends HttpServlet {
                         songs.updateArt(id, Song.clamp(x, -400, 400), Song.clamp(y, -200, 300), Song.clamp(zoom, 0.25, 3));
                     }
                     resp.sendRedirect(hub + "&msg=art_saved#row-art");
+                }
+                case "save_poster" -> {
+                    if ("1".equals(req.getParameter("auto"))) {
+                        songs.updatePoster(id, null, null, null);
+                    } else {
+                        Double x = parseDouble(req.getParameter("poster_x"));
+                        Double y = parseDouble(req.getParameter("poster_y"));
+                        Double zoom = parseDouble(req.getParameter("poster_zoom"));
+                        if (x == null || y == null || zoom == null) {
+                            resp.sendRedirect(hub + "&msg=bad_art#poster-art");
+                            return;
+                        }
+                        songs.updatePoster(id, Song.clamp(x, 0, 100), Song.clamp(y, 0, 100), Song.clamp(zoom, 1, 3));
+                    }
+                    resp.sendRedirect(hub + "&msg=poster_saved#poster-art");
                 }
                 case "save_locale" -> {
                     String lang = I18n.safeLang(req.getParameter("lang"));

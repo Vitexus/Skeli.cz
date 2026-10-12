@@ -19,6 +19,7 @@
         <c:when test="${param.msg == 'preview_saved'}">Náhledový obrázek uložen.</c:when>
         <c:when test="${param.msg == 'preview_deleted'}">Náhledový obrázek smazán.</c:when>
         <c:when test="${param.msg == 'art_saved'}">Obrázek v seznamu Texty uložen.</c:when>
+        <c:when test="${param.msg == 'poster_saved'}">Plakát v Karaoke uložen.</c:when>
         <c:when test="${param.msg == 'bad_art'}">Pozici obrázku se nepodařilo přečíst – zkus to znovu.</c:when>
         <c:when test="${param.msg == 'bad_youtube'}">Neplatné YouTube ID / URL.</c:when>
         <c:when test="${param.msg == 'bad_name'}">Název písně je povinný.</c:when>
@@ -194,6 +195,46 @@
             <button type="submit">Uložit</button>
             <button type="submit" name="auto" value="1" class="control-btn">Vrátit automaticky</button>
             <span class="text-dim">${song.artZoom != null ? 'Teď: nastaveno ručně' : 'Teď: automaticky'}</span>
+          </form>
+        </c:otherwise>
+      </c:choose>
+    </section>
+
+    <!-- Plakát v Karaoke (/karaoke-kino): výřez a velikost ručně -->
+    <section class="admin-card admin-card-wide" id="poster-art">
+      <h3>Plakát v Karaoke</h3>
+      <c:choose>
+        <c:when test="${empty posterArt}">
+          <p class="text-dim">Song nemá klip, v Karaoke se neukazuje.</p>
+        </c:when>
+        <c:otherwise>
+          <p class="text-dim">Obrázek v plakátu <strong>táhni myší</strong> (na telefonu prstem), <strong>kolečkem myši</strong> nebo posuvníkem ho zvětšíš. Vlevo velký plakát nejnovější písně, vpravo běžný plakát (i na telefonu).</p>
+          <div class="poster-editor" id="posterEditor"
+               data-x="${song.posterX != null ? song.posterX : ''}" data-y="${song.posterY != null ? song.posterY : ''}" data-zoom="${song.posterZoom != null ? song.posterZoom : ''}">
+            <span class="k-feature-poster poster-drag"><img src="<c:out value='${posterArt}'/>" alt="" draggable="false"></span>
+            <span class="k-poster poster-drag">
+              <span class="k-poster-img"><img src="<c:out value='${posterArt}'/>" alt="" draggable="false"></span>
+              <span class="k-poster-text"><span class="k-poster-title"><c:out value="${songTitle.title}"/></span></span>
+              <span class="k-ticket"><i class="fa-solid fa-ticket"></i></span>
+            </span>
+          </div>
+          <div class="art-controls">
+            <label class="art-zoom">Velikost
+              <input type="range" id="posterZoom" min="100" max="300" step="1" value="100">
+              <output id="posterZoomOut">100 %</output>
+            </label>
+            <button type="button" id="posterCenter" class="control-btn">Na střed</button>
+          </div>
+          <form method="post" action="/admin/song" class="admin-inline-form art-form">
+            <input type="hidden" name="csrf" value="${csrf}">
+            <input type="hidden" name="id" value="${song.id}">
+            <input type="hidden" name="action" value="save_poster">
+            <input type="hidden" name="poster_x" id="posterX">
+            <input type="hidden" name="poster_y" id="posterY">
+            <input type="hidden" name="poster_zoom" id="posterZoomVal">
+            <button type="submit">Uložit</button>
+            <button type="submit" name="auto" value="1" class="control-btn">Vrátit automaticky</button>
+            <span class="text-dim">${song.posterZoom != null ? 'Teď: nastaveno ručně' : 'Teď: automaticky'}</span>
           </form>
         </c:otherwise>
       </c:choose>
@@ -525,6 +566,47 @@
       initCropper();
     });
   }
+})();
+</script>
+<script>
+// the Karaoke poster: drag the picture, wheel / slider to zoom; the same CSS variables as the karaoke list
+// (--px / --py = the point of the thumbnail in the middle of the poster, --pz = zoom)
+(function () {
+  var ed = document.getElementById('posterEditor');
+  if (!ed) return;
+  var boxes = [].slice.call(ed.querySelectorAll('.poster-drag')), imgs = [].slice.call(ed.querySelectorAll('img'));
+  var range = document.getElementById('posterZoom'), out = document.getElementById('posterZoomOut');
+  var num = function (v, d) { v = parseFloat(v); return isFinite(v) ? v : d; };
+  var clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+  var st = { x: num(ed.dataset.x, 50), y: num(ed.dataset.y, 50), z: num(ed.dataset.zoom, 1) };
+  function apply() {
+    st.z = clamp(st.z, 1, 3); st.x = clamp(st.x, 0, 100); st.y = clamp(st.y, 0, 100);
+    imgs.forEach(function (i) { i.style.setProperty('--px', st.x.toFixed(2)); i.style.setProperty('--py', st.y.toFixed(2)); i.style.setProperty('--pz', st.z.toFixed(3)); });
+    range.value = Math.round(st.z * 100); out.textContent = Math.round(st.z * 100) + ' %';
+    document.getElementById('posterX').value = st.x.toFixed(2);
+    document.getElementById('posterY').value = st.y.toFixed(2);
+    document.getElementById('posterZoomVal').value = st.z.toFixed(2);
+  }
+  boxes.forEach(function (box) {
+    var drag = null, frame = box.querySelector('img').parentNode;
+    box.addEventListener('pointerdown', function (e) {
+      var r = frame.getBoundingClientRect();
+      drag = { px: e.clientX, py: e.clientY, x: st.x, y: st.y, w: r.width * 2.6667 * st.z, h: r.height * 1.3334 * st.z };
+      box.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    box.addEventListener('pointermove', function (e) {
+      if (!drag) return;
+      st.x = drag.x - (e.clientX - drag.px) / drag.w * 100;
+      st.y = drag.y - (e.clientY - drag.py) / drag.h * 100;
+      apply();
+    });
+    var end = function () { drag = null; };
+    box.addEventListener('pointerup', end); box.addEventListener('pointercancel', end);
+    box.addEventListener('wheel', function (e) { e.preventDefault(); st.z *= e.deltaY < 0 ? 1.06 : 1 / 1.06; apply(); }, { passive: false });
+  });
+  range.addEventListener('input', function () { st.z = range.value / 100; apply(); });
+  document.getElementById('posterCenter').addEventListener('click', function () { st.x = 50; st.y = 50; apply(); });
+  apply();
 })();
 </script>
 <script src="/js/trim-bars.js?v=<%= assetVersion %>"></script>

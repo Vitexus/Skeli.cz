@@ -46,6 +46,18 @@ public class Song {
                 clamp(x, -400, 400), clamp(y, -200, 300), clamp(zoom, 0.25, 3));
     }
 
+    /** The picture in the song's Karaoke poster, placed by hand in admin (null = automatic). */
+    public Double posterX, posterY, posterZoom;
+    public Double getPosterX() { return posterX; }
+    public Double getPosterY() { return posterY; }
+    public Double getPosterZoom() { return posterZoom; }
+
+    /** CSS variables for the Karaoke poster picture (.k-poster-img img), or "" when automatic. */
+    public static String posterStyle(Double x, Double y, Double zoom) {
+        if (x == null || y == null || zoom == null) return "";
+        return String.format(java.util.Locale.ROOT, "--px:%.2f;--py:%.2f;--pz:%.3f", clamp(x, 0, 100), clamp(y, 0, 100), clamp(zoom, 1, 3));
+    }
+
     public static double clamp(double v, double min, double max) {
         return Double.isNaN(v) ? min : Math.max(min, Math.min(max, v));
     }

@@ -101,13 +101,13 @@ public class KaraokeDao {
     public List<KaraokeSong> cinemaSongs() throws SQLException {
         List<KaraokeSong> out = new ArrayList<>();
         try (Connection c = Db.get(); PreparedStatement ps = c.prepareStatement(
-                "SELECT s.uuid, s.name, s.year, l.words, (SELECT v.youtube_id FROM videos v WHERE v.song_id = s.id "
+                "SELECT s.uuid, s.name, s.year, l.words, s.poster_x, s.poster_y, s.poster_zoom, (SELECT v.youtube_id FROM videos v WHERE v.song_id = s.id "
                         + "ORDER BY v.published_at IS NULL, v.published_at DESC LIMIT 1) yt "
                         + "FROM songs s JOIN lyrics l ON l.song_id = s.id AND l.lang = 'cs' "
                         + "WHERE l.words IS NOT NULL AND l.words <> '' AND s.uuid IS NOT NULL ORDER BY s.year IS NULL, s.year DESC, s.name");
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                if (rs.getString(5) == null) continue;
+                if (rs.getString(8) == null) continue;
                 KaraokeSong k = new KaraokeSong();
                 SongTitle st = SongTitle.of(rs.getString(2));
                 k.uuid = rs.getString(1);
@@ -116,7 +116,8 @@ public class KaraokeDao {
                 int y = rs.getInt(3);
                 k.year = rs.wasNull() ? null : y;
                 k.lines = lines(rs.getString(4));
-                k.youtubeId = rs.getString(5);
+                k.youtubeId = rs.getString(8);
+                k.posterStyle = com.github.skeliit.model.Song.posterStyle((Double) rs.getObject(5, Double.class), (Double) rs.getObject(6, Double.class), (Double) rs.getObject(7, Double.class));
                 out.add(k);
             }
         }

@@ -9,6 +9,8 @@ public class KaraokeSong {
     public String youtubeId;
     /** the non-empty lines of the Czech lyrics */
     public String[] lines;
+    /** CSS variables of a poster picture placed by hand in admin, or "" (Song.posterStyle) */
+    public String posterStyle = "";
 
     public String getUuid() { return uuid; }
     public String getTitle() { return title; }
