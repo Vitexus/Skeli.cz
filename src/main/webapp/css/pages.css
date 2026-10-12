@@ -1590,3 +1590,68 @@ html.lyric-plain .fs-now, html.lyric-plain .fs-next { font-family: 'Exo 2', syst
 }
 .fs-bar button:hover { opacity: 1; border-color: #ffd23f; }
 .fs-bar button[aria-pressed="false"] { opacity: 0.55; text-decoration: line-through; }
+
+/* ---------- Karaoke: the cinema's lobby (/karaoke-kino, views/karaoke-list.jsp) ----------
+   a marquee with bulbs, the newest song as the premiere, the others as film posters with a ticket stub.
+   The thumbnails are 4:3 with the 16:9 clip in the middle: the picture is set taller than its frame
+   (133 %, moved up by a sixth) so the black bars at the top and bottom always fall outside. */
+.k-lobby { width: min(1180px, 100%); margin: 0 auto; padding: 8px 16px 60px; }
+.k-marquee { position: relative; margin: 10px auto 34px; max-width: 760px; padding: 30px 26px 28px; text-align: center;
+  border-radius: 22px; background: linear-gradient(180deg, rgba(20, 16, 8, .92), rgba(10, 9, 8, .92)); border: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: 0 0 0 6px rgba(0, 0, 0, .35), 0 0 40px -6px color-mix(in srgb, var(--accent) 45%, transparent), var(--shadow); }
+.k-bulbs { position: absolute; inset: 7px; border-radius: 16px; pointer-events: none;
+  --b: radial-gradient(circle, #fff6d0 0 2px, #ffd23f 3px, transparent 4.5px);
+  background: var(--b) 0 0 / 18px 18px repeat-x, var(--b) 0 100% / 18px 18px repeat-x, var(--b) 0 0 / 18px 18px repeat-y, var(--b) 100% 0 / 18px 18px repeat-y;
+  filter: drop-shadow(0 0 3px #ffd23f); animation: k-chase 1.6s steps(2) infinite; }
+@keyframes k-chase { 50% { filter: drop-shadow(0 0 1px #ffd23f) brightness(.6); } }
+.k-marquee-kicker { margin: 4px 0 0; font-size: var(--fs-small); letter-spacing: .45em; text-transform: uppercase; color: #ffd23f; }
+.k-marquee-title { margin: 4px 0 6px; font-size: var(--fs-h1); background: linear-gradient(100deg, #ffe58a, #ffd23f 35%, #ff9d3d 75%, #ffd23f);
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.k-marquee-lead { margin: 0 auto; max-width: 520px; font-family: var(--font-text); font-size: var(--fs-text); font-weight: 300; color: rgba(244, 244, 245, .78); }
+/* the premiere */
+.k-feature { position: relative; display: flex; align-items: center; gap: clamp(18px, 4vw, 44px); padding: clamp(18px, 3vw, 30px); margin-bottom: 30px;
+  border-radius: var(--radius); overflow: hidden; color: #f4f4f5; border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); background: #0b0b0d; isolation: isolate; }
+.k-feature:hover { text-decoration: none; }
+.k-feature-bg { position: absolute; inset: -30px; z-index: -1; background: var(--bg) center / cover; filter: blur(26px) saturate(1.2) brightness(.45); transform: scale(1.1); }
+.k-feature-bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0, 0, 0, .1), rgba(0, 0, 0, .65)); }
+.k-feature-poster, .k-poster-img { position: relative; display: block; overflow: hidden; aspect-ratio: 2 / 3; background: #000; }
+.k-feature-poster { flex: none; width: clamp(130px, 24vw, 230px); border-radius: 12px; transform: rotate(-2deg); transition: transform .4s ease;
+  box-shadow: 0 0 0 1px rgba(255, 210, 63, .55), 0 24px 50px -16px rgba(0, 0, 0, .9); }
+.k-feature:hover .k-feature-poster { transform: rotate(0) scale(1.03); }
+.k-feature-poster img, .k-poster-img img { position: absolute; left: 50%; top: -16.67%; height: 133.34%; width: auto; max-width: none; transform: translateX(-50%); transition: transform .5s ease; }
+.k-feature-text { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
+.k-badge { padding: 4px 12px; border-radius: 999px; background: #ffd23f; color: #141414; font-size: var(--fs-small); letter-spacing: .14em; text-transform: uppercase; }
+.k-feature-title { font-size: clamp(1.7rem, 4.4vw, 3.2rem); line-height: 1.05; }
+.k-feature-meta { font-size: var(--fs-small); letter-spacing: .1em; color: rgba(244, 244, 245, .72); }
+.k-enter { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 22px; margin-top: 6px; border-radius: 999px; background: #ffd23f; color: #141414;
+  font-size: var(--fs-card); letter-spacing: .1em; text-transform: uppercase; box-shadow: 0 12px 30px -10px rgba(255, 210, 63, .7); transition: transform .2s, filter .2s; }
+.k-feature:hover .k-enter { transform: translateY(-2px); filter: brightness(1.06); }
+/* the posters (dark, also in the light theme: they are lit pictures, like in a cinema) */
+.k-posters { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(46%, 190px), 1fr)); gap: clamp(14px, 2.4vw, 24px); }
+.k-poster { position: relative; display: flex; flex-direction: column; border-radius: 14px; overflow: hidden; color: #f4f4f5; background: #0b0b0d;
+  border: 1px solid rgba(255, 210, 63, .28); box-shadow: var(--shadow); transition: transform .35s cubic-bezier(.2, .8, .2, 1), box-shadow .35s, border-color .35s; }
+.k-poster:hover { text-decoration: none; transform: translateY(-6px) rotate(-.8deg); border-color: #ffd23f;
+  box-shadow: 0 0 0 1px #ffd23f, 0 26px 50px -18px rgba(0, 0, 0, .8), 0 0 40px -10px rgba(255, 210, 63, .55); }
+.k-poster:hover .k-poster-img img { transform: translateX(-50%) scale(1.06); }
+.k-poster-img::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(0, 0, 0, .92)); }
+.k-poster-no { position: absolute; top: 10px; left: 10px; padding: 2px 8px; border-radius: 6px; background: rgba(0, 0, 0, .6); color: #ffd23f; font-size: var(--fs-small); letter-spacing: .1em; }
+.k-poster-text { position: absolute; left: 0; right: 0; bottom: 54px; padding: 0 14px; display: flex; flex-direction: column; gap: 4px; text-shadow: 0 2px 10px #000; }
+.k-poster-title { font-size: var(--fs-h4); line-height: 1.15; }
+.k-poster-meta { font-size: var(--fs-small); color: rgba(244, 244, 245, .72); }
+/* the ticket stub: a dashed tear line with two notches */
+.k-ticket { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; height: 46px; background: #141210; color: #ffd23f;
+  font-size: var(--fs-small); letter-spacing: .14em; text-transform: uppercase; border-top: 2px dashed rgba(255, 210, 63, .45); transition: background .3s, color .3s; }
+.k-ticket::before, .k-ticket::after { content: ""; position: absolute; top: -9px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg); }
+.k-ticket-go { display: none; }
+.k-ticket::before { left: -8px; }
+.k-ticket::after { right: -8px; }
+.k-poster:hover .k-ticket { background: #ffd23f; color: #141414; }
+@media (max-width: 600px) {
+  .k-feature { flex-direction: column; text-align: center; }
+  .k-feature-text { align-items: center; }
+  .k-poster-text { bottom: 50px; padding: 0 10px; }
+  .k-ticket { height: 42px; gap: 12px; }
+  .k-ticket-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .k-ticket-go { display: inline; }
+}
+@media (prefers-reduced-motion: reduce) { .k-bulbs { animation: none; } .k-poster, .k-feature-poster { transition: none; } }
