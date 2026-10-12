@@ -29,30 +29,23 @@
     <div class="lyric-grid">
 
       <!-- Song Title -->
+      <%-- centred like the clip and the lyrics: the title with the artists, year and views under it, then one row of
+           actions. Previous / next: on a phone at both sides of the title, on a wide screen beside the clip (below). --%>
       <header class="lyric-head">
+        <c:if test="${not empty prevSong}">
+          <a class="head-arrow head-prev" href="/<%= cur %>/song/${prevSong.uuid}" rel="prev" title="<%= t.getProperty("lyrics.prev") %>: <c:out value='${prevSong.shortName}'/>" aria-label="<%= t.getProperty("lyrics.prev") %>: <c:out value='${prevSong.shortName}'/>"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></a>
+        </c:if>
         <div class="lyric-titles">
           <h1 class="lyric-title"><c:out value="${lyric.shortName}"/></h1>
           <c:if test="${not empty lyric.translatedTitle}"><span class="lyric-translated" lang="<%= cur %>"><c:out value="${lyric.translatedTitle}"/></span></c:if>
           <c:if test="${not empty lyric.credits}"><span class="lyric-credits"><c:out value="${lyric.credits}"/></span></c:if>
+          <div class="lyric-meta">
+            <c:if test="${not empty lyric.year}"><span class="song-year">${lyric.year}</span></c:if>
+            <span class="head-views" title="<%= t.getProperty("lyric.views") %> ${lyric.views}"><i class="fa-regular fa-eye" aria-hidden="true"></i> ${lyric.views}<span class="sr-only"> <%= t.getProperty("lyric.views") %></span></span>
+          </div>
         </div>
-        <c:if test="${not empty lyric.year}"><span class="song-year">${lyric.year}</span></c:if>
-        <span class="head-views" title="<%= t.getProperty("lyric.views") %> ${lyric.views}"><i class="fa-regular fa-eye" aria-hidden="true"></i> ${lyric.views}<span class="sr-only"> <%= t.getProperty("lyric.views") %></span></span>
-        <%-- small previous / next arrows by the title; the big ones with pictures are under the lyrics --%>
-        <c:if test="${not empty prevSong or not empty nextSong}">
-          <span class="head-pager">
-            <c:choose>
-              <c:when test="${not empty prevSong}">
-                <a href="/<%= cur %>/song/${prevSong.uuid}" rel="prev" title="<%= t.getProperty("lyrics.prev") %>: <c:out value='${prevSong.shortName}'/>" aria-label="<%= t.getProperty("lyrics.prev") %>: <c:out value='${prevSong.shortName}'/>"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></a>
-              </c:when>
-              <c:otherwise><span class="off" aria-hidden="true"><i class="fa-solid fa-chevron-left"></i></span></c:otherwise>
-            </c:choose>
-            <c:choose>
-              <c:when test="${not empty nextSong}">
-                <a href="/<%= cur %>/song/${nextSong.uuid}" rel="next" title="<%= t.getProperty("lyrics.next") %>: <c:out value='${nextSong.shortName}'/>" aria-label="<%= t.getProperty("lyrics.next") %>: <c:out value='${nextSong.shortName}'/>"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
-              </c:when>
-              <c:otherwise><span class="off" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span></c:otherwise>
-            </c:choose>
-          </span>
+        <c:if test="${not empty nextSong}">
+          <a class="head-arrow head-next" href="/<%= cur %>/song/${nextSong.uuid}" rel="next" title="<%= t.getProperty("lyrics.next") %>: <c:out value='${nextSong.shortName}'/>" aria-label="<%= t.getProperty("lyrics.next") %>: <c:out value='${nextSong.shortName}'/>"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
         </c:if>
         <%-- what you do with the song: the heart and share, then where else to listen (round icons) --%>
         <div class="song-actions">
@@ -170,6 +163,17 @@
         </div>
       </c:otherwise>
       </c:choose>
+      <%-- wide screens: previous / next beside the clip, see-through, out where the water and fire thin out --%>
+      <c:if test="${not empty prevSong or not empty nextSong}">
+        <nav class="stage-pager" aria-label="<%= t.getProperty("lyrics.pager") %>">
+          <c:if test="${not empty prevSong}">
+            <a class="stage-arrow stage-prev" href="/<%= cur %>/song/${prevSong.uuid}" rel="prev" aria-label="<%= t.getProperty("lyrics.prev") %>: <c:out value='${prevSong.shortName}'/>"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i><span class="stage-arrow-name" aria-hidden="true"><c:out value="${prevSong.shortName}"/></span></a>
+          </c:if>
+          <c:if test="${not empty nextSong}">
+            <a class="stage-arrow stage-next" href="/<%= cur %>/song/${nextSong.uuid}" rel="next" aria-label="<%= t.getProperty("lyrics.next") %>: <c:out value='${nextSong.shortName}'/>"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i><span class="stage-arrow-name" aria-hidden="true"><c:out value="${nextSong.shortName}"/></span></a>
+          </c:if>
+        </nav>
+      </c:if>
       </div>
       <c:if test="${not empty lyric.youtubeId}"><div class="stage-under"><%@ include file="/includes/clip-fx-switch.jspf" %></div></c:if>
       </section>
