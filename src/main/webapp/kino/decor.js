@@ -68,8 +68,6 @@ export function buildDecor({ HALF, TOP, BACK, glowMat, canvasTex, rnd, SW, SH, S
       fire.intensity = (1.6 + Math.sin(sec * 9) * .25 + Math.sin(sec * 23) * .15) * Math.max(.4, lights);
     });
     frame(g, wood, .14, .06, .03);
-    const fabric = new THREE.MeshStandardMaterial({ color: 0x2a2622, roughness: 1 });
-    for (const s of [-1, 1]) { box(g, wood, .34, 1.05, .32, s * 2.3, .53, BACK + .45, .02); box(g, fabric, .28, .95, .02, s * 2.3, .55, BACK + .62, 0); }
     box(g, wood, 2.6, .5, .42, 0, .3, BACK + .25, .02);
     for (let i = 0; i < 3; i++) box(g, new THREE.MeshStandardMaterial({ color: 0x2e1b0d, roughness: .6 }), .8, .012, .01, -.86 + i * .86, .4, BACK + .47, 0);
     for (const z of [-2.6, -.6, 1.4]) box(g, new THREE.MeshStandardMaterial({ color: 0x2b1a0c, roughness: .7 }), HALF * 2, .18, .2, 0, TOP - .09, z, 0);
@@ -121,7 +119,6 @@ export function buildDecor({ HALF, TOP, BACK, glowMat, canvasTex, rnd, SW, SH, S
     box(g, metal, .42, .16, .36, 0, TOP - .3, 1.2, .03); cyl(g, metal, .01, .01, .2, 0, TOP - .12, 1.2, 6);
     const lens = new THREE.Mesh(new THREE.CircleGeometry(.05, 20), glowMat(new THREE.Color(.8, .9, 1), 2)); lens.position.set(0, TOP - .3, 1.01); lens.rotation.y = Math.PI; g.add(lens);
     for (const x of [-1.3, 1.6]) { const d = cyl(g, new THREE.MeshStandardMaterial({ color: 0x8a8c90, roughness: .4, metalness: .9 }), .14, .14, 7.4, x, TOP - .17, -.2, 20); d.rotation.x = Math.PI / 2; }
-    for (const s of [-1, 1]) { cyl(g, metal, .015, .015, .8, s * 2.35, .4, BACK + .7, 8); cyl(g, metal, .14, .14, .02, s * 2.35, .01, BACK + .7, 20); box(g, new THREE.MeshStandardMaterial({ color: 0x1c1c1e, roughness: .5 }), .24, .36, .26, s * 2.35, .98, BACK + .7, .02); const c = cyl(g, new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: .5 }), .07, .07, .01, s * 2.35, .93, BACK + .84, 20); c.rotation.x = Math.PI / 2; }
     // a low shelf of records with a turntable on the right wall
     const R = new THREE.Group(); R.position.set(HALF - .25, 0, -1.2); R.rotation.y = -Math.PI / 2; g.add(R);
     box(R, metal, 1.6, .55, .38, 0, .28, 0, .01);
@@ -177,7 +174,7 @@ export function buildDecor({ HALF, TOP, BACK, glowMat, canvasTex, rnd, SW, SH, S
       cyl(g, white, .05, .2, .28, x, .14, .9, 24);
     }
     const edge = new THREE.Mesh(new THREE.ShapeGeometry(ring(SW + .05, SH + .05, .012, .04), 12), glowMat(CYAN, 2.2)); edge.position.set(0, SCY, SZ - .02); g.add(edge);
-    for (const s of [-1, 1]) { box(g, white, .14, 1.7, .14, s * 2.35, .85, BACK + .45, .05); const st = new THREE.Mesh(new THREE.BoxGeometry(.03, 1.5, .02), glowMat(CYAN, 2)); st.position.set(s * 2.35, .85, BACK + .53); g.add(st); }
+    for (const s of [-1, 1]) { box(g, white, .14, 1.7, .14, s * 2.85, .85, BACK + .45, .05); const st = new THREE.Mesh(new THREE.BoxGeometry(.03, 1.5, .02), glowMat(CYAN, 2)); st.position.set(s * 2.85, .85, BACK + .53); g.add(st); }
     box(g, white, 2.6, .07, .45, 0, .45, BACK + .3, .03);
     const under = new THREE.Mesh(new THREE.BoxGeometry(2.4, .005, .01), glowMat(CYAN, 2)); under.position.set(0, .41, BACK + .5); g.add(under);
     const lineM = glowMat(CYAN, 1.4);

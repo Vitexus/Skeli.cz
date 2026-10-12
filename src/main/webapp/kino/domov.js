@@ -344,26 +344,47 @@ logo.onload = () => {
 };
 logo.src = '/img/squad-logo.webp';
 
-// slim floor-standing speakers by the screen: the woofers move with the bass
+// floor-standing speakers by the screen, in every room (the look comes with the room, applyRoom): two big
+// woofers that pump out and back with the bass, so you see the beat, a lit ring round each, a tweeter
+const SPK = {
+  a: { cab: [0x0b0b0c, .2, .5], ring: [0xc9ccd2, .15, 1], led: [1, .72, .2] },
+  b: { cab: [0x3a2212, .5, 0], ring: [0xc9a14a, .25, 1], led: [1, .55, .2] },
+  c: { cab: [0x19191b, .85, .1], ring: [0x2c2c2e, .4, .6], led: [1, .6, .25] },
+  d: { cab: [0x0c2a1e, .15, .3], ring: [0xd9b45a, .2, 1], led: [1, .78, .3] },
+  e: { cab: [0xe4e4e8, .2, .1], ring: [0xdcdce2, .2, .6], led: [.3, .85, 1] }
+};
 const speakers = [], speakerParts = [];
+const cabMat = new THREE.MeshStandardMaterial({ color: 0x0b0b0c, roughness: .2, metalness: .5 });
+const spkRing = new THREE.MeshStandardMaterial({ color: 0xc9ccd2, roughness: .15, metalness: 1 });
 const rubber = new THREE.MeshStandardMaterial({ color: 0x0e0e10, roughness: .55 });
-const coneMat = new THREE.MeshStandardMaterial({ color: 0x15151a, roughness: .4, metalness: .25, side: THREE.DoubleSide });
-for (const s of [-1, 1]) {
+const coneMat = new THREE.MeshStandardMaterial({ color: 0x17171b, roughness: .45, metalness: .2, side: THREE.DoubleSide });
+const capMat = new THREE.MeshStandardMaterial({ color: 0x0c0c0e, roughness: .3, metalness: .4 });
+const spkLed = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
+const spkLedCol = new THREE.Color(1, .72, .2);
+for (const sx of [-1, 1]) {
   const g = new THREE.Group();
-  const box = new THREE.Mesh(new RoundedBoxGeometry(.3, 1.2, .34, 4, .03), new THREE.MeshStandardMaterial({ color: 0x0b0b0c, roughness: .2, metalness: .5 }));
-  box.position.y = .6; g.add(box);
+  const cab = new THREE.Mesh(new RoundedBoxGeometry(.32, 1.25, .36, 4, .03), cabMat); cab.position.y = .625; g.add(cab);
   const cones = [];
-  for (const [yy, r] of [[.32, .095], [.6, .095], [.9, .05]]) {
+  for (const [yy, r, woofer] of [[.34, .118, 1], [.66, .118, 1], [.96, .045, 0]]) {
+    const trim = new THREE.Mesh(new THREE.TorusGeometry(r + .014, .008, 10, 40), spkRing); trim.position.set(0, yy, .182); g.add(trim);
+    if (woofer) { const glowRing = new THREE.Mesh(new THREE.TorusGeometry(r + .028, .004, 8, 48), spkLed); glowRing.position.set(0, yy, .181); g.add(glowRing); }
     const c = new THREE.Group();
-    c.add(new THREE.Mesh(new THREE.TorusGeometry(r + .012, .007, 8, 32), frameMat));
-    c.add(new THREE.Mesh(new THREE.TorusGeometry(r, .009, 8, 32), rubber));
-    const cone = new THREE.Mesh(new THREE.CylinderGeometry(r, r * .25, .04, 32, 1, true), coneMat); cone.rotation.x = Math.PI / 2; cone.position.z = -.02; c.add(cone);
-    c.position.set(0, yy, .171); g.add(c); cones.push(c);
+    c.add(new THREE.Mesh(new THREE.TorusGeometry(r, .012, 10, 40), rubber));                         // the surround
+    const cone = new THREE.Mesh(new THREE.CylinderGeometry(r - .004, r * .28, .05, 40, 1, true), coneMat);
+    cone.rotation.x = Math.PI / 2; cone.position.z = -.025; c.add(cone);
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(r * .3, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), capMat);
+    cap.rotation.x = Math.PI / 2; cap.position.z = -.045; c.add(cap);
+    c.position.set(0, yy, .18); g.add(c); cones.push({ c, woofer, r });
   }
-  g.position.set(s * 2.3, 0, BACK + .45);
+  g.position.set(sx * 2.25, 0, BACK + .45);
   scene.add(g); speakerParts.push(g);
-  const led = glow(new THREE.SphereGeometry(.008, 8, 6), s < 0 ? COLD : WARM, 3, new THREE.Vector3(s * 2.3, 1.13, BACK + .45 + .172));
-  speakers.push({ cones, led }); speakerParts.push(led);
+  speakers.push({ cones, cab });
+}
+function styleSpeakers(key) {
+  const st = SPK[key] || SPK.a;
+  cabMat.color.setHex(st.cab[0]); cabMat.roughness = st.cab[1]; cabMat.metalness = st.cab[2];
+  spkRing.color.setHex(st.ring[0]); spkRing.roughness = st.ring[1]; spkRing.metalness = st.ring[2];
+  spkLedCol.setRGB(...st.led);
 }
 
 // the black leather L-sofa (you sit behind it), warm LED under it; Kevin's armchair on the left
@@ -787,7 +808,7 @@ const decor = buildDecor({ HALF, TOP, BACK, glowMat, canvasTex, rnd, SW, SH, SCY
 
 // ---------------- the room the viewer picked ----------------
 // what each room keeps of the shared things: its own frame, speakers, console come from decor.js
-const KIT = { a: { frame: 1, speakers: 1, console: 1, corners: 1, smart: 1 }, b: {}, c: { smart: 1 }, d: { corners: 1 }, e: { corners: 1, smart: 1 } };
+const KIT = { a: { frame: 1, speakers: 1, console: 1, corners: 1, smart: 1 }, b: { speakers: 1 }, c: { smart: 1, speakers: 1 }, d: { corners: 1, speakers: 1 }, e: { corners: 1, smart: 1, speakers: 1 } };
 const wallCache = {};
 const wallFor = (kind) => wallCache[kind] || (wallCache[kind] = wallMaterial(kind, kind === 'walnut' ? null : kind === 'velvet' ? [3, 1] : [2.5, 1.1]));
 function sofaMaterial(v) {
@@ -819,6 +840,7 @@ function applyRoom(key) {
   sofa.children.forEach((o) => { if (o.isMesh) o.material = m; });
   chair.children.forEach((o) => { if (o.isMesh) o.material = m; });
   CANDLE.setRGB(...V.cove);
+  styleSpeakers(key);
   curtainMat.color.setHex(V.curtain[0]); curtainMat.sheenColor.setRGB(...V.curtain[1]);
   cove.forEach((l) => l.color.copy(CANDLE)); lampLight.color.copy(CANDLE); shade.material.emissive.copy(CANDLE);
   cornerCols[0].copy(NEON[V.corners[0]]); cornerCols[1].copy(NEON[V.corners[1]]);
@@ -908,7 +930,8 @@ function frame(ts) {
   decor.update(dt, sec, beat, lights);
   const buzz = (ts % 9000) < 160 ? (Math.sin(ts * .09) > 0 ? .5 : 1) : 1;
   signMat.opacity = Math.min(1, lights) * buzz;
-  for (const s of speakers) s.cones.forEach((c, i) => { c.position.z = .171 + (i < 2 ? beat * .012 : beat * .004); });
+  for (const sp of speakers) sp.cones.forEach((o) => { o.c.position.z = .18 + (o.woofer ? beat * .045 : beat * .008); o.c.scale.setScalar(1 + (o.woofer ? beat * .07 : 0)); });
+  spkLed.color.copy(spkLedCol).multiplyScalar((.25 + beat * 2.6) * Math.max(lights, .25));
 
   // smart lights: soft sweeps, up with the bass, wider in the chorus
   for (const h of heads) {
