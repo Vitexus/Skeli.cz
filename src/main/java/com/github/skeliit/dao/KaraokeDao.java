@@ -3,6 +3,8 @@ package com.github.skeliit.dao;
 import com.github.skeliit.Db;
 import com.github.skeliit.job.VideoTitles;
 import com.github.skeliit.model.KaraokeClip;
+import com.github.skeliit.model.KaraokeSong;
+import com.github.skeliit.model.SongTitle;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -93,6 +95,32 @@ public class KaraokeDao {
                 return new String[] {rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)};
             }
         }
+    }
+
+    /** Songs with a clip and Czech lyrics, newest first (the karaoke list; the servlet keeps those with timings). */
+    public List<KaraokeSong> cinemaSongs() throws SQLException {
+        List<KaraokeSong> out = new ArrayList<>();
+        try (Connection c = Db.get(); PreparedStatement ps = c.prepareStatement(
+                "SELECT s.uuid, s.name, s.year, l.words, (SELECT v.youtube_id FROM videos v WHERE v.song_id = s.id "
+                        + "ORDER BY v.published_at IS NULL, v.published_at DESC LIMIT 1) yt "
+                        + "FROM songs s JOIN lyrics l ON l.song_id = s.id AND l.lang = 'cs' "
+                        + "WHERE l.words IS NOT NULL AND l.words <> '' AND s.uuid IS NOT NULL ORDER BY s.year IS NULL, s.year DESC, s.name");
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                if (rs.getString(5) == null) continue;
+                KaraokeSong k = new KaraokeSong();
+                SongTitle st = SongTitle.of(rs.getString(2));
+                k.uuid = rs.getString(1);
+                k.title = st.title;
+                k.credits = st.credits;
+                int y = rs.getInt(3);
+                k.year = rs.wasNull() ? null : y;
+                k.lines = lines(rs.getString(4));
+                k.youtubeId = rs.getString(5);
+                out.add(k);
+            }
+        }
+        return out;
     }
 
     /** The non-empty lines, as js/karaoke.js and tools/karaoke-align.py count them. */

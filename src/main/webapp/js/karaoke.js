@@ -10,7 +10,6 @@
   var pre = document.querySelector('.lyric-page .lyrics-text pre');
   var player = document.getElementById('ytFacade');
   var button = document.getElementById('karaokeToggle');
-  var kinoLink = document.getElementById('kinoLink');
   if (!pre || !player || !button || pre.dataset.karaoke) return;
   pre.dataset.karaoke = '1';
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -82,7 +81,6 @@
       data = d;
       button.hidden = false;
       if (fsBtn) fsBtn.hidden = false;   // full screen with the lyrics only makes sense with timings
-      if (kinoLink) kinoLink.hidden = false;
       paintButton();
       if (playing && on) start();
     }).catch(function () {});

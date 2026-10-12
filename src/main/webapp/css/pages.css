@@ -578,10 +578,6 @@ body.light .listen-icon { background: rgba(0, 0, 0, 0.02); }
 
 /* Under the clip, on the right: the switch for the water and fire */
 .stage-under { position: relative; z-index: 2; display: flex; justify-content: flex-end; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
-/* the way into the karaoke cinema (/karaoke-kino/{uuid}) */
-.kino-link { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 16px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-size: var(--fs-small); letter-spacing: .06em; text-transform: uppercase; }
-.kino-link[hidden] { display: none; }
-.kino-link:hover { text-decoration: none; filter: brightness(1.08); }
 
 /* In the corner of the lyrics: karaoke and Aa (size, font). Sticky, so they stay at hand while reading. */
 .lyric-tools {
