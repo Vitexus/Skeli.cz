@@ -26,11 +26,11 @@ if (SIM) document.body.classList.add('sim');
 const $ = (id) => document.getElementById(id);
 // interior variants (?v=a..e): walls, furniture, lights and the view from the window
 const VARIANTS = {
-  a: { name: 'Černý luxus', back: 'walnut', side: 0x141416, sideTex: null, floor: [1, 1, 1], rug: '#1b1a1c', sofa: 0x0b0b0c, sofaKind: 'leather', cove: [1, .66, .36], corners: ['cold', 'warm'], window: 'city' },
-  b: { name: 'Teplé dřevo', back: 'oak', side: 0xffffff, sideTex: 'oak', floor: [1.25, 1.1, .95], rug: '#2a2420', sofa: 0x5a2e14, sofaKind: 'leather', cove: [1, .62, .3], corners: ['warm', 'warm'], window: 'none' },
-  c: { name: 'Loft', back: 'concrete', side: 0xffffff, sideTex: 'concrete', floor: [.85, .85, .9], rug: '#26272b', sofa: 0x2c2d30, sofaKind: 'fabric', cove: [.9, .75, .55], corners: ['cold', 'warm'], window: 'rain' },
-  d: { name: 'Samet a zlato', back: 'velvet', side: 0xffffff, sideTex: 'velvet', floor: [.9, .8, .7], rug: '#1d1712', sofa: 0x123326, sofaKind: 'velvet', cove: [1, .7, .35], corners: ['gold', 'gold'], window: 'forest' },
-  e: { name: 'Grafitové sci-fi', back: 'hex', side: 0xffffff, sideTex: 'hex', floor: [.8, .82, .9], rug: '#18191d', sofa: 0xd9d9dc, sofaKind: 'leather', cove: [.55, .75, 1], corners: ['cold', 'cold'], window: 'city' }
+  a: { name: 'Černý luxus', back: 'walnut', side: 0x141416, sideTex: null, floor: [1, 1, 1], rug: '#1b1a1c', sofa: 0x0b0b0c, sofaKind: 'leather', cove: [1, .66, .36], corners: ['cold', 'warm'], window: 'city', curtain: [0x16161a, [.75, .6, .3]] },
+  b: { name: 'Teplé dřevo', back: 'oak', side: 0xffffff, sideTex: 'oak', floor: [1.25, 1.1, .95], rug: '#2a2420', sofa: 0x5a2e14, sofaKind: 'leather', cove: [1, .62, .3], corners: ['warm', 'warm'], window: 'none', curtain: [0x4a2614, [.9, .55, .3]] },
+  c: { name: 'Loft', back: 'concrete', side: 0xffffff, sideTex: 'concrete', floor: [.85, .85, .9], rug: '#26272b', sofa: 0x2c2d30, sofaKind: 'fabric', cove: [.9, .75, .55], corners: ['cold', 'warm'], window: 'rain', curtain: [0x55565a, [.7, .7, .72]] },
+  d: { name: 'Samet a zlato', back: 'velvet', side: 0xffffff, sideTex: 'velvet', floor: [.9, .8, .7], rug: '#1d1712', sofa: 0x123326, sofaKind: 'velvet', cove: [1, .7, .35], corners: ['gold', 'gold'], window: 'forest', curtain: [0x0d3324, [.85, .7, .3]] },
+  e: { name: 'Grafitové sci-fi', back: 'hex', side: 0xffffff, sideTex: 'hex', floor: [.8, .82, .9], rug: '#18191d', sofa: 0xd9d9dc, sofaKind: 'leather', cove: [.55, .75, 1], corners: ['cold', 'cold'], window: 'city', curtain: [0xb9bcc2, [.5, .8, 1]] }
 };
 let roomKey = qs.get('v');
 try { if (!VARIANTS[roomKey]) roomKey = localStorage.getItem('kinoRoom'); } catch (er) { /* no storage */ }
@@ -495,26 +495,26 @@ function spawnRain(n) {
   }
 }
 
-// the curtain: floor to ceiling in front of the screen wall (drawn in front of the clip, so it covers it when
-// closed; hung in front of the speakers, so drawing it over them is right). It opens with the projector and
-// stays gathered at the walls on both sides; it closes for the end titles and when leaving.
-frontScene.add(new THREE.HemisphereLight(0x664444, 0x000000, .5));
+// the curtain: just in front of the screen (drawn in front of the clip, so it covers it when
+// closed). Its colour comes with the room. It opens with the projector and stays gathered close to both
+// sides of the screen; it closes for the end titles and when leaving.
+frontScene.add(new THREE.HemisphereLight(0x8a8078, 0x000000, .5));
 const curtainKey = new THREE.PointLight(0xffd9a8, 0, 6, 1.5); curtainKey.position.set(0, SCY + 1, BACK + 2.55); frontScene.add(curtainKey);
-const curtainMat = new THREE.MeshPhysicalMaterial({ color: 0x3e0a10, roughness: .8, sheen: 1, sheenColor: new THREE.Color(.9, .25, .3), sheenRoughness: .35 });
-const CPIV = 3.0, CW = CPIV + .05, CH = TOP - .22, CZ = BACK + .95;
+const curtainMat = new THREE.MeshPhysicalMaterial({ color: 0x16161a, roughness: .8, sheen: 1, sheenColor: new THREE.Color(.75, .6, .3), sheenRoughness: .35 });   // the room sets its colour (applyRoom)
+const CPIV = SW / 2 + .4, CW = CPIV + .04, CH = SH + .4, CZ = SZ + .12;
 const curtains = [-1, 1].map((s) => {
   const g = new THREE.PlaneGeometry(CW, CH, 90, 1), p = g.attributes.position;
   for (let i = 0; i < p.count; i++) { const x = p.getX(i); p.setZ(i, Math.sin(x * 19) * .035 + Math.sin(x * 53 + 1) * .008); }
   g.computeVertexNormals(); g.translate(-s * CW / 2, 0, 0);   // pivot on its outer edge
   const m = new THREE.Mesh(g, curtainMat);
-  m.position.set(s * CPIV, CH / 2, CZ);
+  m.position.set(s * CPIV, SCY, CZ);
   frontScene.add(m);
   return m;
 });
-const valance = new THREE.Mesh(new THREE.BoxGeometry(CPIV * 2 + .2, .2, .1), curtainMat); valance.position.set(0, CH + .08, CZ); frontScene.add(valance);
+const valance = new THREE.Mesh(new THREE.BoxGeometry(CPIV * 2 + .12, .14, .08), curtainMat); valance.position.set(0, SCY + CH / 2 + .05, CZ); frontScene.add(valance);
 let curtainOpen = 0;
 // a warm light grazing each gathered side, so the velvet shows
-const curtainSides = [-1, 1].map((sd) => { const l = new THREE.PointLight(0xffb48a, 0, 3.2, 1.6); l.position.set(sd * (CPIV - .55), CH * .62, CZ + .9); frontScene.add(l); return l; });
+const curtainSides = [-1, 1].map((sd) => { const l = new THREE.PointLight(0xffe2c4, 0, 3.2, 1.6); l.position.set(sd * (CPIV - .2), SCY + .3, CZ + .7); frontScene.add(l); return l; });
 
 // Kevin (placeholder until his new look): sits in the armchair on the left; in the chorus he gets up and raps
 // along, a bubble with the bit being sung. Plug the new model in at kevinSlot.
@@ -819,6 +819,7 @@ function applyRoom(key) {
   sofa.children.forEach((o) => { if (o.isMesh) o.material = m; });
   chair.children.forEach((o) => { if (o.isMesh) o.material = m; });
   CANDLE.setRGB(...V.cove);
+  curtainMat.color.setHex(V.curtain[0]); curtainMat.sheenColor.setRGB(...V.curtain[1]);
   cove.forEach((l) => l.color.copy(CANDLE)); lampLight.color.copy(CANDLE); shade.material.emissive.copy(CANDLE);
   cornerCols[0].copy(NEON[V.corners[0]]); cornerCols[1].copy(NEON[V.corners[1]]);
   cornerLights.forEach((l, i) => l.color.copy(cornerCols[i]));
@@ -949,7 +950,7 @@ function frame(ts) {
   if (!ended && credited) { credited = false; $('credits').hidden = true; $('credits').classList.remove('run'); }
   curtainOpen += (curtainTo - curtainOpen) * (1 - Math.exp(-dt * (curtainTo ? .9 : 1.3)));
   const co = curtainOpen * curtainOpen * (3 - 2 * curtainOpen);
-  curtains.forEach((c) => { c.scale.x = 1 - co * .85; c.scale.z = 1 + co * 2.4; });
+  curtains.forEach((c) => { c.scale.x = 1 - co * .87; c.scale.z = 1 + co * 2.2; });
   curtainKey.intensity = (3 * (1 - co) + .9) * Math.max(lights, .3);
   curtainSides.forEach((l) => { l.intensity = 2.2 * co * Math.max(lights, .3); });
 
