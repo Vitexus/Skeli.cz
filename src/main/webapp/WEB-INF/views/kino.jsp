@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%-- Karaoke cinema (preview of the coming big karaoke): /karaoke/{song uuid}, KaraokeCinemaServlet fills kinoJson.
      The rooms are drawn by /kino/domov.js (a–e) and /kino/kino.js (f, the big cinema). Czech only for now. --%>
-<% String v = "5.2.0"; %>
+<% String v = "5.3.1"; %>
 <!doctype html>
 <html lang="cs">
 <head>
@@ -214,6 +214,9 @@ button { font: inherit; color: inherit; }
   .lobby h1 { font-size: clamp(30px, 9vw, 60px); }
   .room { height: 62px; }
 }
+/* leaving: the picture fades to black, then the site comes back */
+body::after { content: ""; position: fixed; inset: 0; z-index: 50; background: #000; opacity: 0; pointer-events: none; transition: opacity 1.3s ease; }
+body.fading::after { opacity: 1; pointer-events: auto; }
 .nogl { position: fixed; inset: 0; display: none; place-items: center; z-index: 7; background: #030304; text-align: center; padding: 24px; }
 
 @media (max-width: 700px) {
@@ -323,7 +326,13 @@ button { font: inherit; color: inherit; }
       ex.querySelector(".ke-ico").textContent = inside() ? "✕" : "←";
       ex.querySelector(".ke-txt").textContent = inside() ? "Odejít z kina" : "Zpět na web";
     }
-    ex.addEventListener("click", function (e) { if (inside()) { e.preventDefault(); document.getElementById("exit").click(); } });
+    ex.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (inside()) { document.getElementById("exit").click(); return; }
+      document.body.classList.add("fading");
+      try { sessionStorage.setItem("kinoOut", "1"); } catch (er) {}
+      setTimeout(function () { location.href = ex.href; }, 900);
+    });
     new MutationObserver(label).observe(lobby, { attributes: true, attributeFilter: ["class"] });
     label();
   })();

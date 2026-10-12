@@ -1618,7 +1618,10 @@ html.lyric-plain .fs-now, html.lyric-plain .fs-next { font-family: 'Exo 2', syst
 .k-feature-poster { flex: none; width: clamp(130px, 24vw, 230px); border-radius: 12px; transform: rotate(-2deg); transition: transform .4s ease;
   box-shadow: 0 0 0 1px rgba(255, 210, 63, .55), 0 24px 50px -16px rgba(0, 0, 0, .9); }
 .k-feature:hover .k-feature-poster { transform: rotate(0) scale(1.03); }
-.k-feature-poster img, .k-poster-img img { position: absolute; left: 50%; top: -16.67%; height: 133.34%; width: auto; max-width: none; transform: translateX(-50%); transition: transform .5s ease; }
+/* --px / --py = the point of the thumbnail in the middle of the poster, --pz = zoom (set in admin, default middle) */
+.k-feature-poster img, .k-poster-img img { position: absolute; max-width: none; width: auto; height: calc(133.34% * var(--pz, 1));
+  left: calc(50% - var(--px, 50) * var(--pz, 1) * 2.6667%); top: calc(50% - var(--py, 50) * var(--pz, 1) * 1.3334%);
+  transform-origin: calc(var(--px, 50) * 1%) calc(var(--py, 50) * 1%); transition: transform .5s ease; }
 .k-feature-text { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
 .k-badge { padding: 4px 12px; border-radius: 999px; background: #ffd23f; color: #141414; font-size: var(--fs-small); letter-spacing: .14em; text-transform: uppercase; }
 .k-feature-title { font-size: clamp(1.7rem, 4.4vw, 3.2rem); line-height: 1.05; }
@@ -1632,7 +1635,7 @@ html.lyric-plain .fs-now, html.lyric-plain .fs-next { font-family: 'Exo 2', syst
   border: 1px solid rgba(255, 210, 63, .28); box-shadow: var(--shadow); transition: transform .35s cubic-bezier(.2, .8, .2, 1), box-shadow .35s, border-color .35s; }
 .k-poster:hover { text-decoration: none; transform: translateY(-6px) rotate(-.8deg); border-color: #ffd23f;
   box-shadow: 0 0 0 1px #ffd23f, 0 26px 50px -18px rgba(0, 0, 0, .8), 0 0 40px -10px rgba(255, 210, 63, .55); }
-.k-poster:hover .k-poster-img img { transform: translateX(-50%) scale(1.06); }
+.k-poster:hover .k-poster-img img { transform: scale(1.06); }
 .k-poster-img::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(0, 0, 0, .92)); }
 .k-poster-no { position: absolute; top: 10px; left: 10px; padding: 2px 8px; border-radius: 6px; background: rgba(0, 0, 0, .6); color: #ffd23f; font-size: var(--fs-small); letter-spacing: .1em; }
 .k-poster-text { position: absolute; left: 0; right: 0; bottom: 54px; padding: 0 14px; display: flex; flex-direction: column; gap: 4px; text-shadow: 0 2px 10px #000; }
@@ -1654,4 +1657,8 @@ html.lyric-plain .fs-now, html.lyric-plain .fs-next { font-family: 'Exo 2', syst
   .k-ticket-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .k-ticket-go { display: inline; }
 }
+/* back from the cinema: out of the black */
+.k-from-black { position: fixed; inset: 0; z-index: 3000; background: #000; pointer-events: none; animation: k-from-black 1.6s ease forwards; }
+.k-from-black[hidden] { display: none; }
+@keyframes k-from-black { to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .k-bulbs { animation: none; } .k-poster, .k-feature-poster { transition: none; } }

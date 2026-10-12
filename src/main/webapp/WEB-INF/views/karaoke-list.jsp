@@ -10,7 +10,10 @@
     java.util.List<KaraokeSong> songs = (java.util.List<KaraokeSong>) request.getAttribute("karaokeSongs");
     if (songs == null) songs = java.util.List.of();
 %>
+<%-- coming back from the cinema: the page rises out of the black the cinema faded to --%>
 <main class="k-lobby">
+<div class="k-from-black" id="kFromBlack" hidden aria-hidden="true"></div>
+<script>try { if (sessionStorage.getItem("kinoOut")) { sessionStorage.removeItem("kinoOut"); document.getElementById("kFromBlack").hidden = false; } } catch (e) {}</script>
     <header class="k-marquee">
         <span class="k-bulbs" aria-hidden="true"></span>
         <p class="k-marquee-kicker"><%= t.getProperty("karaoke.list.marquee") %></p>
@@ -27,7 +30,7 @@
     <%-- the premiere: the newest song, big --%>
     <a class="k-feature" href="/karaoke-kino/<%= WebUtils.escapeHtml(top.uuid) %>">
         <span class="k-feature-bg" aria-hidden="true" style="--bg: url('/yt-thumb/<%= WebUtils.escapeHtml(top.youtubeId) %>/hqdefault.jpg')"></span>
-        <span class="k-feature-poster" aria-hidden="true"><img src="/yt-thumb/<%= WebUtils.escapeHtml(top.youtubeId) %>/hqdefault.jpg" alt=""></span>
+        <span class="k-feature-poster" aria-hidden="true"><img src="/yt-thumb/<%= WebUtils.escapeHtml(top.youtubeId) %>/hqdefault.jpg" alt=""<% if (!top.posterStyle.isEmpty()) { %> style="<%= top.posterStyle %>"<% } %>></span>
         <span class="k-feature-text">
             <span class="k-badge"><%= t.getProperty("karaoke.list.newest") %></span>
             <span class="k-feature-title"><%= WebUtils.escapeHtml(top.title) %></span>
@@ -43,7 +46,7 @@
             String meta = (s.credits == null || s.credits.isBlank() ? "" : s.credits + " · ") + (s.year == null ? "" : String.valueOf(s.year));
         %>
         <a class="k-poster" href="/karaoke-kino/<%= WebUtils.escapeHtml(s.uuid) %>">
-            <span class="k-poster-img" aria-hidden="true"><img src="/yt-thumb/<%= WebUtils.escapeHtml(s.youtubeId) %>/hqdefault.jpg" alt="" loading="lazy"></span>
+            <span class="k-poster-img" aria-hidden="true"><img src="/yt-thumb/<%= WebUtils.escapeHtml(s.youtubeId) %>/hqdefault.jpg" alt="" loading="lazy"<% if (!s.posterStyle.isEmpty()) { %> style="<%= s.posterStyle %>"<% } %>></span>
             <span class="k-poster-no" aria-hidden="true"><%= String.format("%02d", i + 1) %></span>
             <span class="k-poster-text">
                 <span class="k-poster-title"><%= WebUtils.escapeHtml(s.title) %></span>

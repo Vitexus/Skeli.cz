@@ -503,3 +503,12 @@ body.light .report-actions .btn-dismiss { background: transparent; color: var(--
 .karaoke-lines .k-time button { padding: 3px 9px; font-size: var(--fs-small); }
 .karaoke-lines .k-to { color: var(--text-dim); margin: 0 4px; }
 @media (max-width: 900px) { .karaoke-editor { grid-template-columns: 1fr; } .karaoke-side { position: static; } }
+/* the Karaoke poster editor (song.jsp #poster-art): the real poster pieces from pages.css, draggable */
+.poster-editor { display: flex; align-items: flex-end; gap: 28px; flex-wrap: wrap; margin: 12px 0; }
+.poster-editor .k-feature-poster { width: 220px; }
+.poster-editor .k-poster { width: 180px; }
+.poster-drag { cursor: grab; touch-action: none; user-select: none; }
+.poster-drag:active { cursor: grabbing; }
+.poster-editor .k-poster:hover { transform: none; }
+.poster-editor img { transition: none !important; transform: none !important; }
+.poster-editor .k-feature-poster { transform: none; }

@@ -13,7 +13,7 @@ import java.util.List;
 
 public class SongDao {
     private static final String SONG_COLS =
-            "id, name, year, uuid, seo_slug, apple_music_id, spotify_id, preview_image_url, art_x, art_y, art_zoom";
+            "id, name, year, uuid, seo_slug, apple_music_id, spotify_id, preview_image_url, art_x, art_y, art_zoom, poster_x, poster_y, poster_zoom";
 
     /** Newest first (year, then the newest clip), the same order as the Texty page and its previous / next links. */
     public List<Song> listWithFirstLyric() throws SQLException {
@@ -212,6 +212,18 @@ public class SongDao {
         }
     }
 
+    /** The picture's place in the song's poster on the Karaoke page; all null = automatic again. */
+    public void updatePoster(int songId, Double x, Double y, Double zoom) throws SQLException {
+        try (Connection c = Db.get(); PreparedStatement ps = c.prepareStatement(
+                "UPDATE songs SET poster_x=?, poster_y=?, poster_zoom=? WHERE id=?")) {
+            ps.setObject(1, x);
+            ps.setObject(2, y);
+            ps.setObject(3, zoom);
+            ps.setInt(4, songId);
+            ps.executeUpdate();
+        }
+    }
+
     public String getPreviewImageUrl(int songId) throws SQLException {
         try (Connection c = Db.get(); PreparedStatement ps = c.prepareStatement("SELECT preview_image_url FROM songs WHERE id=?")) {
             ps.setInt(1, songId);
@@ -276,6 +288,11 @@ public class SongDao {
         s.artX = nullableDouble(rs, "art_x");
         s.artY = nullableDouble(rs, "art_y");
         s.artZoom = nullableDouble(rs, "art_zoom");
+        try {   // only the queries with SONG_COLS read the poster
+            s.posterX = nullableDouble(rs, "poster_x");
+            s.posterY = nullableDouble(rs, "poster_y");
+            s.posterZoom = nullableDouble(rs, "poster_zoom");
+        } catch (SQLException ignore) { }
         if (withFirstLyric) {
             int fl = rs.getInt("firstLyricId"); s.firstLyricId = rs.wasNull() ? null : fl;
             try { s.youtubeId = rs.getString("youtubeId"); } catch (SQLException ignore) {}
