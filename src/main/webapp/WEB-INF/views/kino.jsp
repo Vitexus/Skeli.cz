@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%-- Karaoke cinema (preview of the coming big karaoke): /karaoke/{song uuid}, KaraokeCinemaServlet fills kinoJson.
      The rooms are drawn by /kino/domov.js (a–e) and /kino/kino.js (f, the big cinema). Czech only for now. --%>
-<% String v = "5.4.0"; %>
+<% String v = "5.5.0"; %>
 <!doctype html>
 <html lang="cs">
 <head>

@@ -15,6 +15,8 @@ import { RoundedBoxGeometry } from './vendor/jsm/geometries/RoundedBoxGeometry.j
 import { buildKevin, ARMS } from '/js/kevin3d.js';
 import { buildDecor } from './decor.js';
 import { GLTFLoader } from './vendor/jsm/loaders/GLTFLoader.js';
+import { GTAOPass } from './vendor/jsm/postprocessing/GTAOPass.js';
+import { RectAreaLightUniformsLib } from './vendor/jsm/lights/RectAreaLightUniformsLib.js';
 
 const D = window.KDATA;
 // settings: #sim;auto;t=58;end;low (sim = no YouTube, auto = straight in, t = start time, end = the end titles)
@@ -27,7 +29,7 @@ if (SIM) document.body.classList.add('sim');
 const $ = (id) => document.getElementById(id);
 // interior variants (?v=a..e): walls, furniture, lights and the view from the window
 const VARIANTS = {
-  a: { name: 'Černý luxus', back: 'walnut', side: 0x141416, sideTex: null, floor: [1, 1, 1], rug: '#1b1a1c', sofa: 0x0b0b0c, sofaKind: 'leather', cove: [1, .66, .36], corners: ['cold', 'warm'], window: 'city', curtain: [0x16161a, [.75, .6, .3]] },
+  a: { name: 'Černý luxus', back: 'walnut', side: 0x141416, sideTex: null, floor: [1, 1, 1], rug: '#1b1a1c', sofa: 0x0b0b0c, sofaKind: 'leather', cove: [1, .66, .36], corners: ['cold', 'warm'], window: 'skyline', curtain: [0x16161a, [.75, .6, .3]] },
   b: { name: 'Teplé dřevo', back: 'oak', side: 0xffffff, sideTex: 'oak', floor: [1.25, 1.1, .95], rug: '#2a2420', sofa: 0x5a2e14, sofaKind: 'leather', cove: [1, .62, .3], corners: ['warm', 'warm'], window: 'none', curtain: [0x4a2614, [.9, .55, .3]] },
   c: { name: 'Loft', back: 'concrete', side: 0xffffff, sideTex: 'concrete', floor: [.85, .85, .9], rug: '#26272b', sofa: 0x2c2d30, sofaKind: 'fabric', cove: [.9, .75, .55], corners: ['cold', 'warm'], window: 'rain', curtain: [0x55565a, [.7, .7, .72]] },
   d: { name: 'Samet a zlato', back: 'velvet', side: 0xffffff, sideTex: 'velvet', floor: [.9, .8, .7], rug: '#1d1712', sofa: 0x123326, sofaKind: 'velvet', cove: [1, .7, .35], corners: ['gold', 'gold'], window: 'forest', curtain: [0x0d3324, [.85, .7, .3]] },
@@ -94,6 +96,15 @@ scene.environmentIntensity = .12;
 const camera = new THREE.PerspectiveCamera(45, 1, .05, 60);
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
+// soft shadow in the corners and under things (room A only, not on a phone)
+let ao = null;
+if (!LOW) {
+  ao = new GTAOPass(scene, camera, innerWidth, innerHeight);
+  ao.blendIntensity = .85;
+  ao.updateGtaoMaterial({ radius: .35, distanceExponent: 1.5, thickness: 1, scale: 1.2, samples: 16 });
+  ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 16 });
+  composer.addPass(ao);
+}
 const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), .45, .5, .84);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
@@ -228,7 +239,7 @@ for (const [w, h, y, z] of [[.06, WIN.y1 - WIN.y0 + .06, (WIN.y0 + WIN.y1) / 2, 
 const flyers = Array.from({ length: 7 }, () => ({ x: Math.random(), y: rnd(.12, .5), v: rnd(.012, .04) * (Math.random() < .5 ? -1 : 1), c: Math.random() < .5 ? '#ffdca0' : '#ff5a5a' }));
 const drops = Array.from({ length: 140 }, () => ({ x: Math.random() * 1024, y: Math.random() * 680, v: rnd(40, 160), l: rnd(6, 22) }));
 function drawCity(dt) {   // the view: its lights, a few flying cars crossing (city), rain on the glass (loft)
-  if (V.window === 'none') return;
+  if (V.window === 'none' || V.window === 'skyline') return;
   const g = cityCanvas.getContext('2d');
   if (V.window === 'rain') { g.filter = 'blur(3px)'; g.drawImage(cityBase, 0, 0); g.filter = 'none'; g.fillStyle = 'rgba(20,25,35,.25)'; g.fillRect(0, 0, 1024, 680); }
   else g.drawImage(cityBase, 0, 0);
@@ -254,8 +265,9 @@ scene.add(ceiling);
 
 // the floor: dark oak, a little glossy (a soft mirror under it on a fast computer)
 const floorW = HALF * 2, floorD = FRONT - BACK, floorZ = (FRONT + BACK) / 2;
+let mirror = null;
 if (!LOW) {
-  const mirror = new Reflector(new THREE.PlaneGeometry(floorW, floorD), {
+  mirror = new Reflector(new THREE.PlaneGeometry(floorW, floorD), {
     clipBias: .003, textureWidth: Math.round(innerWidth * .4), textureHeight: Math.round(innerHeight * .4), color: 0x6a6a70
   });
   mirror.rotation.x = -Math.PI / 2; mirror.position.set(0, 0, floorZ);
@@ -840,30 +852,59 @@ function pbr(name, rep2, tint, rough = 1) {
 const A_MAT = {
   back: pbr('smoked_walnut_veneer', [2.4, 1.1], 0x8a6a52, .8),
   side: pbr('plastered_wall_04', [2.6, 1.1], 0x45454c),
-  floor: pbr('herringbone_parquet', [3.2, 3.6], 0x8f7560, .8)
+  floor: pbr('herringbone_parquet', [3.2, 3.6], 0x8f7560, 1.15),
+  rug: pbr('wool_boucle', [3, 3], 0x5e5953)
 };
-A_MAT.floor.transparent = !LOW; A_MAT.floor.opacity = LOW ? 1 : .9;
+const rugBase = rug.material;
+A_MAT.floor.envMapIntensity = .3; A_MAT.floor.normalScale.set(.5, .5);   // satin oiled oak, not a mirror
 const floorBase = floorTop.material;
 const blobTex = canvasTex(128, 128, (g, w, h) => { const gr = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); gr.addColorStop(0, 'rgba(0,0,0,.75)'); gr.addColorStop(.6, 'rgba(0,0,0,.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
 function blob(w, d) { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.y = .012; return m; }
 const gltf = new GLTFLoader();
 const roomAModels = [];
 let chairModel = null;
-// a model at a place, turned, scaled so its footprint is about "width" metres wide
-function place(name, pos, yaw, width) {
+// a model at a place (pos[1] = what it stands on), turned, scaled so its footprint is about "width" metres
+// wide; it casts and takes shadows. onWall = hung on a wall (no blob under it)
+function place(name, pos, yaw, width, onWall) {
   return new Promise((ok) => gltf.load('/kino/assets/' + name + '/' + name + '_1k.gltf', (g) => {
     const m = g.scene;
     const box = new THREE.Box3().setFromObject(m), size = box.getSize(new THREE.Vector3());
     const k = width ? width / Math.max(size.x, size.z) : 1;
     m.scale.setScalar(k);
     m.position.set(-(box.min.x + size.x / 2) * k, -box.min.y * k, -(box.min.z + size.z / 2) * k);   // centred on its footprint, on the floor
-    const holder = new THREE.Group(); holder.position.set(pos[0], 0, pos[2]); holder.rotation.y = yaw;
+    const holder = new THREE.Group(); holder.position.set(pos[0], pos[1] || 0, pos[2]); holder.rotation.y = yaw;
     holder.add(m);
-    const sh = blob(size.x * k * 1.15, size.z * k * 1.25); holder.add(sh);
-    m.traverse((o) => { if (o.isMesh && o.material) { o.material.envMapIntensity = .8; } });
+    if (!onWall) holder.add(blob(size.x * k * 1.15, size.z * k * 1.25));
+    m.traverse((o) => {
+      if (!o.isMesh || !o.material) return;
+      if (/glass/i.test(o.material.name)) {   // picture glass: a faint reflection, no costly transmission pass
+        o.material = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: .04, transparent: true, opacity: .1, depthWrite: false });
+        return;
+      }
+      o.material.envMapIntensity = .8; o.castShadow = o.receiveShadow = true;
+    });
     scene.add(holder);
     ok(holder);
   }, undefined, () => ok(null)));
+}
+// a photo of Skeli in black and white, cut to fill a picture of this shape (glTF textures are not flipped)
+function photoTex(src, aspect) {
+  const c = document.createElement('canvas'); c.width = Math.round(1000 * aspect); c.height = 1000;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; t.anisotropy = 8;
+  const img = new Image();
+  img.onload = () => {
+    const g = c.getContext('2d'), s = Math.max(c.width / img.width, c.height / img.height);
+    g.filter = 'grayscale(1) contrast(1.12) brightness(.92)';
+    g.drawImage(img, (c.width - img.width * s) / 2, (c.height - img.height * s) / 2, img.width * s, img.height * s);
+    t.needsUpdate = true;
+  };
+  img.src = src;
+  return t;
+}
+function hangPhoto(holder, src, aspect) {
+  if (!holder) return;
+  const map = photoTex(src, aspect);
+  holder.traverse((o) => { if (o.isMesh && /artwork/i.test(o.material.name)) { o.material = o.material.clone(); o.material.map = map; o.material.roughness = .6; } });
 }
 Promise.all([
   place('sofa_02', [.3, 0, 1.75], Math.PI, 2.2),
@@ -876,7 +917,125 @@ Promise.all([
   if (sofaM) sofa.userData.replaced = true;
   if (plantM) [pot, soil, plantA].forEach((o) => { o.userData.replaced = true; });
   applyRoom(roomKey);
+  modelsAt = performance.now();
 });
+// styled like a flat on a property site: a low sideboard on the right wall with a brass vase, a framed photo
+// and a succulent, two black-and-white photos of Skeli above it, a side table with a vase by Kevin's armchair
+const SB = { x: HALF - .17, z: -2.05, top: .42 };
+if (!PHONE) Promise.all([
+  place('modern_wooden_cabinet', [SB.x, 0, SB.z], -Math.PI / 2, 1.5),
+  place('brass_vase_01', [SB.x, SB.top, SB.z - .55], 0, .15),
+  place('standing_picture_frame_01', [SB.x + .02, SB.top, SB.z + .05], -Math.PI / 2 - .35, .2),
+  place('potted_plant_04', [SB.x - .02, SB.top, SB.z + .5], .4, .17),
+  place('hanging_picture_frame_01', [HALF - .015, 1.0, -2.35], -Math.PI / 2, .45, true),
+  place('hanging_picture_frame_01', [HALF - .015, 1.0, -1.7], -Math.PI / 2, .45, true),
+  place('side_table_01', [-2.25, 0, -1.05], .3, .5),
+  place('ceramic_vase_01', [-2.25, .45, -1.05], 0, .14)
+]).then((list) => {
+  hangPhoto(list[2], '/img/photos/mic-md.webp', .75);
+  hangPhoto(list[4], '/img/photos/square-md.webp', .66);
+  hangPhoto(list[5], '/img/photos/street-md.webp', .66);
+  list.forEach((m) => { if (m) { roomAModels.push(m); m.visible = roomKey === 'a'; } });
+  modelsAt = performance.now(); envDone = false;
+});
+
+// ---------------- room A as a virtual tour of a flat: real light ----------------
+// Downlights in the ceiling make pools of light on the floor, wall washers graze the walnut and the plaster,
+// the screen lights the room as a soft panel and throws real shadows, the corners and the gaps under things
+// get soft shadow (GTAO), and the reflections are of this very room (captured once it is lit).
+const aTour = new THREE.Group(); scene.add(aTour);
+if (!LOW) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
+RectAreaLightUniformsLib.init();
+const screenPanel = new THREE.RectAreaLight(0xffffff, 0, SW, SH);
+screenPanel.position.set(0, SCY, SZ + .05); screenPanel.lookAt(0, SCY, 5); aTour.add(screenPanel);
+const shadowSpot = (s, size) => { s.castShadow = !LOW; s.shadow.mapSize.set(size, size); s.shadow.bias = -.0004; s.shadow.normalBias = .02; s.shadow.camera.near = .2; };
+const screenShadow = new THREE.SpotLight(0xffffff, 0, 10, 1.1, 1, 1.2);
+screenShadow.position.set(0, SCY, SZ + .35); screenShadow.target.position.set(0, .3, 2.5); shadowSpot(screenShadow, 1024);
+aTour.add(screenShadow, screenShadow.target);
+const canMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1c, roughness: .35, metalness: .9 });
+const downs = [];
+for (const [x, z, sh] of [[-1.5, -1.5, 1], [1.5, -1.5, 0], [.25, -.35, 1], [-1.5, 1.2, 0], [1.5, 1.2, 0]]) {
+  const s = new THREE.SpotLight(0xffd8a8, 0, 6, .7, .9, 1.7);
+  s.position.set(x, TOP - .03, z); s.target.position.set(x, 0, z);
+  if (sh) shadowSpot(s, 1024);
+  aTour.add(s, s.target); downs.push(s);
+  const trim = new THREE.Mesh(new THREE.TorusGeometry(.058, .009, 8, 32), canMat); trim.rotation.x = Math.PI / 2; trim.position.set(x, TOP - .006, z); aTour.add(trim);
+}
+aTour.add(glow(new THREE.CircleGeometry(.05, 24), CANDLE, 1.6, new THREE.Vector3(.25, TOP - .005, -.35)));
+aTour.children[aTour.children.length - 1].rotation.x = Math.PI / 2;
+const washers = [];   // light grazing down the walls: the "scallops" of a lit flat
+for (const [x, z, tx, tz] of [[-2.9, BACK + .35, -2.9, BACK + .02], [2.9, BACK + .35, 2.9, BACK + .02], [HALF - .35, -2.35, HALF - .02, -2.35], [HALF - .35, -1.7, HALF - .02, -1.7], [HALF - .35, -.6, HALF - .02, -.6]]) {
+  const s = new THREE.SpotLight(0xffd2a0, 0, 4.5, .55, 1, 1.5);
+  s.position.set(x, TOP - .03, z); s.target.position.set(tx, .2, tz);
+  aTour.add(s, s.target); washers.push(s);
+  const trim = new THREE.Mesh(new THREE.TorusGeometry(.04, .007, 8, 28), canMat); trim.rotation.x = Math.PI / 2; trim.position.set(x, TOP - .006, z); aTour.add(trim);
+}
+// skirting boards and a window sill
+const skirtMat = new THREE.MeshStandardMaterial({ color: 0x0e0e10, roughness: .45 });
+for (const [w, d, x, z] of [[HALF * 2, .014, 0, BACK + .007], [.014, FRONT - BACK, HALF - .007, (FRONT + BACK) / 2], [.014, FRONT - BACK, -HALF + .007, (FRONT + BACK) / 2]]) {
+  const b = new THREE.Mesh(new THREE.BoxGeometry(w, .08, d), skirtMat); b.position.set(x, .04, z); b.receiveShadow = true; aTour.add(b);
+}
+const sill = new THREE.Mesh(new THREE.BoxGeometry(.22, .035, WIN.z1 - WIN.z0 + .16), new THREE.MeshPhysicalMaterial({ color: 0x1c1c1f, roughness: .25, clearcoat: .6 }));
+sill.position.set(-HALF + .09, WIN.y0 - .015, (WIN.z0 + WIN.z1) / 2); sill.castShadow = sill.receiveShadow = true; aTour.add(sill);
+// velvet drapes either side of the window, on a black rod; the same velvet on the curtain at the screen
+const velvet = pbr('velour_velvet', [2, 3], 0xffffff);
+const drapeMat = new THREE.MeshPhysicalMaterial({ map: velvet.map, normalMap: velvet.normalMap, roughnessMap: velvet.roughnessMap, color: 0x2b2b33, roughness: 1, sheen: 1, sheenColor: new THREE.Color(.55, .5, .45), sheenRoughness: .45 });
+for (const zc of [WIN.z0 - .3, WIN.z1 + .3]) {
+  const g = new THREE.PlaneGeometry(.75, TOP - .12, 70, 1), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) { const u = p.getX(i); p.setZ(i, Math.sin(u * 26) * .045 + Math.sin(u * 61 + 2) * .01 + .07); }
+  g.computeVertexNormals();
+  const d = new THREE.Mesh(g, drapeMat); d.rotation.y = Math.PI / 2; d.position.set(-HALF, (TOP - .12) / 2 + .01, zc); d.castShadow = d.receiveShadow = true; aTour.add(d);
+}
+const rod = new THREE.Mesh(new THREE.CylinderGeometry(.013, .013, WIN.z1 - WIN.z0 + 1.6, 12), canMat); rod.rotation.x = Math.PI / 2; rod.position.set(-HALF + .09, TOP - .1, (WIN.z0 + WIN.z1) / 2); aTour.add(rod);
+// the view: the river and the skyline at night from a high floor (a photo, Poly Haven CC0), far behind the glass
+const skyCanvas = document.createElement('canvas'); skyCanvas.width = 2048; skyCanvas.height = 1024;
+const skyTex = new THREE.CanvasTexture(skyCanvas); skyTex.colorSpace = THREE.SRGBColorSpace;
+const SKY_W = 16, SKY_H = 9, HORIZON = .6;      // horizon 60 % down the picture, at eye height
+const skyline = new THREE.Mesh(new THREE.PlaneGeometry(SKY_W, SKY_H), new THREE.MeshBasicMaterial({ map: skyTex, toneMapped: false, fog: false, color: new THREE.Color(.62, .62, .66) }));
+skyline.rotation.y = Math.PI / 2; skyline.position.set(-HALF - 3, 1.62 + (HORIZON - .5) * SKY_H, -8.2);   // 3 m behind the glass, the towers where you look through it
+aTour.add(skyline);
+const pano = new Image();
+pano.onload = () => {
+  const g = skyCanvas.getContext('2d'), W = 2048, H = 1024, hz = H * HORIZON;
+  const sx = pano.width * .342, sw = pano.width * .513, sy = pano.height * .193, sh = pano.height * .3 ;   // the skyline, above the promenade
+  g.drawImage(pano, sx, sy, sw, sh, 0, 0, W, hz);
+  g.fillStyle = '#04050b'; g.fillRect(0, hz, W, H - hz);
+  g.save(); g.translate(0, hz * 2); g.scale(1, -1); g.globalAlpha = .5; g.filter = 'blur(5px)'; g.drawImage(pano, sx, sy, sw, sh, 0, 0, W, hz); g.restore();
+  for (let y = hz; y < H; y += 3) { g.fillStyle = `rgba(4,5,11,${.15 + Math.random() * .35})`; g.fillRect(0, y, W, 1 + Math.random() * 2); }   // ripples
+  const fade = g.createLinearGradient(0, hz, 0, H); fade.addColorStop(0, 'rgba(4,5,11,0)'); fade.addColorStop(1, 'rgba(4,5,11,.9)'); g.fillStyle = fade; g.fillRect(0, hz, W, H - hz);
+  skyTex.needsUpdate = true;
+};
+pano.src = '/kino/assets/tex/view_shanghai_bund.jpg';
+// shadows: walls, floor and rug take them; the speakers and Kevin cast them
+[backWall, rightWall, ceiling, floorTop, rug, ...leftWhole, ...leftWin].forEach((o) => { o.receiveShadow = true; });
+speakerParts.forEach((g) => g.traverse((o) => { if (o.isMesh) o.castShadow = o.receiveShadow = true; }));
+kev.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+consoleBox.castShadow = consoleBox.receiveShadow = true;
+// the reflections: this room, lit, caught once by a camera in the middle of it
+const roomEnv = scene.environment, cubeRT = new THREE.WebGLCubeRenderTarget(256, { type: THREE.HalfFloatType });
+const cubeCam = new THREE.CubeCamera(.1, 30, cubeRT); cubeCam.position.set(.2, 1.3, -.8);
+let envA = null, envDone = false, modelsAt = 0;
+function captureRoom() {
+  envDone = true;
+  scene.environment = null;
+  cubeCam.update(renderer, scene);
+  if (envA) envA.dispose();
+  envA = pmrem.fromCubemap(cubeRT.texture).texture;
+  setEnv();
+}
+function setEnv() {
+  const a = roomKey === 'a' && envA;
+  scene.environment = a ? envA : roomEnv; scene.environmentIntensity = a ? .8 : .12;
+}
+function tourFrame(lum) {
+  if (roomKey !== 'a') return;
+  const dim = 1 - .35 * on;          // the lights go down a little while the film runs
+  downs.forEach((s, i) => { s.intensity = (i === 2 ? 1.6 : 6) * lights * dim; });   // [2] = over the white marble table
+  washers.forEach((s) => { s.intensity = 7 * lights * dim; });
+  screenPanel.color.copy(avg); screenPanel.intensity = (.2 + lum * 1.6) * on;
+  screenShadow.color.copy(avg); screenShadow.intensity = (2 + lum * 14) * on;
+  if (!envDone && modelsAt && performance.now() - modelsAt > 1500 && lights > .9) captureRoom();
+}
 
 // ---------------- the room the viewer picked ----------------
 // what each room keeps of the shared things: its own frame, speakers, console come from decor.js
@@ -903,13 +1062,21 @@ function applyRoom(key) {
   floorTop.material = key === 'a' ? A_MAT.floor : floorBase;
   floorTop.material.color.setRGB(...V.floor);
   if (key === 'a') { backWall.material = A_MAT.back; rightWall.material = A_MAT.side; leftWhole.concat(leftWin).forEach((p) => { p.material = A_MAT.side; }); A_MAT.floor.color.setHex(0x8f7560); }
-  const old = rug.material.map;
-  rug.material.map = canvasTex(512, 512, (g, w, hh) => {
+  const A = key === 'a';
+  aTour.visible = A; if (ao) ao.enabled = A;
+  if (mirror) mirror.visible = !A;   // oiled parquet in a flat does not mirror (and it saves a whole extra render)
+  renderer.toneMappingExposure = A ? 1 : .85;
+  setEnv();
+  city.visible = win && !A;   // A has its own view (aTour)
+  curtainMat.map = A ? velvet.map : null; curtainMat.normalMap = A ? velvet.normalMap : null; curtainMat.needsUpdate = true;
+  rug.material = A ? A_MAT.rug : rugBase;
+  const old = rugBase.map;
+  rugBase.map = canvasTex(512, 512, (g, w, hh) => {
     g.fillStyle = V.rug; g.fillRect(0, 0, w, hh);
     for (let i = 0; i < 9000; i++) { const v = Math.random() * 40; g.fillStyle = `rgba(${v + 30},${v + 28},${v + 30},.25)`; g.fillRect(Math.random() * w, Math.random() * hh, 2, 2); }
     g.strokeStyle = 'rgba(180,140,60,.35)'; g.lineWidth = 3; g.strokeRect(22, 22, w - 44, hh - 44);
   });
-  rug.material.needsUpdate = true; if (old) old.dispose();
+  rugBase.needsUpdate = true; if (old) old.dispose();
   const m = sofaMaterial(V);
   sofa.children.forEach((o) => { if (o.isMesh) o.material = m; });
   chair.children.forEach((o) => { if (o.isMesh) o.material = m; });
@@ -984,6 +1151,7 @@ function frame(ts) {
     const o = (y * 32 + x) * 4; scrImg.data[o] = tmp.r * 255; scrImg.data[o + 1] = tmp.g * 255; scrImg.data[o + 2] = tmp.b * 255; scrImg.data[o + 3] = 255;
   }
   scrCtx.putImageData(scrImg, 0, 0); scrTex.needsUpdate = true;
+  tourFrame(lum);
   screenMat.color.setScalar(1.1 * on);
   screenLight.color.copy(avg); screenLight.intensity = (.6 + lum * 4) * on;
   for (const [i, l] of sideLights.entries()) {   // a grey clip lights the sides cold left / warm right like a film
