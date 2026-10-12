@@ -466,7 +466,14 @@ body.light .lyric-page .lyric-nav a:hover { border-color: rgba(0, 0, 0, 0.22); b
   gap: 22px;
   align-items: start;
 }
-.lyric-head { grid-area: head; display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
+.lyric-head {
+  grid-area: head;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  grid-template-areas: "prev titles next" "actions actions actions";
+  align-items: center;
+  gap: 14px 8px;
+}
 .lyric-title { margin: 0; }
 /* under the clip: lyrics, pager and comments in one centred column */
 .lyric-main, .lyric-pager, .lyric-comments { width: 100%; max-width: 880px; justify-self: center; }
@@ -529,9 +536,9 @@ body.light .lyric-page .lyric-nav a:hover { border-color: rgba(0, 0, 0, 0.22); b
 /* "Aa": the lyrics in a plain mixed-case font, easier to read than the capitals of Bruno Ace */
 html.lyric-plain .lyric-page .lyrics-text pre { font-family: 'Exo 2', system-ui, sans-serif; font-weight: 500; letter-spacing: 0.01em; line-height: 1.75; }
 
-/* Under the title: the heart and Share, then round icons for listening elsewhere */
+/* Under the title, centred: the heart and Share, a thin line, then round icons for listening elsewhere */
 .lyric-head .head-views { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-small); color: var(--text-dim); white-space: nowrap; }
-.song-actions { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.song-actions { grid-area: actions; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
 .lyric-page .action-btn {
   display: inline-flex;
   align-items: center;
@@ -547,7 +554,7 @@ html.lyric-plain .lyric-page .lyrics-text pre { font-family: 'Exo 2', system-ui,
   transition: border-color .2s, color .2s, transform .15s;
 }
 .lyric-page .action-btn:hover { color: var(--accent); border-color: var(--accent); transform: translateY(-1px); text-decoration: none; }
-.listen-icons { display: inline-flex; gap: 8px; margin-left: auto; }
+.listen-icons { display: inline-flex; gap: 8px; padding-left: 10px; border-left: 1px solid var(--panel-border); }   /* a thin line between "do" and "listen elsewhere" */
 .listen-icon {
   display: inline-flex; align-items: center; justify-content: center;
   width: 40px; height: 40px; border-radius: 50%;
@@ -679,25 +686,79 @@ body.light .lyric-page .action-btn { background: rgba(0, 0, 0, 0.02); }
 .pager-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
 .pager-link:hover .pager-thumb img { transform: scale(1.06); }
 
-/* the title block and the small previous / next arrows next to it */
-.lyric-titles { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+/* the title block in the middle: name, translated name, artists, then year and views */
+.lyric-titles { grid-area: titles; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; text-align: center; }
 .lyric-translated { font-family: var(--font-text); font-size: var(--fs-text); font-weight: 300; color: var(--text-dim); }
-.head-pager { display: inline-flex; gap: 6px; margin-left: auto; }
-.head-pager a,
-.head-pager .off {
+.lyric-meta { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 4px; }
+/* phone: previous / next at both sides of the title */
+.head-arrow {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--text-dim);
   border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.03);
   transition: color .2s ease, border-color .2s ease;
 }
-.head-pager a:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 55%, transparent); text-decoration: none; }
-.head-pager .off { opacity: 0.3; }
+.head-prev { grid-area: prev; }
+.head-next { grid-area: next; }
+.head-arrow:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 55%, transparent); text-decoration: none; }
+body.light .head-arrow { background: rgba(255, 255, 255, 0.4); }
+
+/* wide screens: previous / next beside the clip, half see-through so the water and fire show through;
+   centred on the video (100cqw = the width of .lyric-media, the video is 16:9 at its bottom) */
+.stage-pager { display: none; }
+@media (min-width: 961px) {
+  .lyric-grid:has(.stage-pager) .head-arrow { display: none; }
+  .lyric-stage .lyric-media { container-type: inline-size; }
+  .stage-pager { display: block; }
+  .stage-arrow {
+    position: absolute;
+    bottom: calc(100cqw * 9 / 32 - 25px);
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    color: var(--text);
+    font-size: 1rem;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0.5;
+    transition: opacity .25s ease, color .25s ease, border-color .25s ease, transform .25s ease;
+  }
+  .stage-prev { right: 100%; margin-right: clamp(18px, 3vw, 54px); }
+  .stage-next { left: 100%; margin-left: clamp(18px, 3vw, 54px); }
+  .stage-arrow:hover, .stage-arrow:focus-visible { opacity: 1; color: var(--accent); border-color: var(--accent); text-decoration: none; }
+  .stage-prev:hover { transform: translateX(-3px); }
+  .stage-next:hover { transform: translateX(3px); }
+  /* the song it goes to, under the arrow while pointing at it */
+  .stage-arrow-name {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-small);
+    color: var(--text);
+    opacity: 0;
+    transform: translate(-50%, -4px);
+    transition: opacity .25s ease, transform .25s ease;
+    pointer-events: none;
+  }
+  .stage-arrow:hover .stage-arrow-name, .stage-arrow:focus-visible .stage-arrow-name { opacity: 1; transform: translate(-50%, 0); }
+  body.light .stage-arrow { background: rgba(255, 255, 255, 0.5); border-color: rgba(0, 0, 0, 0.12); }
+  .lyric-media.is-fs .stage-pager, .lyric-media.fake-fs .stage-pager { display: none; }
+}
 .pager-label { font-size: var(--fs-small); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
 .pager-name { font-size: var(--fs-card); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 600px) {

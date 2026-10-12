@@ -515,7 +515,7 @@ body.light .photo-band::before {
   }
   .header-inner > .kevin-paw.in-header:not([hidden]) + .menu-toggle { margin-left: 8px; }
 }
-.kevin-paw.in-header { position: relative; }
+.kevin-paw.in-header { position: relative; left: auto; bottom: auto; }   /* the corner offsets of the floating paw would lift it out of the row */
 .kevin-paw.in-header.is-out { border-color: var(--accent); }
 /* he has something to say: a gold dot on the paw, nothing jumps over the page */
 .kevin-paw.in-header.has-news::after {
