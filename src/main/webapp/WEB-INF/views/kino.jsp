@@ -199,6 +199,21 @@ button { font: inherit; color: inherit; }
 .cb.room-btn { width: auto; padding: 0 14px 0 12px; gap: 7px; display: inline-flex; align-items: center; border-radius: 999px; border: 1px solid rgba(230, 183, 48, .45); color: var(--gold); font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
 @media (max-width: 700px) { .cb.room-btn span { display: none; } .cb.room-btn { padding: 0; width: 40px; } }
 .back-song { color: var(--gold); margin-left: 10px; }
+/* always visible, top left: back to the site from the lobby, out of the cinema once inside */
+.kino-exit { position: fixed; left: 18px; top: 16px; z-index: 7; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px 0 14px; border-radius: 999px;
+  background: rgba(12, 12, 14, .7); border: 1px solid rgba(230, 183, 48, .55); color: var(--gold); font: 500 14px 'Oswald', sans-serif; letter-spacing: .08em; text-transform: uppercase; text-decoration: none;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: opacity .6s, background .2s, color .2s; }
+.kino-exit:hover { background: var(--gold); color: #1a1406; }
+.idle .kino-exit { opacity: .35; }
+.kino-exit .ke-ico { font-size: 17px; line-height: 1; }
+.brand { display: none; }
+/* the lobby scrolls when it is taller than the screen (a phone): from the top, under the exit */
+.lobby { overflow-y: auto; padding: 70px 16px 28px; }
+@media (max-width: 760px), (max-height: 820px) {
+  .lobby { place-items: start center; }
+  .lobby h1 { font-size: clamp(30px, 9vw, 60px); }
+  .room { height: 62px; }
+}
 .nogl { position: fixed; inset: 0; display: none; place-items: center; z-index: 7; background: #030304; text-align: center; padding: 24px; }
 
 @media (max-width: 700px) {
@@ -221,6 +236,7 @@ button { font: inherit; color: inherit; }
 <canvas class="layer" id="fx" aria-hidden="true"></canvas>
 <div class="kbubble" id="kbubble" hidden></div>
 <div class="credits" id="credits" hidden><div class="roll" id="roll"></div></div>
+<a class="kino-exit" id="kinoExit" href="/karaoke-kino"><span class="ke-ico" aria-hidden="true">←</span> <span class="ke-txt">Zpět na web</span></a>
 <div class="brand"><div class="squad" role="img" aria-label="SKELO SQUAD"></div><span class="brand-k">Karaoke</span></div>
 <div class="song-tag"><b id="tagTitle"></b><span id="tagArtist"></span></div>
 <div class="lyrics" id="lyrics" aria-live="off">
@@ -297,5 +313,20 @@ button { font: inherit; color: inherit; }
   addEventListener("error", function (e) { showErr(e.message + " @ " + (e.filename || "") + ":" + e.lineno); });
 </script>
 <script type="module">import(document.body.classList.contains("cinema") ? "/kino/kino.js?v=<%= v %>" : "/kino/domov.js?v=<%= v %>").catch(function (e) { showErr(String(e && e.stack || e)); });</script>
+<script>
+  // the exit: on the lobby a plain link back to the karaoke list; inside the cinema it leaves the room
+  // (the same as the leave button in the controls and Esc)
+  (function () {
+    var ex = document.getElementById("kinoExit"), lobby = document.getElementById("lobby");
+    function inside() { return lobby.classList.contains("gone"); }
+    function label() {
+      ex.querySelector(".ke-ico").textContent = inside() ? "✕" : "←";
+      ex.querySelector(".ke-txt").textContent = inside() ? "Odejít z kina" : "Zpět na web";
+    }
+    ex.addEventListener("click", function (e) { if (inside()) { e.preventDefault(); document.getElementById("exit").click(); } });
+    new MutationObserver(label).observe(lobby, { attributes: true, attributeFilter: ["class"] });
+    label();
+  })();
+</script>
 </body>
 </html>
