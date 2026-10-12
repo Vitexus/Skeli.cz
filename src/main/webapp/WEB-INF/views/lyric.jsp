@@ -205,7 +205,7 @@
         </div>
       </article>
       </section>
-      <c:if test="${not empty lyric.youtubeId}"><script src="/js/clip-fx.js?v=<%= assetVersion %>"></script><script src="/js/karaoke.js?v=<%= assetVersion %>"></script></c:if>
+      <c:if test="${not empty lyric.youtubeId}"><script src="/js/clip-fx.js?v=<%= assetVersion %>"></script><script src="/js/yt-clock.js?v=<%= assetVersion %>"></script><script src="/js/karaoke.js?v=<%= assetVersion %>"></script></c:if>
 
       <%-- the songs around this one in the newest-first list (also the ← → keys) --%>
       <c:if test="${not empty prevSong or not empty nextSong}">

@@ -66,34 +66,22 @@
     if (!on) stop();
   });
 
-  // ---------- where the player is ----------
-  var playing = false, base = 0, baseAt = 0, frame = null, hello = null;
+  // ---------- where the player is (js/yt-clock.js) ----------
+  var playing = false, frame = null, clock = null;
   function watchFrame() {
     var f = player.querySelector('iframe[src]');
     if (f === frame) return;
-    frame = f; playing = false; base = 0; baseAt = performance.now();
-    clearInterval(hello);
+    if (clock) clock.stop();
+    frame = f; clock = null; playing = false;
     if (!frame) { stop(); return; }
-    var say = function () { try { frame.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 2, channel: 'widget' }), '*'); } catch (e) {} };
-    frame.addEventListener('load', say);
-    hello = setInterval(say, 1000); say();
+    clock = window.YtClock(frame, function (c) {
+      playing = c.playing();
+      if (playing && on && data) start();
+    });
   }
   new MutationObserver(function () { watchFrame(); load(player.getAttribute('data-yt')); })
     .observe(player, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-yt'] });
-  window.addEventListener('message', function (e) {
-    if (!frame || e.source !== frame.contentWindow) return;
-    var m; try { m = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch (er) { return; }
-    if (!m) return;
-    clearInterval(hello);
-    var info = m.info;
-    if (m.event === 'onStateChange' && typeof info === 'number') { base = now(); baseAt = performance.now(); playing = info === 1; }
-    if (info && typeof info === 'object') {
-      if (typeof info.playerState === 'number') playing = info.playerState === 1;
-      if (typeof info.currentTime === 'number') { base = info.currentTime; baseAt = performance.now(); }
-    }
-    if (playing && on && data) start();
-  });
-  function now() { return base + (playing ? (performance.now() - baseAt) / 1000 : 0); }
+  function now() { return clock ? clock.time() : 0; }
 
   // ---------- the karaoke window: the clip stays big where it is, the lyrics scroll inside a box under it ----------
   // On start the page lines up once (the clip just under the header bar) and then keeps still; the box
@@ -179,8 +167,9 @@
     var l = e.target.closest && e.target.closest('.k-line');
     if (!l || l.dataset.i == null) return;
     var t = data.times[+l.dataset.i][0];
-    try { frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'seekTo', args: [t, true] }), '*'); } catch (er) { return; }
-    base = t; baseAt = performance.now(); userAt = 0;
+    if (!clock) return;
+    clock.seek(t);
+    userAt = 0;
     if (backBtn) backBtn.hidden = true;
   });
 
