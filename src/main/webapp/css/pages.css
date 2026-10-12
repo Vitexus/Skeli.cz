@@ -1504,8 +1504,14 @@ html.fs-lock { overflow: hidden; }
 .lyric-media.is-fs .video-wrapper.is-mini { position: relative; inset: auto; width: 100%; border-radius: 0; box-shadow: none; }
 .lyric-media.is-fs .fs-lyrics {
   display: block; position: absolute; left: 50%; bottom: 13%; z-index: 5; transform: translateX(-50%);
-  width: min(92vw, 1100px); text-align: center; pointer-events: none;
+  width: max-content; max-width: min(92vw, 1100px); text-align: center; pointer-events: none;
+  /* readable over anything in the picture: a dark, blurred backing like film subtitles */
+  padding: 0.55em 1.3em 0.65em; border-radius: 16px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px) saturate(120%); -webkit-backdrop-filter: blur(10px) saturate(120%);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
 }
+.lyric-media.is-fs .fs-lyrics:has(.fs-now:empty):has(.fs-next:empty) { visibility: hidden; }
 .lyric-media.is-fs .fs-lyrics[hidden] { display: none; }
 .fs-now, .fs-next { margin: 0; font-family: var(--font-body); filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 2px #000); }
 .fs-now {
@@ -1513,7 +1519,8 @@ html.fs-lock { overflow: hidden; }
   background: linear-gradient(90deg, #ffd23f calc(var(--k, 0%) - 3%), #fff calc(var(--k, 0%) + 3%));
   -webkit-background-clip: text; background-clip: text;
 }
-.fs-next { margin-top: 0.45em; font-size: clamp(0.85rem, 1.7vw, 1.4rem); color: rgba(255, 255, 255, 0.55); }
+.fs-next { margin-top: 0.45em; font-size: clamp(0.85rem, 1.7vw, 1.4rem); color: rgba(255, 255, 255, 0.62); }
+.fs-next:empty { display: none; }
 html.lyric-plain .fs-now, html.lyric-plain .fs-next { font-family: 'Exo 2', system-ui, sans-serif; font-weight: 600; }
 .lyric-media.is-fs .fs-bar { display: flex; gap: 8px; position: absolute; top: 14px; left: 50%; z-index: 6; transform: translateX(-50%); }
 .fs-bar button {
