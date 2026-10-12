@@ -14,6 +14,7 @@ import { RoomEnvironment } from './vendor/jsm/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from './vendor/jsm/geometries/RoundedBoxGeometry.js';
 import { buildKevin, ARMS } from '/js/kevin3d.js';
 import { buildDecor } from './decor.js';
+import { GLTFLoader } from './vendor/jsm/loaders/GLTFLoader.js';
 
 const D = window.KDATA;
 // settings: #sim;auto;t=58;end;low (sim = no YouTube, auto = straight in, t = start time, end = the end titles)
@@ -827,6 +828,56 @@ const roomA = [sofa, sofaLed, pole, base, shade, lampLight, pot, soil, plantA];
 const decor = buildDecor({ HALF, TOP, BACK, glowMat, canvasTex, rnd, SW, SH, SCY, SZ, ring });
 ["b", "c", "d", "e"].forEach((k) => scene.add(decor[k]));
 
+// ---------------- room A in real models and textures (Poly Haven, CC0: kino/assets, see assets/CREDITS.txt) ----------------
+// The parquet, the walnut wall and the plaster are photographed materials (colour, relief, roughness); the
+// sofa, Kevin's armchair, the table and the plant are scanned / modelled furniture. While they load, the
+// built ones stand in; a soft dark blob under each piece keeps it on the floor.
+const texLoader = new THREE.TextureLoader();
+function pbr(name, rep2, tint, rough = 1) {
+  const t = (k, srgb) => { const x = texLoader.load('/kino/assets/tex/' + name + '_' + k + '.jpg'); x.wrapS = x.wrapT = THREE.RepeatWrapping; x.repeat.set(rep2[0], rep2[1]); x.anisotropy = 8; if (srgb) x.colorSpace = THREE.SRGBColorSpace; return x; };
+  return new THREE.MeshStandardMaterial({ map: t('diff', true), normalMap: t('nor'), roughnessMap: t('rough'), roughness: rough, color: tint });
+}
+const A_MAT = {
+  back: pbr('smoked_walnut_veneer', [2.4, 1.1], 0x8a6a52, .8),
+  side: pbr('plastered_wall_04', [2.6, 1.1], 0x45454c),
+  floor: pbr('herringbone_parquet', [3.2, 3.6], 0x8f7560, .8)
+};
+A_MAT.floor.transparent = !LOW; A_MAT.floor.opacity = LOW ? 1 : .9;
+const floorBase = floorTop.material;
+const blobTex = canvasTex(128, 128, (g, w, h) => { const gr = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); gr.addColorStop(0, 'rgba(0,0,0,.75)'); gr.addColorStop(.6, 'rgba(0,0,0,.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+function blob(w, d) { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.y = .012; return m; }
+const gltf = new GLTFLoader();
+const roomAModels = [];
+let chairModel = null;
+// a model at a place, turned, scaled so its footprint is about "width" metres wide
+function place(name, pos, yaw, width) {
+  return new Promise((ok) => gltf.load('/kino/assets/' + name + '/' + name + '_1k.gltf', (g) => {
+    const m = g.scene;
+    const box = new THREE.Box3().setFromObject(m), size = box.getSize(new THREE.Vector3());
+    const k = width ? width / Math.max(size.x, size.z) : 1;
+    m.scale.setScalar(k);
+    m.position.set(-(box.min.x + size.x / 2) * k, -box.min.y * k, -(box.min.z + size.z / 2) * k);   // centred on its footprint, on the floor
+    const holder = new THREE.Group(); holder.position.set(pos[0], 0, pos[2]); holder.rotation.y = yaw;
+    holder.add(m);
+    const sh = blob(size.x * k * 1.15, size.z * k * 1.25); holder.add(sh);
+    m.traverse((o) => { if (o.isMesh && o.material) { o.material.envMapIntensity = .8; } });
+    scene.add(holder);
+    ok(holder);
+  }, undefined, () => ok(null)));
+}
+Promise.all([
+  place('sofa_02', [.3, 0, 1.75], Math.PI, 2.2),
+  place('modern_arm_chair_01', [-1.95, 0, .35], Math.PI - .35, .8),
+  place('coffee_table_round_01', [.25, 0, -.35], 0, .95),
+  place('potted_plant_02', [2.7, 0, -3.3], .6, .95)
+]).then(([sofaM, chairM, tableM, plantM]) => {
+  for (const m of [sofaM, tableM, plantM]) if (m) roomAModels.push(m);
+  chairModel = chairM;
+  if (sofaM) sofa.userData.replaced = true;
+  if (plantM) [pot, soil, plantA].forEach((o) => { o.userData.replaced = true; });
+  applyRoom(roomKey);
+});
+
 // ---------------- the room the viewer picked ----------------
 // what each room keeps of the shared things: its own frame, speakers, console come from decor.js
 const KIT = { a: { frame: 1, speakers: 1, console: 1, corners: 1, smart: 1 }, b: { speakers: 1 }, c: { smart: 1, speakers: 1 }, d: { corners: 1, speakers: 1 }, e: { corners: 1, smart: 1, speakers: 1 } };
@@ -849,7 +900,9 @@ function applyRoom(key) {
   const win = V.window !== 'none';
   leftWhole.forEach((p) => { p.visible = !win; }); leftWin.forEach((p) => { p.visible = win; }); windowParts.forEach((p) => { p.visible = win; });
   if (win) paintView();
+  floorTop.material = key === 'a' ? A_MAT.floor : floorBase;
   floorTop.material.color.setRGB(...V.floor);
+  if (key === 'a') { backWall.material = A_MAT.back; rightWall.material = A_MAT.side; leftWhole.concat(leftWin).forEach((p) => { p.material = A_MAT.side; }); A_MAT.floor.color.setHex(0x8f7560); }
   const old = rug.material.map;
   rug.material.map = canvasTex(512, 512, (g, w, hh) => {
     g.fillStyle = V.rug; g.fillRect(0, 0, w, hh);
@@ -866,7 +919,11 @@ function applyRoom(key) {
   cove.forEach((l) => l.color.copy(CANDLE)); lampLight.color.copy(CANDLE); shade.material.emissive.copy(CANDLE);
   cornerCols[0].copy(NEON[V.corners[0]]); cornerCols[1].copy(NEON[V.corners[1]]);
   cornerLights.forEach((l, i) => l.color.copy(cornerCols[i]));
-  roomA.forEach((o) => { o.visible = key === 'a'; });
+  roomA.forEach((o) => { o.visible = key === 'a' && !o.userData.replaced; });
+  roomAModels.forEach((o) => { o.visible = key === 'a'; });
+  const realChair = key === 'a' && chairModel;
+  if (chairModel) chairModel.visible = !!realChair;
+  chair.children.forEach((o) => { if (o !== kevinSlot) o.visible = !realChair; });
   const kit = KIT[key];
   frame3.visible = goldLine.visible = !!kit.frame; consoleBox.visible = consoleLed.visible = !!kit.console;
   speakerParts.forEach((o) => { o.visible = !!kit.speakers; });
