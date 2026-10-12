@@ -9,8 +9,11 @@
    rhythm, with the colours of its thumbnail. The player tells us where it is (the same
    messages the YouTube IFrame API uses), so the data stays in step with the clip.
 
-   Switch: Full / Soft / Off (remembered in this browser); reduced motion = soft and slow. */
-(function () {
+   Switch: Full / Soft / Off (remembered in this browser); reduced motion = soft and slow.
+
+   Phones: it is built when the browser has a free moment (not while the page loads), draws at a lower
+   resolution, and while the clip is not playing the calm effect runs at 20 frames a second. */
+(window.requestIdleCallback || function (f) { return setTimeout(f, 300); })(function () {
   // the page marks the room for the effect [data-clip-fx] and the player in it [data-clip-player];
   // the player says which clip it shows in data-yt
   var stage = document.querySelector('[data-clip-fx]');
@@ -174,7 +177,8 @@
   // ---------- state ----------
   var energy = new Float32Array(32), cols = { l: new Float32Array(96), r: new Float32Array(96), b: new Float32Array(96) };
   var kick = 0, bassSlow = 0, alive = 0, last = performance.now(), fxTime = 0, speed = .3, carry = 0, bits = [], show = 0;
-  var quality = 1, slowFrames = 0, visible = true;
+  var phone = matchMedia('(pointer: coarse), (max-width: 760px)').matches;
+  var quality = phone ? .5 : 1, slowFrames = 0, visible = true, idleWait = 0;
   if ('IntersectionObserver' in window) new IntersectionObserver(function (en) { visible = en[0].isIntersecting; }).observe(stage);
   function resample(src, n, frameNo, out) {        // n colours along an edge -> 32, eased so cuts don't flash
     for (var i = 0; i < 32; i++) { var f = i / 31 * (n - 1), a = Math.floor(f), b = Math.min(n - 1, a + 1), w = f - a;
@@ -187,6 +191,7 @@
     requestAnimationFrame(draw);
     var dt = Math.min(0.05, (now - last) / 1000); last = now;
     if (!visible || document.hidden) return;
+    if (!playing) { idleWait += dt; if (idleWait < .05) return; dt = idleWait; idleWait = 0; } else idleWait = 0;
     listen();
     // fade the whole effect out while off or while the clip floats as the small player
     var want = mode !== 'off' && !player.classList.contains('is-mini') ? 1 : 0;
@@ -194,7 +199,7 @@
     stage.style.setProperty('--fx-show', show.toFixed(3));
     if (show < .01) { if (want === 0) { ctx.clearRect(0, 0, cv.width, cv.height); bits.length = 0; } return; }
 
-    if (dt > .026) { if (++slowFrames > 45 && quality > .5) { quality -= .25; slowFrames = 0; } } else slowFrames = Math.max(0, slowFrames - 1);
+    if (playing && dt > .026) { if (++slowFrames > 45 && quality > .5) { quality -= .25; slowFrames = 0; } } else slowFrames = Math.max(0, slowFrames - 1);
     var dpr = Math.min(2, devicePixelRatio || 1), w = glCanvas.clientWidth, h = glCanvas.clientHeight, q = Math.max(.75, dpr * quality);
     if (glCanvas.width !== Math.round(w * q) || glCanvas.height !== Math.round(h * q)) { glCanvas.width = Math.round(w * q); glCanvas.height = Math.round(h * q); }
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
@@ -288,4 +293,4 @@
     }
   }
   requestAnimationFrame(draw);
-})();
+}, { timeout: 2500 });

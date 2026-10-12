@@ -78,12 +78,23 @@
   var fake = { setPose: function () {}, setTalking: function () {}, spin: function () {}, look: function () {}, setLight: function () {}, setPaused: function () {} };
   function model() { return k || fake; }
   function useStill() { canvas.hidden = true; still.hidden = false; }
+  // The model is built only the first time he comes out (he mostly waits in the paw): building it is the
+  // heaviest thing on a phone, so a visit that never calls him costs nothing. Until it is ready, the still.
+  var modelAsked = false;
+  function ensureModel() {
+    if (modelAsked) return;
+    modelAsked = true;
+    canvas.hidden = true; still.hidden = false;
+    load3d();
+  }
   function load3d() {
     var gl = null;
     try { gl = document.createElement('canvas').getContext('webgl2'); } catch (e) { gl = null; }
     if (reduced || saveData || !gl) return useStill();
     import('/js/kevin3d.js' + (version ? '?' + version : '')).then(function (m) {
       k = m.createKevin(canvas, { light: document.body.classList.contains('light') });
+      canvas.hidden = false; still.hidden = true;
+      k.setPaused(root.hidden);
       new MutationObserver(function () { k.setLight(document.body.classList.contains('light')); })
         .observe(document.body, { attributes: true, attributeFilter: ['class'] });
     }).catch(useStill);
@@ -577,6 +588,7 @@
   function pocket() { return paw.classList.contains('in-header'); }
   function canPop() { return pocket() && !userHidden; }
   function place(out) {
+    if (out) ensureModel();
     root.hidden = !out;
     // in the header the paw stays put (nothing in the bar jumps); it shows he is out and takes him back
     paw.hidden = out && !pocket();
@@ -618,9 +630,9 @@
       root.removeEventListener('animationend', done);
       root.classList.remove('kevin-in');
     });
-    load3d();
     if (userHidden) { place(false); if (!adminPage) scheduleTip(); return; }
     if (pocket()) place(false);   // in the paw until he has something to say (greet below)
+    else ensureModel();          // a page without the header bar: he stands there from the start
     wake();
     greet();
     if (!adminPage) scheduleTip();
