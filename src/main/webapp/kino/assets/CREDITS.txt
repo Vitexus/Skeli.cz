@@ -1,3 +1,6 @@
 Models and textures in this folder are from Poly Haven (https://polyhaven.com), CC0 (public domain).
-Models: sofa_02, modern_arm_chair_01, coffee_table_round_01, potted_plant_02 (glTF, 1k textures).
-Textures: herringbone_parquet, smoked_walnut_veneer, plastered_wall_04 (1k: diffuse, normal GL, roughness).
+Models: sofa_02, modern_arm_chair_01, coffee_table_round_01, potted_plant_02, modern_wooden_cabinet, side_table_01,
+brass_vase_01, ceramic_vase_01, potted_plant_04, hanging_picture_frame_01, standing_picture_frame_01 (glTF, 1k textures;
+the pictures in the frames are replaced by photos of Skeli).
+Textures: herringbone_parquet, smoked_walnut_veneer, plastered_wall_04, velour_velvet, wool_boucle (1k: diffuse, normal GL, roughness).
+HDRI shanghai_bund (the view from the window, a tonemapped 4k JPG). Three.js add-ons in ../vendor/jsm: MIT.
