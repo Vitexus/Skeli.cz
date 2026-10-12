@@ -1654,4 +1654,8 @@ html.lyric-plain .fs-now, html.lyric-plain .fs-next { font-family: 'Exo 2', syst
   .k-ticket-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .k-ticket-go { display: inline; }
 }
+/* back from the cinema: out of the black */
+.k-from-black { position: fixed; inset: 0; z-index: 3000; background: #000; pointer-events: none; animation: k-from-black 1.6s ease forwards; }
+.k-from-black[hidden] { display: none; }
+@keyframes k-from-black { to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .k-bulbs { animation: none; } .k-poster, .k-feature-poster { transition: none; } }

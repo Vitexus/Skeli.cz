@@ -495,22 +495,26 @@ function spawnRain(n) {
   }
 }
 
-// the curtain in front of the screen (drawn in front of the clip): opens with the projector, closes for the titles
+// the curtain: floor to ceiling in front of the screen wall (drawn in front of the clip, so it covers it when
+// closed; hung in front of the speakers, so drawing it over them is right). It opens with the projector and
+// stays gathered at the walls on both sides; it closes for the end titles and when leaving.
 frontScene.add(new THREE.HemisphereLight(0x664444, 0x000000, .5));
-const curtainKey = new THREE.PointLight(0xffd9a8, 0, 6, 1.5); curtainKey.position.set(0, SCY + 1, SZ + 1.5); frontScene.add(curtainKey);
+const curtainKey = new THREE.PointLight(0xffd9a8, 0, 6, 1.5); curtainKey.position.set(0, SCY + 1, BACK + 2.55); frontScene.add(curtainKey);
 const curtainMat = new THREE.MeshPhysicalMaterial({ color: 0x3e0a10, roughness: .8, sheen: 1, sheenColor: new THREE.Color(.9, .25, .3), sheenRoughness: .35 });
-const CW = SW / 2 + .35, CH = SH + .55;
+const CPIV = 3.0, CW = CPIV + .05, CH = TOP - .22, CZ = BACK + .95;
 const curtains = [-1, 1].map((s) => {
   const g = new THREE.PlaneGeometry(CW, CH, 90, 1), p = g.attributes.position;
-  for (let i = 0; i < p.count; i++) { const x = p.getX(i); p.setZ(i, Math.sin(x * 22) * .03 + Math.sin(x * 61 + 1) * .007); }
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i); p.setZ(i, Math.sin(x * 19) * .035 + Math.sin(x * 53 + 1) * .008); }
   g.computeVertexNormals(); g.translate(-s * CW / 2, 0, 0);   // pivot on its outer edge
   const m = new THREE.Mesh(g, curtainMat);
-  m.position.set(s * (SW / 2 + .3), SCY + .1, SZ + .18);
+  m.position.set(s * CPIV, CH / 2, CZ);
   frontScene.add(m);
   return m;
 });
-const valance = new THREE.Mesh(new THREE.BoxGeometry(SW + .75, .13, .08), curtainMat); valance.position.set(0, SCY + SH / 2 + .32, SZ + .18); frontScene.add(valance);
+const valance = new THREE.Mesh(new THREE.BoxGeometry(CPIV * 2 + .2, .2, .1), curtainMat); valance.position.set(0, CH + .08, CZ); frontScene.add(valance);
 let curtainOpen = 0;
+// a warm light grazing each gathered side, so the velvet shows
+const curtainSides = [-1, 1].map((sd) => { const l = new THREE.PointLight(0xffb48a, 0, 3.2, 1.6); l.position.set(sd * (CPIV - .55), CH * .62, CZ + .9); frontScene.add(l); return l; });
 
 // Kevin (placeholder until his new look): sits in the armchair on the left; in the chorus he gets up and raps
 // along, a bubble with the bit being sung. Plug the new model in at kevinSlot.
@@ -761,11 +765,19 @@ $('enter').onclick = () => {
   setTimeout(startPlayer, 2400);
   askToTurn(); wake();
 };
-function leave() {
-  entered = false; pause(); power(0, 700); lightsTo = .15;
-  camAt = performance.now(); camMs = 1; camFrom = new THREE.Vector3(0, 1.7, 5.6);
-  setTimeout(() => $('lobby').classList.remove('gone'), 500);
+// leaving the cinema, like the end of a film: the curtain closes, the lights and the projector go down, the
+// camera pulls back, the picture fades to black and the site comes back (the karaoke list fades in from black)
+let exiting = false, camBack = false;
+function exitKino() {
+  if (exiting) return;
+  exiting = true; pause(); wake();
+  $('kinoExit') && ($('kinoExit').style.visibility = 'hidden');
+  setTimeout(() => { lightsTo = .1; power(0, 1200); }, 900);
+  setTimeout(() => { camFrom = new THREE.Vector3(0, 1.9, 6.2); camBack = true; camAt = performance.now(); camMs = 2600; }, 700);
+  setTimeout(() => document.body.classList.add('fading'), 1900);
+  setTimeout(() => { try { sessionStorage.setItem('kinoOut', '1'); } catch (er) { /* no storage */ } location.href = '/karaoke-kino'; }, 3300);
 }
+function leave() { exitKino(); }
 if (qs.has('auto')) { entered = true; $('lobby').classList.add('gone'); on = onTo = 1; lights = lightsTo = 1; camAt = -1e9; play(); scheduleKevin(); if (!qs.has('end')) curtainOpen = 1; }
 
 // furniture of the other rooms (decor.js); room A is the sofa, lamp and plant built above
@@ -851,7 +863,7 @@ function frame(ts) {
   if (onAt) { const p = Math.min(1, (ts - onAt) / onMs); on = onTo > onFrom ? onFrom + (onTo - onFrom) * flicker(p) : onFrom + (onTo - onFrom) * p; if (p >= 1) onAt = 0; }
   lights += (lightsTo - lights) * (1 - Math.exp(-dt * 2.5));
   powerEl.style.opacity = (1 - on).toFixed(3);
-  const k = camAt < 0 ? 1 : ease(Math.min(1, (ts - camAt) / camMs));
+  const k0 = camAt < 0 ? 1 : ease(Math.min(1, (ts - camAt) / camMs)), k = camBack ? 1 - k0 : k0;
   par.x += (mouse.x - par.x) * (1 - Math.exp(-dt * 2)); par.y += (mouse.y - par.y) * (1 - Math.exp(-dt * 2));
   camera.position.lerpVectors(camFrom, CAM, k);
   camera.position.x += par.x * .18; camera.position.y -= par.y * .06;
@@ -932,14 +944,14 @@ function frame(ts) {
 
   // the curtain: open once the projector is on; closes after the last line for the end titles
   const ended = entered && (started || SIM) && t > Math.min(duration() - 1.5, LAST_END + 6);
-  const curtainTo = ended ? 0 : on > .95 && (started || SIM) ? 1 : 0;
-  if (ended && !credited) { credited = true; $('roll').innerHTML = credits(); $('credits').hidden = false; $('credits').classList.add('run'); spawnRain(N_RAIN); }
+  const curtainTo = ended || exiting ? 0 : on > .95 && (started || SIM) ? 1 : 0;
+  if (ended && !credited) { credited = true; $('roll').innerHTML = credits(); $('credits').hidden = false; $('credits').classList.add('run'); spawnRain(N_RAIN); setTimeout(() => { if (credited) exitKino(); }, 17000); }
   if (!ended && credited) { credited = false; $('credits').hidden = true; $('credits').classList.remove('run'); }
   curtainOpen += (curtainTo - curtainOpen) * (1 - Math.exp(-dt * (curtainTo ? .9 : 1.3)));
   const co = curtainOpen * curtainOpen * (3 - 2 * curtainOpen);
-  curtains.forEach((c) => { c.scale.x = 1 - co * .88; c.visible = co < .985; });
-  valance.visible = co < .985;
-  curtainKey.intensity = 3 * Math.max(lights, .3) * (1 - co);
+  curtains.forEach((c) => { c.scale.x = 1 - co * .85; c.scale.z = 1 + co * 2.4; });
+  curtainKey.intensity = (3 * (1 - co) + .9) * Math.max(lights, .3);
+  curtainSides.forEach((l) => { l.intensity = 2.2 * co * Math.max(lights, .3); });
 
   // Kevin (placeholder): up for the chorus, rapping the words being sung
   if (kevState === 'away' && kevArrive && pl && ts > kevArrive) { kevState = 'walking'; kevWalk = ts; kev.visible = true; }

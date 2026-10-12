@@ -10,7 +10,10 @@
     java.util.List<KaraokeSong> songs = (java.util.List<KaraokeSong>) request.getAttribute("karaokeSongs");
     if (songs == null) songs = java.util.List.of();
 %>
+<%-- coming back from the cinema: the page rises out of the black the cinema faded to --%>
 <main class="k-lobby">
+<div class="k-from-black" id="kFromBlack" hidden aria-hidden="true"></div>
+<script>try { if (sessionStorage.getItem("kinoOut")) { sessionStorage.removeItem("kinoOut"); document.getElementById("kFromBlack").hidden = false; } } catch (e) {}</script>
     <header class="k-marquee">
         <span class="k-bulbs" aria-hidden="true"></span>
         <p class="k-marquee-kicker"><%= t.getProperty("karaoke.list.marquee") %></p>

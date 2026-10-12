@@ -647,11 +647,11 @@ $('enter').onclick = () => {
   askToTurn();
   wake();
 };
-function leave() {
-  entered = false; pause(); power(0, 700); neonTo = .1;
-  camFrom = camera.position.clone(); camAt = performance.now(); camMs = 1;
-  camFrom = new THREE.Vector3(0, 2.6, 9.5);
-  setTimeout(() => $('lobby').classList.remove('gone'), 500);
+function leave() {   // like the end of a film: lights down, fade to black, back to the karaoke list
+  if (leave.done) return; leave.done = true;
+  entered = false; pause(); power(0, 1200); neonTo = .1;
+  setTimeout(() => document.body.classList.add('fading'), 900);
+  setTimeout(() => { try { sessionStorage.setItem('kinoOut', '1'); } catch (er) { /* no storage */ } location.href = '/karaoke-kino'; }, 2300);
 }
 if (qs.has('auto')) { entered = true; $('lobby').classList.add('gone'); on = onTo = 1; neon = neonTo = 1; camAt = -1e9; play(); }
 if (qs.has('auto') && !qs.has('end')) curtainOpen = 1;
