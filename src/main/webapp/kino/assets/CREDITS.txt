@@ -1,0 +1,3 @@
+Models and textures in this folder are from Poly Haven (https://polyhaven.com), CC0 (public domain).
+Models: sofa_02, modern_arm_chair_01, coffee_table_round_01, potted_plant_02 (glTF, 1k textures).
+Textures: herringbone_parquet, smoked_walnut_veneer, plastered_wall_04 (1k: diffuse, normal GL, roughness).
