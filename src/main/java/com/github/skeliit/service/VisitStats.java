@@ -197,7 +197,7 @@ public final class VisitStats {
 
     // ---------- admin ----------
 
-    /** online, today, yesterday, days7, days30 (visitors), pagesToday, pages30, since */
+    /** online, today, yesterday, days7, days30, all (visits = a visitor on a day), pagesToday, pages30, pagesAll, since */
     public static Map<String, Object> summary() throws SQLException {
         LocalDate day = today();
         Map<String, Object> out = new LinkedHashMap<>();
@@ -210,6 +210,8 @@ public final class VisitStats {
                      + "(SELECT COUNT(*) FROM visit_days WHERE day > ?) AS days30, "
                      + "(SELECT COALESCE(SUM(pageviews), 0) FROM site_stats_daily WHERE day = ?) AS pagesToday, "
                      + "(SELECT COALESCE(SUM(pageviews), 0) FROM site_stats_daily WHERE day > ?) AS pages30, "
+                     + "(SELECT COUNT(*) FROM visit_days) AS allVisits, "
+                     + "(SELECT COALESCE(SUM(pageviews), 0) FROM site_stats_daily) AS pagesAll, "
                      + "(SELECT v FROM app_settings WHERE k = 'stats_since') AS since")) {
             ps.setObject(1, day);
             ps.setObject(2, day.minusDays(1));
@@ -219,7 +221,7 @@ public final class VisitStats {
             ps.setObject(6, day.minusDays(30));
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    for (String k : new String[]{"today", "yesterday", "days7", "days30", "pagesToday", "pages30"}) {
+                    for (String k : new String[]{"today", "yesterday", "days7", "days30", "allVisits", "pagesToday", "pages30", "pagesAll"}) {
                         out.put(k, rs.getLong(k));
                     }
                     out.put("since", rs.getString("since"));

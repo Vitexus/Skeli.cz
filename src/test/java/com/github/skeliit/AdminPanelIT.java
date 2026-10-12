@@ -271,7 +271,7 @@ public class AdminPanelIT extends UiTestSupport {
     void visitStatsAndReset() throws Exception {
         driver.get(BASE_URL + "/admin.jsp");
         assertFalse(driver.findElements(By.cssSelector("#stats")).isEmpty(), "NĂˇvĹˇtÄ›vnost section");
-        assertEquals(6, driver.findElements(By.cssSelector(".admin-visits .admin-stat")).size());
+        assertEquals(8, driver.findElements(By.cssSelector(".admin-visits .admin-stat")).size());
 
         WebElement form = driver.findElement(By.cssSelector("form[action='/admin/stats-reset']"));
         jsClick(form.findElement(By.name("confirm")));
