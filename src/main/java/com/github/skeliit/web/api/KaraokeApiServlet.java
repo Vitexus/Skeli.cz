@@ -14,7 +14,8 @@ import java.sql.SQLException;
 
 /**
  * GET /api/karaoke?yt=<YouTube id>: when each line of the lyrics is sung in that clip, for js/karaoke.js.
- * {"lines": 42, "times": [[12.4, 15.9], ...], "source": "manual" | "auto"}; 404 when the clip has none.
+ * {"lines": 42, "times": [[12.4, 15.9], ...], "words": [[[12.4, 12.7], ...], ...], "source": "manual" | "auto"};
+ * "words" = every word of every line (split at spaces), only in the automatic files so far; 404 when the clip has none.
  * A correction made in the admin (karaoke_timings) wins over the automatic file karaoke/<id>.json.
  */
 @WebServlet(name = "KaraokeApiServlet", urlPatterns = {"/api/karaoke"})

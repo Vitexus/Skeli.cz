@@ -48,6 +48,19 @@
   paw.setAttribute('aria-label', L.ui.show);
   paw.innerHTML = '<i class="fa-solid fa-paw"></i>';
   paw.hidden = true;
+  // The paw lives in the header bar, never over the page: on a PC among the round buttons on the
+  // right, on phones and tablets next to Menu. (Only a page without the header gets it floating.)
+  var wideMq = window.matchMedia('(min-width: 1025px)');
+  function placePaw() {
+    var controls = document.querySelector('.site-header .top-controls');
+    var toggle = document.getElementById('menuToggle');
+    var where = wideMq.matches ? controls : toggle;
+    if (!where) { paw.classList.remove('in-header'); root.classList.remove('from-header'); if (paw.parentNode !== document.body) document.body.appendChild(paw); return; }
+    paw.classList.add('in-header');
+    root.classList.add('from-header');
+    if (wideMq.matches) controls.insertBefore(paw, controls.firstChild);
+    else toggle.parentNode.insertBefore(paw, toggle);
+  }
 
   var bubble = root.querySelector('.kevin-bubble'), text = root.querySelector('.kevin-text'), link = root.querySelector('.kevin-link');
   var extra = root.querySelector('.kevin-extra');
@@ -65,12 +78,23 @@
   var fake = { setPose: function () {}, setTalking: function () {}, spin: function () {}, look: function () {}, setLight: function () {}, setPaused: function () {} };
   function model() { return k || fake; }
   function useStill() { canvas.hidden = true; still.hidden = false; }
+  // The model is built only the first time he comes out (he mostly waits in the paw): building it is the
+  // heaviest thing on a phone, so a visit that never calls him costs nothing. Until it is ready, the still.
+  var modelAsked = false;
+  function ensureModel() {
+    if (modelAsked) return;
+    modelAsked = true;
+    canvas.hidden = true; still.hidden = false;
+    load3d();
+  }
   function load3d() {
     var gl = null;
     try { gl = document.createElement('canvas').getContext('webgl2'); } catch (e) { gl = null; }
     if (reduced || saveData || !gl) return useStill();
     import('/js/kevin3d.js' + (version ? '?' + version : '')).then(function (m) {
       k = m.createKevin(canvas, { light: document.body.classList.contains('light') });
+      canvas.hidden = false; still.hidden = true;
+      k.setPaused(root.hidden);
       new MutationObserver(function () { k.setLight(document.body.classList.contains('light')); })
         .observe(document.body, { attributes: true, attributeFilter: ['class'] });
     }).catch(useStill);
@@ -80,8 +104,14 @@
   var hideTimer = 0, busy = false, autoCount = 0, lastAuto = 0, hideAfter = 'idle', hideMs = 0;
   // opts: pose, after (pose when the bubble goes), ms, extra (a node under the text: buttons,
   // a search field, results), href + linkText (a link under the text)
+  var pending = null;   // what he wanted to say while in the paw (said when the paw is tapped)
   function show(msg, opts) {
     opts = opts || {};
+    if (root.hidden) {
+      // in the paw he never comes out on his own: the message waits, the paw gets a gold dot
+      if (canPop()) { pending = [msg, opts]; paw.classList.add('has-news'); }
+      return;
+    }
     clearTimeout(hideTimer);
     text.textContent = msg;
     link.hidden = !opts.href;
@@ -106,6 +136,7 @@
     root.classList.remove('talking');
     model().setTalking(false);
     model().setPose(pose || 'idle');
+    scheduleTuck();
   }
   // the bubble stays while the visitor points at it or types in it
   function holdBubble() { clearTimeout(hideTimer); }
@@ -136,28 +167,78 @@
       .catch(function () { return null; });
   }
   // lines the visitor did not ask for: at most one in 40 s and six per page
-  function auto(msg, pose, peekChance) {
+  // Something he says on his own. In the paw he peeks out from the side of the screen to say it, but
+  // only where that edge is free (nothing of the page under him and his bubble); with no free edge the
+  // paw gets a gold dot instead. Closed with the cross, he still gives a tip now and then, only that way.
+  function auto(msg, pose, peekChance, isTip) {
     var now = Date.now();
-    if (busy || root.hidden || autoCount >= 6 || now - lastAuto < 40000 || !bubble.hidden) return;
+    if (busy || autoCount >= 6 || now - lastAuto < 40000 || !bubble.hidden) return;
+    if (root.hidden && userHidden && !isTip) return;
+    if (root.hidden && !pocket()) return;
     autoCount++;
     lastAuto = now;
-    if (Math.random() < (peekChance == null ? 0.5 : peekChance)) startPeek();
-    show(msg, { pose: pose || 'point' });
+    onOwn(msg, { pose: pose || 'point' }, isTip, peekChance);
+  }
+  function onOwn(msg, opts, isTip, peekChance) {
+    if (!root.hidden) {   // he is out (the visitor called him): he just says it
+      if (Math.random() < (peekChance == null ? 0.5 : peekChance)) startPeek(findPeekSpot());
+      return show(msg, opts);
+    }
+    var spot = findPeekSpot();
+    if (spot && (!userHidden || isTip)) {
+      place(true);
+      startPeek(spot);
+      return show(msg, opts);
+    }
+    if (!userHidden) { pending = [msg, opts]; paw.classList.add('has-news'); }
   }
 
-  // ---------- now and then he peeks out from the side of the screen, halfway down ----------
+  // ---------- now and then he peeks out from the side of the screen ----------
   var peeking = false;
-  function canPeek() {
-    return window.innerWidth > 1024 && !reduced && !root.classList.contains('ducked') && !tv;
+  // a free edge: every probe point in the box he would take hits only the background of the page
+  function isBackground(el) {
+    if (!el || el === document.documentElement || el === document.body) return true;
+    if (el.closest('.kevin, .kevin-paw, .bg-slides')) return true;   // the background photos are background
+    return !el.closest('a, button, input, select, textarea, label, img, picture, video, iframe, canvas, svg, '
+      + 'p, h1, h2, h3, h4, h5, li, pre, blockquote, figure, table, header, footer, nav, form, aside, article, section, '
+      + '.card, .tape, .photo-band, .cookie-bar, [class*="spotify"], .notif-panel');
   }
-  function startPeek() {
-    if (peeking || !canPeek()) return;
+  function boxFree(x0, w, y0, h) {
+    for (var gx = 0; gx <= 5; gx++) {
+      for (var gy = 0; gy <= 6; gy++) {
+        var x = x0 + 4 + (w - 8) * gx / 5, y = y0 + 4 + (h - 8) * gy / 6;
+        if (y < 0 || y > innerHeight || x < 0 || x > innerWidth) return false;
+        if (!isBackground(document.elementFromPoint(x, y))) return false;
+      }
+    }
+    return true;
+  }
+  // Two shapes: a wide free edge takes him with the bubble beside him (340 px); a narrower one (190 px)
+  // takes him with the bubble above his head, as wide as the edge allows.
+  function findPeekSpot() {
+    if (reduced || tv || root.classList.contains('ducked') || innerWidth < 700) return null;
+    var sides = Math.random() < 0.5 ? [true, false] : [false, true];
+    for (var t = 0; t < 4; t++) {
+      var y = Math.round(innerHeight * (0.34 + Math.random() * 0.26));
+      for (var s = 0; s < 2; s++) {
+        var right = sides[s];
+        if (boxFree(right ? innerWidth - 340 : 0, 340, y - 70, 242)) return { right: right, y: y, stack: 0 };
+        for (var w = 280; w >= 190; w -= 30) {
+          if (boxFree(right ? innerWidth - w : 0, w, y - 150, 322)) return { right: right, y: y, stack: w };
+        }
+      }
+    }
+    return null;
+  }
+  function startPeek(spot) {
+    if (peeking || !spot) return;
     peeking = true;
-    var right = Math.random() < 0.5;
-    root.style.setProperty('--peek-y', Math.round(window.innerHeight * (0.28 + Math.random() * 0.3)) + 'px');
-    root.classList.remove('kevin-in', 'peek-out');
-    root.classList.add('peek', right ? 'peek-right' : 'peek-left');
-    model().look(right ? -0.9 : 0.9, 0.1);   // he looks into the page
+    root.style.setProperty('--peek-y', spot.y + 'px');
+    root.style.setProperty('--peek-bubble-w', (spot.stack ? spot.stack - 24 : 236) + 'px');
+    root.classList.toggle('peek-stack', !!spot.stack);
+    root.classList.remove('kevin-in', 'peek-out', 'from-header');   // the side of the screen, not under the bar
+    root.classList.add('peek', spot.right ? 'peek-right' : 'peek-left');
+    model().look(spot.right ? -0.9 : 0.9, 0.1);   // he looks into the page
   }
   function endPeek() {
     if (!peeking) return;
@@ -165,14 +246,18 @@
     root.classList.add('peek-out');
     setTimeout(function () {
       if (peeking) return;   // a new peek started meanwhile
-      root.classList.remove('peek', 'peek-left', 'peek-right', 'peek-out');
-      root.classList.add('kevin-in');   // pops back up in his corner
+      root.classList.remove('peek', 'peek-left', 'peek-right', 'peek-out', 'peek-stack');
+      if (pocket()) { root.classList.add('from-header'); if (bubble.hidden) place(false); }
+      else root.classList.add('kevin-in');   // pops back up in his corner
     }, 550);
   }
   // a tip or a joke every minute and a half or so, while someone is on the page
   function scheduleTip() {
     setTimeout(function () {
-      if (!document.hidden && !asleep) auto(pick(Math.random() < 0.6 ? (L.tips || L.idle) : L.idle), 'point', 0.8);
+      if (!document.hidden && !asleep) {
+        var tip = Math.random() < 0.6;
+        auto(pick(tip ? (L.tips || L.idle) : L.idle), 'point', 0.8, tip);
+      }
       scheduleTip();
     }, 75000 + Math.random() * 45000);
   }
@@ -276,6 +361,7 @@
   var acted = false;   // the visitor clicked him: no greeting may cut in any more
   function menu() {
     acted = true;
+    if (root.hidden) popOut();
     if (busy) return endRap();
     wake();
     if (!bubble.hidden && extra.querySelector('.kevin-menu')) return hideBubble('idle');
@@ -482,7 +568,7 @@
     }
     if (!session.get('kevinHello')) {
       session.set('kevinHello', '1');
-      var hello = function () { show(pick(L.greet[dayPart()]), { pose: 'point', after: 'idle' }); lastAuto = Date.now(); };
+      var hello = function () { onOwn(pick(L.greet[dayPart()]), { pose: 'point', after: 'idle' }, false, 0); lastAuto = Date.now(); };
       // back after a while: what came out since, otherwise the usual hello
       var prev = parseInt(session.get('kevinPrevVisit'), 10);
       return setTimeout(function () {
@@ -495,16 +581,48 @@
   }
 
   // ---------- show / hide ----------
-  function setHidden(h) {
-    root.hidden = h;
-    paw.hidden = !h;
-    store.set('kevin', h ? 'hidden' : 'shown');
-    model().setPaused(h);
-    if (h) { endRap(); clearTimeout(idleTimer); } else { wake(); }
+  // He never stands over the page: he waits as the gold paw in the header bar (pocket). Something to
+  // say = a gold dot on the paw; a tap on the paw brings him out under the bar to say it (or with his
+  // menu), then he goes back. The cross = the visitor wants peace: no dots either (remembered).
+  var userHidden = store.get('kevin') === 'hidden';
+  function pocket() { return paw.classList.contains('in-header'); }
+  function canPop() { return pocket() && !userHidden; }
+  function place(out) {
+    if (out) ensureModel();
+    root.hidden = !out;
+    // in the header the paw stays put (nothing in the bar jumps); it shows he is out and takes him back
+    paw.hidden = out && !pocket();
+    paw.classList.toggle('is-out', out);
+    paw.setAttribute('aria-expanded', String(out));
+    model().setPaused(!out);
+    if (!out) { endRap(); clearTimeout(idleTimer); }
   }
+  function popOut() {
+    place(true);
+    root.classList.remove('kevin-in');
+    void root.offsetWidth;   // restart the jump-in animation
+    root.classList.add('kevin-in');
+  }
+  var tuckTimer = 0;
+  function scheduleTuck() {
+    clearTimeout(tuckTimer);
+    if (!pocket()) return;
+    tuckTimer = setTimeout(function () {
+      if (pocket() && !root.hidden && !busy && !tv && bubble.hidden) place(false);
+    }, 900);
+  }
+  function setHidden(h) {
+    userHidden = h;
+    if (h) { pending = null; paw.classList.remove('has-news'); }
+    store.set('kevin', h ? 'hidden' : 'shown');
+    place(!h);
+    if (!h) wake();
+  }
+
   function start() {
     document.body.appendChild(root);
-    document.body.appendChild(paw);
+    placePaw();
+    wideMq.addEventListener('change', placePaw);
     noteVisit();
     root.classList.add('kevin-in');
     root.addEventListener('animationend', function done(e) {
@@ -512,8 +630,9 @@
       root.removeEventListener('animationend', done);
       root.classList.remove('kevin-in');
     });
-    load3d();
-    if (store.get('kevin') === 'hidden') { setHidden(true); return; }
+    if (userHidden) { place(false); if (!adminPage) scheduleTip(); return; }
+    if (pocket()) place(false);   // in the paw until he has something to say (greet below)
+    else ensureModel();          // a page without the header bar: he stands there from the start
     wake();
     greet();
     if (!adminPage) scheduleTip();
@@ -531,7 +650,16 @@
     if (!soundOn && stopBeat) { stopBeat(); stopBeat = null; }
   });
   root.querySelector('.kevin-hide').addEventListener('click', function () { setHidden(true); });
-  paw.addEventListener('click', function () { setHidden(false); show(pick(L.wake), { pose: 'point' }); });
+  // the paw: on a phone straight to his menu (that is why it was tapped), elsewhere a hello
+  paw.addEventListener('click', function () {
+    if (!root.hidden) { endRap(); hideBubble('idle'); place(false); return; }   // a second tap: back in
+    var said = pending;
+    pending = null;
+    paw.classList.remove('has-news');
+    setHidden(false);
+    popOut();
+    if (said) show(said[0], said[1]); else if (pocket()) menu(); else show(pick(L.wake), { pose: 'point' });
+  });
 
   // he looks at the mouse
   var raf = 0, mx = 0, my = 0;
@@ -562,7 +690,7 @@
   // hooks from the rest of the site
   window.addEventListener('kevin', function (e) {
     var d = e.detail || {};
-    if (root.hidden) return;
+    if (root.hidden && !canPop()) return;
     if (d.pw && L.pw[d.pw]) {
       lastAuto = 0;   // the visitor is typing: answering is fine
       show(pick(L.pw[d.pw]), { pose: d.pw === 'strong' ? 'cool' : d.pw === 'weak' ? 'sulk' : 'idle', after: 'idle' });
@@ -571,7 +699,7 @@
     } else if (d.tip) {
       // another script wants a tip now (also used by the tests): he peeks out to say it
       lastAuto = 0;
-      auto(pick(L.tips || L.idle), 'point', 1);
+      auto(pick(L.tips || L.idle), 'point', 1, true);
     }
   });
   document.addEventListener('pjax:done', function () { autoCount = 0; greet(); });

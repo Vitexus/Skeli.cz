@@ -6,7 +6,8 @@
 # lines it did not hear at all get times in between their neighbours, by length.
 #
 # usage:  python tools/karaoke-align.py <clip.mp4> <lyrics.txt> <out.json> [--model large-v3] [--cpu]
-# out:    {"lines": 42, "matched": 0.71, "times": [[12.4, 15.9], [16.0, 19.2], ...]}  one pair per non-empty line
+# out:    {"lines": 42, "matched": 0.71, "times": [[12.4, 15.9], [16.0, 19.2], ...],  one pair per non-empty line
+#          "words": [[[12.4, 12.7], [12.8, 13.1], ...], ...]}           one pair per word (split at spaces) of each line
 # Needs:  pip install faster-whisper nvidia-cublas-cu12 "nvidia-cudnn-cu12==9.*"  (the GPU libraries; --cpu without)
 import difflib
 import importlib.util
@@ -146,9 +147,54 @@ def main():
         times[k][1] = max(times[k][1], times[k][0] + 0.4)
         times[k] = [round(times[k][0], 2), round(times[k][1], 2)]
 
+    # every word of every line (split at spaces, as the page shows them): its own start and end.
+    # Heard words keep their time; the ones Whisper missed share the gap between their neighbours by
+    # length; everything stays inside its line.
+    word_times = []
+    wi = 0
+    for li, line in enumerate(lines):
+        tokens = line.split()
+        known = []
+        for t in tokens:
+            if norm(t):
+                hj = pairs.get(wi)
+                known.append([heard[hj][1], heard[hj][2]] if hj is not None else None)
+                wi += 1
+            else:
+                known.append(None)   # "–", "!!!": takes the time of its neighbours
+        ls, le = times[li]
+        k = 0
+        while k < len(tokens):
+            if known[k] is not None:
+                known[k] = [min(max(known[k][0], ls), le), min(max(known[k][1], ls), le)]
+                k += 1
+                continue
+            j = k
+            while j < len(tokens) and known[j] is None:
+                j += 1
+            start = known[k - 1][1] if k > 0 else ls
+            end = known[j][0] if j < len(tokens) else le
+            if end < start:
+                end = start
+            total = sum(len(tokens[x]) for x in range(k, j)) or 1
+            t0 = start
+            for x in range(k, j):
+                d = (end - start) * len(tokens[x]) / total
+                known[x] = [t0, t0 + d]
+                t0 += d
+            k = j
+        # in order, never shorter than a blink
+        prev = ls
+        for x in range(len(known)):
+            s = max(known[x][0], prev)
+            e = max(known[x][1], s + 0.08)
+            known[x] = [round(s, 2), round(min(e, max(le, s + 0.08)), 2)]
+            prev = known[x][0]
+        word_times.append(known)
+
     matched = round(len(pairs) / max(1, len(words)), 2)
     with open(out, 'w', encoding='utf-8') as f:
-        json.dump({'lines': len(lines), 'matched': matched, 'times': times}, f)
+        json.dump({'lines': len(lines), 'matched': matched, 'times': times, 'words': word_times}, f)
     print(f'{os.path.basename(out)}: {len(lines)} lines, {matched:.0%} of the words heard, {len(heard)} words transcribed')
 
 

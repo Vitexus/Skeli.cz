@@ -15,7 +15,7 @@ window.KEVIN_LINES = {
     },
     idle: [
       'Ten scroll máš plynulej. Skoro jako můj flow.',
-      'Kdybys hledal talent, sedí ti v levým dolním rohu.',
+      'Kdybys hledal talent, bydlí nahoře v liště. Ta zlatá tlapka.',
       'Mám devět životů a ve všech rapuju.',
       'Klikni na mě. Nekoušu… teda většinou.',
       'Tlapky mám zlatý. Rýmy taky.',
@@ -102,7 +102,7 @@ window.KEVIN_LINES = {
     },
     idle: [
       'Smooth scrolling. Almost as smooth as my flow.',
-      'Looking for talent? It\'s sitting in the bottom left corner.',
+      'Looking for talent? It lives up in the bar. The gold paw.',
       'Nine lives and I rap in every one.',
       'Click me. I don\'t bite… mostly.',
       'Golden paws. Golden rhymes.'
@@ -185,7 +185,7 @@ window.KEVIN_LINES = {
     },
     idle: [
       'Flüssig gescrollt. Fast so flüssig wie mein Flow.',
-      'Suchst du Talent? Es sitzt unten links.',
+      'Suchst du Talent? Es wohnt oben in der Leiste. Die goldene Pfote.',
       'Neun Leben, und in jedem rappe ich.',
       'Klick mich an. Ich beiße nicht… meistens.',
       'Goldene Pfoten. Goldene Reime.'
@@ -268,7 +268,7 @@ window.KEVIN_LINES = {
     },
     idle: [
       'Плавно скролиш. Майже як мій флоу.',
-      'Шукаєш талант? Він сидить у лівому нижньому куті.',
+      'Шукаєш талант? Він живе вгорі на панелі. Та золота лапка.',
       'У мене дев\x27ять життів, і в кожному я читаю реп.',
       'Натисни на мене. Я не кусаюсь… ну, здебільшого.',
       'Лапи золоті. Рими теж.'
@@ -351,7 +351,7 @@ window.KEVIN_LINES = {
     },
     idle: [
       'Bạn cuộn mượt ghê. Gần mượt như flow của tôi.',
-      'Đang tìm tài năng à? Nó ngồi ở góc dưới bên trái đấy.',
+      'Đang tìm tài năng à? Nó ở trên thanh menu đấy. Cái chân mèo vàng ấy.',
       'Chín cái mạng, mạng nào tôi cũng rap.',
       'Bấm vào tôi đi. Tôi không cắn đâu… thường là vậy.',
       'Chân vàng. Vần cũng vàng.'

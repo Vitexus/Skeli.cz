@@ -36,6 +36,7 @@
           <c:if test="${not empty lyric.credits}"><span class="lyric-credits"><c:out value="${lyric.credits}"/></span></c:if>
         </div>
         <c:if test="${not empty lyric.year}"><span class="song-year">${lyric.year}</span></c:if>
+        <span class="head-views" title="<%= t.getProperty("lyric.views") %> ${lyric.views}"><i class="fa-regular fa-eye" aria-hidden="true"></i> ${lyric.views}<span class="sr-only"> <%= t.getProperty("lyric.views") %></span></span>
         <%-- small previous / next arrows by the title; the big ones with pictures are under the lyrics --%>
         <c:if test="${not empty prevSong or not empty nextSong}">
           <span class="head-pager">
@@ -53,6 +54,33 @@
             </c:choose>
           </span>
         </c:if>
+        <%-- what you do with the song: the heart and share, then where else to listen (round icons) --%>
+        <div class="song-actions">
+          <%-- one heart per person and song (js below; signed out = a link to the login) --%>
+          <c:choose>
+            <c:when test="${not empty sessionScope.userId}">
+              <button type="button" class="action-btn like-btn${liked ? ' on' : ''}" id="likeSong" data-lyric="${lyric.id}"
+                      aria-pressed="${liked}" title="<%= t.getProperty("vote.like") %>">
+                <i class="fa-${liked ? 'solid' : 'regular'} fa-heart"></i> <span><%= t.getProperty("vote.like") %></span>
+                <span class="like-count">${lyric.likes > 0 ? lyric.likes : ''}</span>
+              </button>
+            </c:when>
+            <c:otherwise>
+              <a class="action-btn like-btn" href="/login.jsp" data-login-next title="<%= t.getProperty("vote.loginToVote") %>">
+                <i class="fa-regular fa-heart"></i> <span><%= t.getProperty("vote.like") %></span>
+                <span class="like-count">${lyric.likes > 0 ? lyric.likes : ''}</span>
+              </a>
+            </c:otherwise>
+          </c:choose>
+          <button type="button" class="action-btn" id="shareLyric" data-copied="<%= com.github.skeliit.WebUtils.escapeHtml(t.getProperty("lyric.linkCopied")) %>" title="<%= t.getProperty("lyric.shareLink") %>">
+            <i class="fas fa-share-alt"></i> <span><%= t.getProperty("common.share") %></span>
+          </button>
+          <span class="listen-icons">
+            <a class="listen-icon listen-spotify" href="https://open.spotify.com/search/<c:out value='${lyric.songName}'/>" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.findSpotify") %>" aria-label="<%= t.getProperty("lyric.findSpotify") %>"><i class="fab fa-spotify" aria-hidden="true"></i></a>
+            <c:if test="${not empty lyric.youtubeId}"><a class="listen-icon listen-yt" href="https://www.youtube.com/watch?v=<c:out value='${lyric.youtubeId}'/>" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.openYoutube") %>" aria-label="<%= t.getProperty("lyric.openYoutube") %>"><i class="fab fa-youtube" aria-hidden="true"></i></a></c:if>
+            <c:if test="${not empty lyric.appleMusicId}"><a class="listen-icon listen-apple" href="https://music.apple.com/cz/song/<c:out value='${lyric.appleMusicId}'/>" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.openApple") %>" aria-label="<%= t.getProperty("lyric.openApple") %>"><i class="fab fa-apple" aria-hidden="true"></i></a></c:if>
+          </span>
+        </div>
       </header>
 
       <%-- the clip on its own wide stage above the lyrics; water and fire flow out of it with the music (js/clip-fx.js) --%>
@@ -127,7 +155,7 @@
                 + '<img class="yt-facade-img" src="/yt-thumb/' + id + '/hqdefault.jpg" alt="">'
                 + '<span class="yt-facade-play" aria-hidden="true"><i class="fab fa-youtube"></i></span></button>';
               bind();
-              var yt = document.querySelector('.lyric-links a[href*="youtube.com/watch"]');
+              var yt = document.querySelector('a.listen-yt');
               if (yt) yt.href = 'https://www.youtube.com/watch?v=' + id;
             });
           });
@@ -143,64 +171,31 @@
       </c:otherwise>
       </c:choose>
       </div>
+      <c:if test="${not empty lyric.youtubeId}"><div class="stage-under"><%@ include file="/includes/clip-fx-switch.jspf" %></div></c:if>
       </section>
       </c:if>
 
       <!-- The lyrics in a frame that fades out at the bottom -->
       <section class="lyric-main">
-      <!-- Share, listen, text size: a bar at the top of the lyrics -->
-      <div class="lyric-toolbar lyric-links">
-        <div class="action-buttons">
-          <button type="button" class="action-btn" id="shareLyric" data-copied="<%= com.github.skeliit.WebUtils.escapeHtml(t.getProperty("lyric.linkCopied")) %>" title="<%= t.getProperty("lyric.shareLink") %>">
-            <i class="fas fa-share-alt"></i> <span><%= t.getProperty("common.share") %></span>
+      <%-- reading the lyrics: karaoke (when the clip has timings) and Aa = size and font, in the corner of the frame --%>
+      <div class="lyric-tools">
+        <c:if test="${not empty lyric.youtubeId}">
+          <button type="button" class="tool-btn karaoke-btn" id="karaokeToggle" hidden aria-pressed="true" data-back="<%= t.getProperty("karaoke.back") %>" data-fs="<%= t.getProperty("karaoke.fullscreen") %>" data-fs-text="<%= t.getProperty("karaoke.fsText") %>" data-fs-exit="<%= t.getProperty("karaoke.fsExit") %>" title="<%= t.getProperty("lyric.karaokeHint") %>" aria-label="<%= t.getProperty("lyric.karaokeHint") %>">
+            <i class="fa-solid fa-microphone-lines" aria-hidden="true"></i>
           </button>
-          <%-- one heart per person and song (js below; signed out = a link to the login) --%>
-          <c:choose>
-            <c:when test="${not empty sessionScope.userId}">
-              <button type="button" class="action-btn like-btn${liked ? ' on' : ''}" id="likeSong" data-lyric="${lyric.id}"
-                      aria-pressed="${liked}" title="<%= t.getProperty("vote.like") %>">
-                <i class="fa-${liked ? 'solid' : 'regular'} fa-heart"></i> <span><%= t.getProperty("vote.like") %></span>
-                <span class="like-count">${lyric.likes > 0 ? lyric.likes : ''}</span>
-              </button>
-            </c:when>
-            <c:otherwise>
-              <a class="action-btn like-btn" href="/login.jsp" data-login-next title="<%= t.getProperty("vote.loginToVote") %>">
-                <i class="fa-regular fa-heart"></i> <span><%= t.getProperty("vote.like") %></span>
-                <span class="like-count">${lyric.likes > 0 ? lyric.likes : ''}</span>
-              </a>
-            </c:otherwise>
-          </c:choose>
-          <a class="action-btn" href="https://open.spotify.com/search/<c:out value='${lyric.songName}'/>" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.findSpotify") %>">
-            <i class="fab fa-spotify icon-spotify"></i> Spotify
-          </a>
-          <c:if test="${not empty lyric.youtubeId}">
-            <a class="action-btn" href="https://www.youtube.com/watch?v=<c:out value='${lyric.youtubeId}'/>" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.openYoutube") %>">
-              <i class="fab fa-youtube icon-youtube"></i> YouTube
-            </a>
-          </c:if>
-          <c:if test="${not empty lyric.appleMusicId}">
-            <a class="action-btn" href="https://music.apple.com/cz/song/<c:out value='${lyric.appleMusicId}'/>" target="_blank" rel="noopener" title="<%= t.getProperty("lyric.openApple") %>">
-              <i class="fab fa-apple icon-apple"></i> Apple Music
-            </a>
-          </c:if>
-          <%-- shows up when the clip has timings: the sung line is burnt in by the laser (js/karaoke.js) --%>
-          <c:if test="${not empty lyric.youtubeId}">
-            <button type="button" class="action-btn karaoke-btn" id="karaokeToggle" hidden aria-pressed="true" title="<%= t.getProperty("lyric.karaokeHint") %>">
-              <i class="fa-solid fa-microphone-lines"></i> <span>Karaoke</span>
-            </button>
-          </c:if>
-        </div>
-        <div class="lyric-toolbar-end">
-          <c:if test="${not empty lyric.youtubeId}"><%@ include file="/includes/clip-fx-switch.jspf" %></c:if>
-          <div class="lyric-textsize" role="group" aria-label="<%= t.getProperty("lyric.textSize") %>">
-            <span><%= t.getProperty("lyric.textSize") %></span>
-            <button type="button" class="ts-btn" data-step="-1" aria-label="<%= t.getProperty("lyric.textSmaller") %>" title="<%= t.getProperty("lyric.textSmaller") %>">A−</button>
-            <button type="button" class="ts-btn" data-step="1" aria-label="<%= t.getProperty("lyric.textBigger") %>" title="<%= t.getProperty("lyric.textBigger") %>">A+</button>
+        </c:if>
+        <details class="lyric-view">
+          <summary class="tool-btn" title="<%= t.getProperty("lyric.display") %>" aria-label="<%= t.getProperty("lyric.display") %>">Aa</summary>
+          <div class="lyric-view-menu">
+            <div class="lyric-textsize" role="group" aria-label="<%= t.getProperty("lyric.textSize") %>">
+              <span><%= t.getProperty("lyric.textSize") %></span>
+              <button type="button" class="ts-btn" data-step="-1" aria-label="<%= t.getProperty("lyric.textSmaller") %>" title="<%= t.getProperty("lyric.textSmaller") %>">A−</button>
+              <button type="button" class="ts-btn" data-step="1" aria-label="<%= t.getProperty("lyric.textBigger") %>" title="<%= t.getProperty("lyric.textBigger") %>">A+</button>
+            </div>
             <%-- a plain, easier to read font for the lyrics (remembered in this browser) --%>
-            <button type="button" class="ts-btn ts-font" id="plainFont" aria-pressed="false" aria-label="<%= t.getProperty("lyric.plainFont") %>" title="<%= t.getProperty("lyric.plainFont") %>">Aa</button>
+            <button type="button" class="plain-font-btn" id="plainFont" aria-pressed="false"><span class="plain-font-mark" aria-hidden="true">Aa</span> <%= t.getProperty("lyric.plainFont") %></button>
           </div>
-          <div class="views-count"><i class="fa-regular fa-eye"></i> <%= t.getProperty("lyric.views") %> ${lyric.views}</div>
-        </div>
+        </details>
       </div>
 
       <!-- Lyrics Text -->
@@ -210,7 +205,7 @@
         </div>
       </article>
       </section>
-      <c:if test="${not empty lyric.youtubeId}"><script src="/js/clip-fx.js?v=<%= assetVersion %>"></script><script src="/js/karaoke.js?v=<%= assetVersion %>"></script></c:if>
+      <c:if test="${not empty lyric.youtubeId}"><script src="/js/clip-fx.js?v=<%= assetVersion %>"></script><script src="/js/yt-clock.js?v=<%= assetVersion %>"></script><script src="/js/karaoke.js?v=<%= assetVersion %>"></script></c:if>
 
       <%-- the songs around this one in the newest-first list (also the ← → keys) --%>
       <c:if test="${not empty prevSong or not empty nextSong}">
@@ -332,7 +327,7 @@
       try { scale = parseFloat(localStorage.getItem(KEY)) || 1; } catch (e) {}
       function apply() { document.documentElement.style.setProperty('--lyric-scale', scale.toFixed(2)); }
       apply();
-      document.querySelectorAll('.ts-btn').forEach(function (b) {
+      document.querySelectorAll('.ts-btn[data-step]').forEach(function (b) {
         b.addEventListener('click', function () {
           scale = Math.min(1.8, Math.max(0.8, scale + 0.1 * Number(b.dataset.step)));
           apply();

@@ -43,10 +43,14 @@ class SongStageIT extends UiTestSupport {
         Number lyricsTop = (Number) ((JavascriptExecutor) driver).executeScript("return document.querySelector('.lyric-main').getBoundingClientRect().top");
         assertTrue(stageTop.doubleValue() < lyricsTop.doubleValue(), "the clip is above the lyrics");
 
-        // the switch is a small drop-down in the bar above the lyrics, outside the effect
-        WebElement fxSwitch = driver.findElement(By.cssSelector(".lyric-toolbar .clip-fx-switch"));
+        // the switch is a small drop-down right under the clip, and nothing of the effect lies over it
+        WebElement fxSwitch = driver.findElement(By.cssSelector(".stage-under .clip-fx-switch"));
         assertTrue(fxSwitch.isDisplayed());
-        assertTrue(driver.findElements(By.cssSelector(".lyric-stage .clip-fx-switch")).isEmpty(), "nothing to click inside the water and fire");
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'})", fxSwitch);
+        assertEquals(Boolean.TRUE, ((JavascriptExecutor) driver).executeScript(
+                "const s = arguments[0].querySelector('summary'), r = s.getBoundingClientRect();"
+                + "const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return s === hit || s.contains(hit);", fxSwitch),
+                "the switch can be clicked");
         fxSwitch.findElement(By.tagName("summary")).click();
         fxSwitch.findElement(By.cssSelector("button[data-mode='off']")).click();
         assertTrue(stage.getAttribute("class").contains("fx-off"));

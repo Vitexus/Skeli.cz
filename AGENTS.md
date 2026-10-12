@@ -17,6 +17,9 @@ are easy to get wrong.
   migration that has been deployed. The test database is never copied to production.
 - Every visible text goes through `WEB-INF/i18n/messages_{cs,en,de,uk,vi}.properties` with the same
   keys in all five files (`I18nTest` checks it). Song lyrics and titles are translated too.
+- Mobile first: design every change for a phone (upright and on its side) before the PC. The header
+  never hides while scrolling (the menu is always one tap away), tap targets are at least ~40 px
+  (`@media (pointer: coarse)` block at the end of `css/components.css`), text at least `--fs-small`.
 - Colours, fonts and sizes come from the variables in `css/base.css`; check light and dark theme and
   a phone. After a CSS or JS change raise `assetVersion` in `includes/header.jsp`.
 - Escape output (`WebUtils.escapeHtml`, `c:out`), SQL only through prepared statements, every form

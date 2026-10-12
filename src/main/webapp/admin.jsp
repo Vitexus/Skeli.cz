@@ -71,7 +71,9 @@
       {"yesterday", "fa-clock-rotate-left", "Lidí včera"},
       {"days7", "fa-calendar-week", "Návštěv za 7 dní"},
       {"days30", "fa-calendar", "Návštěv za 30 dní"},
-      {"pagesToday", "fa-file-lines", "Zobrazených stránek dnes"}
+      {"allVisits", "fa-infinity", "Návštěv celkem"},
+      {"pagesToday", "fa-file-lines", "Zobrazených stránek dnes"},
+      {"pagesAll", "fa-layer-group", "Zobrazených stránek celkem"}
   };
 %>
   <h3 class="admin-section-title" id="stats"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Návštěvnost</h3>

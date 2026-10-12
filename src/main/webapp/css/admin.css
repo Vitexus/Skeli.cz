@@ -421,6 +421,9 @@ body.light .report-actions .btn-dismiss { background: transparent; color: var(--
 
 /* visits (VisitStats) */
 .admin-visits .admin-stat:hover { transform: none; border-color: var(--panel-border); }
+/* eight tiles: two even rows of four on a PC, two columns on a phone */
+.admin-visits { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 700px) { .admin-visits { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .admin-stat.live i { color: #22c55e; }
 .admin-top { margin: 0; padding-left: 1.4em; display: grid; gap: 6px; }
 .admin-top li { display: flex; justify-content: space-between; gap: 12px; }

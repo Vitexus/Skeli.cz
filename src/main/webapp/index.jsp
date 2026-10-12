@@ -79,27 +79,6 @@
   </section>
   <% } %>
 
-  <section class="feature-grid" data-reveal>
-    <a class="feature-card" href="/music.jsp">
-      <span class="feature-icon"><i class="fas fa-music"></i></span>
-      <h3><%= t.getProperty("tile.music.title","Music") %></h3>
-      <p><%= t.getProperty("tile.music.desc","YouTube videos and Spotify playlist.") %></p>
-      <span class="feature-arrow"><i class="fa-solid fa-arrow-right"></i></span>
-    </a>
-    <a class="feature-card" href="/texty.jsp">
-      <span class="feature-icon"><i class="fas fa-align-left"></i></span>
-      <h3><%= t.getProperty("tile.lyrics.title","Lyrics") %></h3>
-      <p><%= t.getProperty("tile.lyrics.desc","Browse lyrics, vote and comment.") %></p>
-      <span class="feature-arrow"><i class="fa-solid fa-arrow-right"></i></span>
-    </a>
-    <a class="feature-card" href="/about.jsp">
-      <span class="feature-icon"><i class="fas fa-user"></i></span>
-      <h3><%= t.getProperty("tile.about.title","About") %></h3>
-      <p><%= t.getProperty("tile.about.desc","Who I am and how I create.") %></p>
-      <span class="feature-arrow"><i class="fa-solid fa-arrow-right"></i></span>
-    </a>
-  </section>
-
   <section class="home-grid" data-reveal>
     <div class="home-main">
       <div class="section-head">
@@ -145,7 +124,7 @@
         <a class="side-link" href="/aktuality.jsp"><%= t.getProperty("home.allNews") %></a>
       </div>
 
-      <div class="card side-card newsletter">
+      <div class="card side-card newsletter card-gold">
         <div class="nl-photo" aria-hidden="true"><img src="/img/photos/point-sm.webp" alt="" loading="lazy" width="640" height="480"></div>
         <p class="nl-lead"><%= t.getProperty("home.newsletter.lead") %></p>
         <h3><i class="fa-solid fa-envelope"></i> <%= t.getProperty("home.newsletter.title","Novinky e-mailem") %></h3>

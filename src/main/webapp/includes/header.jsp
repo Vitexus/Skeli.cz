@@ -5,7 +5,7 @@
   if (ctx == null) {
     ctx = "";
   }
-  String assetVersion = "4.8.1";
+  String assetVersion = "5.1.3";
 %>
 <%@ include file="/WEB-INF/i18n/i18n.jspf" %>
   <html lang="<%= cur %>">
@@ -311,16 +311,9 @@
             // Header gets a solid glass background (and the small sign) once it is docked at the top
             const siteHeader = document.getElementById('siteHeader');
             const masthead = document.getElementById('masthead');
-            // Scrolling down tucks the bar away (more room for the page), scrolling up brings it back.
-            // It stays while a menu or the language list is open, or while the keyboard is in it.
-            let lastY = window.scrollY;
+            // The bar never slides away: the menu has to be one tap away on every part of every page.
             function onHeaderScroll() {
-              const y = window.scrollY, top = Math.max(8, masthead.offsetHeight - 1);
-              siteHeader.classList.toggle('scrolled', y > top);
-              const busy = siteHeader.querySelector('.open') || siteHeader.contains(document.activeElement);
-              if (y <= top + 120 || busy || y < lastY - 6) siteHeader.classList.remove('tucked');
-              else if (y > lastY + 6) siteHeader.classList.add('tucked');
-              if (Math.abs(y - lastY) > 6) lastY = y;
+              siteHeader.classList.toggle('scrolled', window.scrollY > Math.max(8, masthead.offsetHeight - 1));
             }
             window.addEventListener('scroll', onHeaderScroll, { passive: true });
             onHeaderScroll();
