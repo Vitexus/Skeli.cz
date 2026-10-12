@@ -516,6 +516,7 @@ body.light .lyric-page .lyric-nav a:hover { border-color: rgba(0, 0, 0, 0.22); b
 
 .lyric-page .lyrics-text pre {
   white-space: pre-wrap;
+  text-align: center;   /* like a poem, and like the lines in full screen and the coming karaoke cinema */
   overflow-wrap: anywhere;
   font-family: var(--font-body);
   font-size: calc(0.95rem * var(--lyric-scale, 1));   /* between h4 and body; A−/A+ change the scale */
