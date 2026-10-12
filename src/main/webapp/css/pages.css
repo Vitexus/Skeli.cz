@@ -1596,15 +1596,26 @@ html.lyric-plain .fs-now, html.lyric-plain .fs-next { font-family: 'Exo 2', syst
    The thumbnails are 4:3 with the 16:9 clip in the middle: the picture is set taller than its frame
    (133 %, moved up by a sixth) so the black bars at the top and bottom always fall outside. */
 .k-lobby { width: min(1180px, 100%); margin: 0 auto; padding: 8px 16px 60px; }
-.k-marquee { position: relative; margin: 10px auto 34px; max-width: 760px; padding: 30px 26px 28px; text-align: center;
-  border-radius: 22px; background: linear-gradient(180deg, rgba(20, 16, 8, .92), rgba(10, 9, 8, .92)); border: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
-  box-shadow: 0 0 0 6px rgba(0, 0, 0, .35), 0 0 40px -6px color-mix(in srgb, var(--accent) 45%, transparent), var(--shadow); }
-.k-bulbs { position: absolute; inset: 7px; border-radius: 16px; pointer-events: none;
-  --b: radial-gradient(circle, #fff6d0 0 2px, #ffd23f 3px, transparent 4.5px);
-  background: var(--b) 0 0 / 18px 18px repeat-x, var(--b) 0 100% / 18px 18px repeat-x, var(--b) 0 0 / 18px 18px repeat-y, var(--b) 100% 0 / 18px 18px repeat-y;
-  filter: drop-shadow(0 0 3px #ffd23f); animation: k-chase 1.6s steps(2) infinite; }
-@keyframes k-chase { 50% { filter: drop-shadow(0 0 1px #ffd23f) brightness(.6); } }
-.k-marquee-kicker { margin: 4px 0 0; font-size: var(--fs-small); letter-spacing: .45em; text-transform: uppercase; color: #ffd23f; }
+.k-marquee { position: relative; margin: 14px auto 36px; max-width: 760px; padding: 30px 26px 28px; text-align: center; border-radius: 22px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255, 170, 60, .12), transparent 60%), linear-gradient(180deg, rgba(16, 13, 9, .94), rgba(8, 8, 9, .94));
+  /* the neon tube: a bright core and a warm glow, inside and out */
+  border: 2px solid #ffe7a3;
+  box-shadow: 0 0 2px #fff3c4, 0 0 10px #ffd23f, 0 0 26px rgba(255, 157, 61, .7), 0 0 60px rgba(255, 120, 30, .35),
+    inset 0 0 10px rgba(255, 210, 63, .45), inset 0 0 30px rgba(255, 140, 40, .18);
+  animation: k-neon 7s infinite; }
+/* a pulse of light running round the tube, like an LED strip (the border shown through a mask) */
+@property --k-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.k-bulbs { position: absolute; inset: -4px; border-radius: 24px; padding: 4px; pointer-events: none;
+  background: conic-gradient(from var(--k-a), transparent 0 62%, rgba(255, 210, 63, .5) 72%, #fffbe8 80%, #ff9d3d 86%, transparent 94%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  filter: drop-shadow(0 0 6px #ffd23f) drop-shadow(0 0 14px #ff9d3d); animation: k-run 5s linear infinite; }
+@keyframes k-run { to { --k-a: 360deg; } }
+/* now and then the tube flickers, like real neon */
+@keyframes k-neon { 0%, 91%, 93.5%, 96%, 100% { opacity: 1; } 92%, 95% { opacity: .55; } }
+.k-marquee-kicker { margin: 4px 0 0; font-size: var(--fs-small); letter-spacing: .45em; text-transform: uppercase; color: #fff3c4;
+  text-shadow: 0 0 3px #fff, 0 0 9px #ffd23f, 0 0 18px #ff9d3d, 0 0 32px rgba(255, 120, 30, .6); animation: k-sign 9s infinite; }
+@keyframes k-sign { 0%, 60%, 62%, 64%, 100% { opacity: 1; } 61%, 63% { opacity: .35; } }
 .k-marquee-title { margin: 4px 0 6px; font-size: var(--fs-h1); background: linear-gradient(100deg, #ffe58a, #ffd23f 35%, #ff9d3d 75%, #ffd23f);
   -webkit-background-clip: text; background-clip: text; color: transparent; }
 .k-marquee-lead { margin: 0 auto; max-width: 520px; font-family: var(--font-text); font-size: var(--fs-text); font-weight: 300; color: rgba(244, 244, 245, .78); }
@@ -1661,4 +1672,4 @@ html.lyric-plain .fs-now, html.lyric-plain .fs-next { font-family: 'Exo 2', syst
 .k-from-black { position: fixed; inset: 0; z-index: 3000; background: #000; pointer-events: none; animation: k-from-black 1.6s ease forwards; }
 .k-from-black[hidden] { display: none; }
 @keyframes k-from-black { to { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .k-bulbs { animation: none; } .k-poster, .k-feature-poster { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .k-bulbs, .k-marquee, .k-marquee-kicker { animation: none; } .k-poster, .k-feature-poster { transition: none; } }
