@@ -344,47 +344,68 @@ logo.onload = () => {
 };
 logo.src = '/img/squad-logo.webp';
 
-// floor-standing speakers by the screen, in every room (the look comes with the room, applyRoom): two big
-// woofers that pump out and back with the bass, so you see the beat, a lit ring round each, a tweeter
-const SPK = {
-  a: { cab: [0x0b0b0c, .2, .5], ring: [0xc9ccd2, .15, 1], led: [1, .72, .2] },
-  b: { cab: [0x3a2212, .5, 0], ring: [0xc9a14a, .25, 1], led: [1, .55, .2] },
-  c: { cab: [0x19191b, .85, .1], ring: [0x2c2c2e, .4, .6], led: [1, .6, .25] },
-  d: { cab: [0x0c2a1e, .15, .3], ring: [0xd9b45a, .2, 1], led: [1, .78, .3] },
-  e: { cab: [0xe4e4e8, .2, .1], ring: [0xdcdce2, .2, .6], led: [.3, .85, 1] }
+// floor-standing speakers by the screen, in every room (the look comes with the room, applyRoom). Built like
+// real ones: a lacquered cabinet with a recessed front baffle, two woofers (metal trim, rubber roll surround,
+// a curved cone, a dust cap) and a dome tweeter in a shallow waveguide, on a plinth with spikes. The woofer
+// cones push out with the bass, so you see the beat.
+const SPK = {   // cabinet: colour, roughness, clearcoat, wood?; trim: colour, roughness
+  a: { cab: [0x0a0a0b, .35, 1, 0], trim: [0xb9bcc2, .18] },
+  b: { cab: [0x6b3f22, .45, .6, 1], trim: [0xc9a14a, .25] },
+  c: { cab: [0x151517, .8, 0, 0], trim: [0x3a3a3d, .45] },
+  d: { cab: [0x0b2a1d, .3, 1, 0], trim: [0xd2ad57, .2] },
+  e: { cab: [0xe9e9ec, .3, 1, 0], trim: [0xc8cbd2, .18] }
 };
 const speakers = [], speakerParts = [];
-const cabMat = new THREE.MeshStandardMaterial({ color: 0x0b0b0c, roughness: .2, metalness: .5 });
-const spkRing = new THREE.MeshStandardMaterial({ color: 0xc9ccd2, roughness: .15, metalness: 1 });
-const rubber = new THREE.MeshStandardMaterial({ color: 0x0e0e10, roughness: .55 });
-const coneMat = new THREE.MeshStandardMaterial({ color: 0x17171b, roughness: .45, metalness: .2, side: THREE.DoubleSide });
-const capMat = new THREE.MeshStandardMaterial({ color: 0x0c0c0e, roughness: .3, metalness: .4 });
-const spkLed = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
-const spkLedCol = new THREE.Color(1, .72, .2);
+const lathe = (pts, seg = 64) => { const g = new THREE.LatheGeometry(pts.map(([x, y]) => new THREE.Vector2(x, y)), seg); g.rotateX(Math.PI / 2); return g; };   // axis along z
+const cabMat = new THREE.MeshPhysicalMaterial({ color: 0x0a0a0b, roughness: .35, clearcoat: 1, clearcoatRoughness: .12 });
+const baffleMat = new THREE.MeshStandardMaterial({ color: 0x0b0b0c, roughness: .7 });
+const trimMat = new THREE.MeshStandardMaterial({ color: 0xb9bcc2, roughness: .18, metalness: 1 });
+const rubber = new THREE.MeshStandardMaterial({ color: 0x101012, roughness: .65 });
+const coneTex = canvasTex(256, 256, (g, w, h) => {   // a woven fibre cone: fine radial and circular grain
+  g.fillStyle = '#1c1c20'; g.fillRect(0, 0, w, h);
+  g.translate(w / 2, h / 2);
+  for (let a = 0; a < 360; a += 3) { g.rotate(3 * Math.PI / 180); g.fillStyle = 'rgba(255,255,255,' + (.02 + Math.random() * .03) + ')'; g.fillRect(0, -1, w, 1.2); }
+  for (let r = 6; r < w / 2; r += 4) { g.strokeStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.stroke(); }
+});
+const coneMat = new THREE.MeshStandardMaterial({ color: 0xffffff, map: coneTex, roughness: .55, metalness: .1, side: THREE.DoubleSide });
+const capMat = new THREE.MeshPhysicalMaterial({ color: 0x141416, roughness: .3, clearcoat: .6 });
+const domeMat = new THREE.MeshStandardMaterial({ color: 0xd8d8dc, roughness: .25, metalness: .9 });
+const footMat = new THREE.MeshStandardMaterial({ color: 0x9a9da4, roughness: .3, metalness: 1 });
+function woofer(r) {
+  const fixed = new THREE.Group(), moving = new THREE.Group();
+  fixed.add(new THREE.Mesh(lathe([[r + .024, -.004], [r + .022, .006], [r + .012, .009], [r + .004, .004], [r + .002, -.006]]), trimMat));
+  // the surround rolls out, the cone dips in to the cap
+  const roll = []; for (let i = 0; i <= 10; i++) { const a = Math.PI * i / 10; roll.push([r - .012 * Math.cos(a) - .012, .009 * Math.sin(a) - .002]); }
+  moving.add(new THREE.Mesh(lathe(roll), rubber));
+  const cone = []; for (let i = 0; i <= 12; i++) { const t = i / 12; cone.push([(r - .022) * (1 - t * .7), -.002 - .045 * Math.pow(t, .8)]); }
+  moving.add(new THREE.Mesh(lathe(cone), coneMat));
+  const cap = []; for (let i = 0; i <= 8; i++) { const a = Math.PI / 2 * i / 8; cap.push([r * .32 * Math.cos(a), -.046 + .03 * Math.sin(a)]); }
+  moving.add(new THREE.Mesh(lathe(cap), capMat));
+  return { fixed, moving };
+}
 for (const sx of [-1, 1]) {
   const g = new THREE.Group();
-  const cab = new THREE.Mesh(new RoundedBoxGeometry(.32, 1.25, .36, 4, .03), cabMat); cab.position.y = .625; g.add(cab);
+  const cab = new THREE.Mesh(new RoundedBoxGeometry(.34, 1.22, .38, 6, .035), cabMat); cab.position.y = .69; g.add(cab);
+  const baffle = new THREE.Mesh(new RoundedBoxGeometry(.29, 1.14, .02, 4, .008), baffleMat); baffle.position.set(0, .69, .184); g.add(baffle);
+  const plinth = new THREE.Mesh(new RoundedBoxGeometry(.4, .03, .44, 3, .01), cabMat); plinth.position.y = .065; g.add(plinth);
+  for (const fx of [-.16, .16]) for (const fz of [-.18, .18]) { const sp = new THREE.Mesh(new THREE.ConeGeometry(.014, .05, 12), footMat); sp.rotation.x = Math.PI; sp.position.set(fx, .025, fz); g.add(sp); }
   const cones = [];
-  for (const [yy, r, woofer] of [[.34, .118, 1], [.66, .118, 1], [.96, .045, 0]]) {
-    const trim = new THREE.Mesh(new THREE.TorusGeometry(r + .014, .008, 10, 40), spkRing); trim.position.set(0, yy, .182); g.add(trim);
-    if (woofer) { const glowRing = new THREE.Mesh(new THREE.TorusGeometry(r + .028, .004, 8, 48), spkLed); glowRing.position.set(0, yy, .181); g.add(glowRing); }
-    const c = new THREE.Group();
-    c.add(new THREE.Mesh(new THREE.TorusGeometry(r, .012, 10, 40), rubber));                         // the surround
-    const cone = new THREE.Mesh(new THREE.CylinderGeometry(r - .004, r * .28, .05, 40, 1, true), coneMat);
-    cone.rotation.x = Math.PI / 2; cone.position.z = -.025; c.add(cone);
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(r * .3, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), capMat);
-    cap.rotation.x = Math.PI / 2; cap.position.z = -.045; c.add(cap);
-    c.position.set(0, yy, .18); g.add(c); cones.push({ c, woofer, r });
+  for (const yy of [.42, .72]) {
+    const w = woofer(.112); w.fixed.position.set(0, yy, .196); w.moving.position.set(0, yy, .196); g.add(w.fixed, w.moving); cones.push(w.moving);
   }
+  const guide = new THREE.Mesh(lathe([[.06, -.002], [.055, .004], [.035, -.008], [.024, -.012]]), trimMat); guide.position.set(0, 1.02, .196); g.add(guide);
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(.02, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), domeMat); dome.rotation.x = Math.PI / 2; dome.position.set(0, 1.02, .184); g.add(dome);
   g.position.set(sx * 2.25, 0, BACK + .45);
   scene.add(g); speakerParts.push(g);
-  speakers.push({ cones, cab });
+  speakers.push({ cones });
 }
+let woodSpk = null;
 function styleSpeakers(key) {
   const st = SPK[key] || SPK.a;
-  cabMat.color.setHex(st.cab[0]); cabMat.roughness = st.cab[1]; cabMat.metalness = st.cab[2];
-  spkRing.color.setHex(st.ring[0]); spkRing.roughness = st.ring[1]; spkRing.metalness = st.ring[2];
-  spkLedCol.setRGB(...st.led);
+  cabMat.color.setHex(st.cab[0]); cabMat.roughness = st.cab[1]; cabMat.clearcoat = st.cab[2];
+  if (st.cab[3]) { woodSpk = woodSpk || oakTex([1, 2]); cabMat.map = woodSpk; } else cabMat.map = null;
+  cabMat.needsUpdate = true;
+  trimMat.color.setHex(st.trim[0]); trimMat.roughness = st.trim[1];
 }
 
 // the black leather L-sofa (you sit behind it), warm LED under it; Kevin's armchair on the left
@@ -930,8 +951,7 @@ function frame(ts) {
   decor.update(dt, sec, beat, lights);
   const buzz = (ts % 9000) < 160 ? (Math.sin(ts * .09) > 0 ? .5 : 1) : 1;
   signMat.opacity = Math.min(1, lights) * buzz;
-  for (const sp of speakers) sp.cones.forEach((o) => { o.c.position.z = .18 + (o.woofer ? beat * .045 : beat * .008); o.c.scale.setScalar(1 + (o.woofer ? beat * .07 : 0)); });
-  spkLed.color.copy(spkLedCol).multiplyScalar((.25 + beat * 2.6) * Math.max(lights, .25));
+  for (const sp of speakers) sp.cones.forEach((m) => { m.position.z = .196 + beat * .022; });   // the cones push out with the bass
 
   // smart lights: soft sweeps, up with the bass, wider in the chorus
   for (const h of heads) {
