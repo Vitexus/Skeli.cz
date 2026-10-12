@@ -19,12 +19,13 @@ import java.sql.SQLException;
 import java.util.Base64;
 
 /**
+ * GET /karaoke-kino: the list of songs that have karaoke (WEB-INF/views/karaoke-list.jsp, in the menu).
  * GET /karaoke-kino/{song uuid}: the karaoke cinema (a preview of the coming big karaoke, WEB-INF/views/kino.jsp).
  * The page gets everything in one object (window.KDATA): the newest clip, the Czech lines, when every line
  * and word is sung (as /api/karaoke: the admin's correction wins over karaoke/<id>.json) and the clip's
  * colours and bass (eq/<id>.json; without it a calm grey). 404 when the song has no clip, lyrics or timings.
  */
-@WebServlet(name = "KaraokeCinemaServlet", urlPatterns = {"/karaoke-kino/*"})
+@WebServlet(name = "KaraokeCinemaServlet", urlPatterns = {"/karaoke-kino", "/karaoke-kino/*"})
 public class KaraokeCinemaServlet extends HttpServlet {
     private static final ObjectMapper JSON = new ObjectMapper();
 
@@ -32,6 +33,7 @@ public class KaraokeCinemaServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String path = req.getPathInfo();
         String uuid = path == null ? "" : path.substring(1);
+        if (uuid.isEmpty()) { list(req, resp); return; }
         if (!uuid.matches("[0-9a-fA-F-]{36}")) { resp.sendError(404); return; }
         String[] song;
         String manual;
@@ -66,8 +68,24 @@ public class KaraokeCinemaServlet extends HttpServlet {
         String json = JSON.writeValueAsString(data).replace("</", "<\\/").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029");
         req.setAttribute("kinoJson", json);
         req.setAttribute("kinoTitle", title.title);
-        req.setAttribute("kinoBack", "/" + I18n.current(req) + "/song/" + uuid);
         req.getRequestDispatcher("/WEB-INF/views/kino.jsp").forward(req, resp);
+    }
+
+    private void list(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        java.util.List<com.github.skeliit.model.KaraokeSong> songs = new java.util.ArrayList<>();
+        try {
+            KaraokeDao dao = new KaraokeDao();
+            for (com.github.skeliit.model.KaraokeSong s : dao.cinemaSongs()) {
+                String manual = dao.manual(s.youtubeId);
+                JsonNode timing = manual != null ? JSON.readTree(manual) : file("/karaoke/" + s.youtubeId + ".json");
+                if (timing != null && timing.path("lines").asInt() == s.lines.length) songs.add(s);
+            }
+        } catch (SQLException e) {
+            throw new ServletException(e);
+        }
+        req.setAttribute("karaokeSongs", songs);
+        req.setAttribute("pageTitle", I18n.bundle(req).getProperty("menu.karaoke"));
+        req.getRequestDispatcher("/WEB-INF/views/karaoke-list.jsp").forward(req, resp);
     }
 
     private JsonNode file(String name) throws IOException {

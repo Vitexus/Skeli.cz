@@ -273,8 +273,13 @@ img.user-avatar { object-fit: cover; background: var(--panel-strong); }
 .menu-toggle { display: none; }
 /* Header: longer words (German, Vietnamese) need tighter spacing before the labels go */
 @media (max-width: 1440px) {
-  .header-inner { gap: 16px; }
-  .main-nav a { padding: 8px 10px; }
+  .header-inner { gap: 12px; }
+  .main-nav a { padding: 8px 8px; }
+}
+/* six menu items (Karaoke) in German still fit under the sign on a small laptop */
+@media (max-width: 1180px) {
+  .header-inner { gap: 10px; }
+  .main-nav a { padding: 8px 6px; font-size: 0.8rem; letter-spacing: 0.01em; }
 }
 
 /* Header: donate and login are round icons (their label is in title) so the menu

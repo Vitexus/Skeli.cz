@@ -5,7 +5,7 @@
   if (ctx == null) {
     ctx = "";
   }
-  String assetVersion = "5.2.0";
+  String assetVersion = "5.2.2";
 %>
 <%@ include file="/WEB-INF/i18n/i18n.jspf" %>
   <html lang="<%= cur %>">
@@ -20,6 +20,7 @@
   if (headTitle == null) {
     java.util.Map<String, String> titleKeys = java.util.Map.ofEntries(
         java.util.Map.entry("/texty.jsp", "menu.lyrics"),
+        java.util.Map.entry("/karaoke-kino", "menu.karaoke"),   // (the list sets pageTitle too: a forward has the view as servlet path)
         java.util.Map.entry("/music.jsp", "menu.music"),
         java.util.Map.entry("/about.jsp", "about.title"),
         java.util.Map.entry("/aktuality.jsp", "menu.news"),
@@ -146,6 +147,7 @@
               <a href="<%= ctx %>/aktuality.jsp"><%= t.getProperty("menu.news") %></a>
               <a href="<%= ctx %>/music.jsp"><%= t.getProperty("menu.music","Music") %></a>
               <a href="<%= ctx %>/texty.jsp"><%= t.getProperty("menu.lyrics","Lyrics") %></a>
+              <a href="<%= ctx %>/karaoke-kino"><%= t.getProperty("menu.karaoke") %></a>
               <a href="<%= ctx %>/about.jsp"><%= t.getProperty("menu.about","About") %></a>
               <a href="<%= ctx %>/donate.jsp" class="nav-donate"><i class="fa-solid fa-heart"></i> <%= t.getProperty("btn.donate") %></a>
               <%-- phones and tablets: the display controls, language and account live in the menu --%>
@@ -452,7 +454,7 @@
                 // allow full reload for language switch to refresh header/nav strings
                 if (href.includes('lang=')) return;
                 // disable PJAX for pages that need full refresh or include page-scoped styles/scripts
-                const noPjax = ['/lyrics/', '/texty', '/admin', '/logout', '/login.jsp', '/register.jsp', '/uzivatel.jsp', '/profile.jsp'];
+                const noPjax = ['/karaoke-kino/', '/lyrics/', '/texty', '/admin', '/logout', '/login.jsp', '/register.jsp', '/uzivatel.jsp', '/profile.jsp'];
                 if (noPjax.some(p => href.includes(p))) return;
                 e.preventDefault();
                 navigate(href, true);
