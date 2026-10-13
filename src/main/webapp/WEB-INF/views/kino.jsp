@@ -3,7 +3,7 @@
 <%-- Karaoke cinema (preview of the coming big karaoke): /karaoke/{song uuid}, KaraokeCinemaServlet fills kinoJson.
      Two rooms: Prostor (/kino/prostor.js, a looping video; the default) and Ořechový salon (/kino/domov.js); switching loads the page again.
      A loading screen stays up until the room is built (no jerk on the way in). Czech only for now. --%>
-<% String v = "5.8.0"; %>
+<% String v = "5.8.1"; %>
 <!doctype html>
 <html lang="cs">
 <head>
@@ -79,6 +79,8 @@ button { font: inherit; color: inherit; }
 /* P · Prostor: a looping video of the space (prostor.js) under everything; the clip is bent onto the panel in it;
    three lines on the floor: the one before grey, the one being sung filling orange word by word, the next grey */
 .space { position: fixed; z-index: 0; object-fit: fill; pointer-events: none; }
+.space-glitch { position: fixed; z-index: 0; pointer-events: none; opacity: 0; backdrop-filter: blur(9px); -webkit-backdrop-filter: blur(9px);
+  -webkit-mask: radial-gradient(closest-side, #000 45%, transparent); mask: radial-gradient(closest-side, #000 45%, transparent); }
 .space.upright { -webkit-mask: linear-gradient(180deg, transparent, #000 12%, #000 86%, transparent); mask: linear-gradient(180deg, transparent, #000 12%, #000 86%, transparent); }
 [data-look="p"] #css3d .clip { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: transparent; box-shadow: none;
   /* a tilted box gets stair-stepped edges (no anti-aliasing on 3D transforms): fade its last few pixels instead */
