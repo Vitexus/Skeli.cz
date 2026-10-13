@@ -32,8 +32,8 @@ import java.util.Base64;
 @WebServlet(name = "KaraokeCinemaServlet", urlPatterns = {"/karaoke-kino", "/karaoke-kino/*"})
 public class KaraokeCinemaServlet extends HttpServlet {
     private static final ObjectMapper JSON = new ObjectMapper();
-    /** Karaoke for signed-in visitors only. Off while the cinema is being finished; switch on for the launch. */
-    private static final boolean MEMBERS_ONLY = false;
+    /** Karaoke for signed-in visitors only (false = open to everyone, e.g. while working on the cinema). */
+    private static final boolean MEMBERS_ONLY = true;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

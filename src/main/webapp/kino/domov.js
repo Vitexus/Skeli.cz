@@ -28,7 +28,7 @@ if (SIM) document.body.classList.add('sim');
 const $ = (id) => document.getElementById(id);
 // interior variants (?v=a..e): walls, furniture, lights and the view from the window
 const VARIANTS = {
-  a: { name: 'Černý luxus', side: 0x141416, floor: [1, 1, 1], rug: '#1b1a1c', sofa: 0x0b0b0c, cove: [1, .66, .36], corners: ['cold', 'warm'], curtain: [0x16161a, [.75, .6, .3]] }
+  a: { name: 'Ořechový salon', side: 0x141416, floor: [1, 1, 1], rug: '#1b1a1c', sofa: 0x0b0b0c, cove: [1, .66, .36], corners: ['cold', 'warm'], curtain: [0x16161a, [.75, .6, .3]] }
 };
 let roomKey = qs.get('v');
 try { if (!VARIANTS[roomKey]) roomKey = localStorage.getItem('kinoRoom'); } catch (er) { /* no storage */ }

@@ -104,6 +104,7 @@ const AHEAD = .35, PAUSE = 4, lyricsEl = $('lyrics'), titleCard = $('titleCard')
 const firstWord = (k) => (D.words[k] && D.words[k][0] ? D.words[k][0][0] : D.times[k][0]);
 function lineAt(t) { let i = -1; for (let k = 0; k < D.times.length; k++) { if (firstWord(k) - AHEAD <= t) i = k; else break; } return i; }
 const rows = document.createElement('div'); rows.className = 'rows'; lyricsEl.appendChild(rows);
+if (!qs.has('auto')) lyricsEl.style.visibility = 'hidden';   // not under the lobby
 function lineEl(k, cls) {
   const d = document.createElement('div'); d.className = 'ln ' + cls;
   if (k >= 0 && k < D.lines.length) {
@@ -170,6 +171,7 @@ addEventListener('resize', () => { fit(); askToTurn(); });
 let on = 0, onTo = 0;
 $('enter').onclick = () => {
   entered = true;
+  lyricsEl.style.visibility = '';
   $('lobby').classList.add('gone');
   setTimeout(() => { onTo = 1; }, 500);
   setTimeout(startPlayer, 900);

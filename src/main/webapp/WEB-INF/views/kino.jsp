@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%-- Karaoke cinema (preview of the coming big karaoke): /karaoke/{song uuid}, KaraokeCinemaServlet fills kinoJson.
-     Two rooms: Černý luxus (/kino/domov.js) and Prostor (/kino/prostor.js, a looping video; loads the page again).
+     Two rooms: Prostor (/kino/prostor.js, a looping video; the default) and Ořechový salon (/kino/domov.js); switching loads the page again.
      A loading screen stays up until the room is built (no jerk on the way in). Czech only for now. --%>
-<% String v = "5.7.1"; %>
+<% String v = "5.7.2"; %>
 <!doctype html>
 <html lang="cs">
 <head>
@@ -255,8 +255,8 @@ body.fading::after { opacity: 1; pointer-events: auto; }
   <input class="vol" id="vol" type="range" min="0" max="100" value="90" aria-label="Hlasitost">
   <button class="cb room-btn" id="roomBtn" title="Změnit pokoj" aria-label="Změnit pokoj"><svg viewBox="0 0 24 24"><path d="M4 18v3h3v-3h10v3h3v-6H4zm15-8h3v3h-3zM2 10h3v3H2zm15 3H7V5c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2z"/></svg><span>Pokoj</span></button>
   <div class="rooms" id="rooms" hidden>
-      <button type="button" class="room" data-room="a" aria-pressed="false"><span class="rt"><b>Černý luxus</b><small>Kůže, ořech, neon v rozích</small></span><img src="/kino/rooms/a.webp" loading="lazy" alt=""></button>
-      <button type="button" class="room" data-room="p" aria-pressed="false"><span class="rt"><b>Prostor</b><small>Levitující kameny a zlaté světlo</small></span><img src="/kino/rooms/p.webp" loading="lazy" alt=""></button>
+      <button type="button" class="room" data-room="p" aria-pressed="false"><span class="rt"><b>Prostor</b><small>Kameny ve vzduchu, zlaté světlo</small></span><img src="/kino/rooms/p.webp" loading="lazy" alt=""></button>
+      <button type="button" class="room" data-room="a" aria-pressed="false"><span class="rt"><b>Ořechový salon</b><small>Ořech, kůže, noční město</small></span><img src="/kino/rooms/a.webp" loading="lazy" alt=""></button>
   </div>
   <button class="cb" id="fs" title="Celá obrazovka (F)" aria-label="Celá obrazovka"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7zm-2-4h2V7h3V5H5zm12 7h-3v2h5v-5h-2zM14 5v2h3v3h2V5z"/></svg></button>
 </div>
@@ -267,8 +267,8 @@ body.fading::after { opacity: 1; pointer-events: auto; }
     <p id="lobbyArtist"></p>
     <div class="room-pick" aria-label="Vyber si pokoj">
       <div class="room-k">Vyber si pokoj</div>
-      <button type="button" class="room" data-room="a" aria-pressed="false"><span class="rt"><b>Černý luxus</b><small>Kůže, ořech, neon v rozích</small></span><img src="/kino/rooms/a.webp" loading="lazy" alt=""></button>
-      <button type="button" class="room" data-room="p" aria-pressed="false"><span class="rt"><b>Prostor</b><small>Levitující kameny a zlaté světlo</small></span><img src="/kino/rooms/p.webp" loading="lazy" alt=""></button>
+      <button type="button" class="room" data-room="p" aria-pressed="false"><span class="rt"><b>Prostor</b><small>Kameny ve vzduchu, zlaté světlo</small></span><img src="/kino/rooms/p.webp" loading="lazy" alt=""></button>
+      <button type="button" class="room" data-room="a" aria-pressed="false"><span class="rt"><b>Ořechový salon</b><small>Ořech, kůže, noční město</small></span><img src="/kino/rooms/a.webp" loading="lazy" alt=""></button>
     </div>
     <button class="enter" id="enter"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Vstoupit do kina</button>
     <small>Pusť si zvuk a dej celou obrazovku (F). <a class="back-song" href="/karaoke-kino">← všechny písně</a></small>
@@ -287,9 +287,10 @@ body.fading::after { opacity: 1; pointer-events: auto; }
 <script>window.KDATA = <%= request.getAttribute("kinoJson") %>;</script>
 <script src="/js/yt-clock.js?v=<%= v %>"></script>
 <script>
-  // the room: a = Černý luxus (domov.js), p = Prostor (prostor.js); switching loads the page again
+  // the room: p = Prostor (prostor.js, the default), a = Ořechový salon (domov.js); switching loads the page again
   var ROOM = new URLSearchParams(location.search).get("v");
   try { if (!ROOM) ROOM = localStorage.getItem("kinoRoom"); } catch (e) {}
+  if (ROOM !== "a") ROOM = "p";
   if (ROOM === "p") document.body.classList.add("cinema");
   document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("[data-room]"); if (!b) return;
