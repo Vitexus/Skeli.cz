@@ -21,8 +21,9 @@ $('titleCard').querySelector('span').textContent = D.artist;
 
 // ---------------- the space (a video) ----------------
 const VID_ASPECT = 16 / 9;
-// the black panel in the video: its corners (TL, TR, BR, BL) as a share of the video's width / height
-const QUAD = [[.2938, .1889], [.6805, .1597], [.6805, .4694], [.2938, .4792]];
+// the panel in the video (its whole golden frame, not only the black part at the top): its corners (TL, TR, BR,
+// BL) as a share of the video's width / height
+const QUAD = [[.2922, .1910], [.6828, .1618], [.6828, .5590], [.2922, .5556]];
 const WIN = { x0: QUAD[0][0], y0: Math.min(QUAD[0][1], QUAD[1][1]), x1: QUAD[1][0], y1: Math.max(QUAD[2][1], QUAD[3][1]) };
 const bg = document.createElement('video');
 bg.className = 'space';
@@ -124,7 +125,7 @@ function fit() {
   const p = QUAD.map(([u, v]) => [ox + u * vw, oy + v * vh]);
   clipEl.style.transform = rimEl.style.transform = 'matrix3d(' + quadMatrix(CW, CH, p).join(',') + ')';
   lyricsEl.style.setProperty('--fs', Math.max(16, Math.min(40, vw * .02)) + 'px');
-  lyricsEl.style.top = (oy + vh * .58) + 'px';
+  lyricsEl.style.top = (oy + vh * .63) + 'px';
 }
 
 // ---------------- the clock ----------------
