@@ -1716,3 +1716,6 @@ html.lyric-plain .fs-now, html.lyric-plain .fs-next { font-family: 'Exo 2', syst
 .fb-admin-msg { white-space: pre-wrap; margin: 10px 0; font-family: var(--font-text); font-size: var(--fs-text); }
 .fb-admin-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .fb-admin-item.is-hearted { border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.fb-nudge { margin: 0; padding: 8px 12px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); font-family: var(--font-text); font-size: var(--fs-text); }
+.fb-form textarea.fb-invite { animation: fb-invite 1.4s ease; border-color: var(--accent); }
+@keyframes fb-invite { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
