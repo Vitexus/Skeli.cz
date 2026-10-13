@@ -30,9 +30,11 @@ bg.className = 'space';
 bg.muted = true; bg.loop = true; bg.playsInline = true; bg.autoplay = true; bg.preload = 'auto';
 bg.src = '/kino/prostor/prostor-' + (PHONE || Math.max(innerWidth, innerHeight) * (devicePixelRatio || 1) < 1600 ? '720' : '1440') + '.mp4';
 document.body.prepend(bg);
-// embers rising through the space, as on the home page (some of them cold blue, more so on the right, like the
-// light there); behind the clip, over the video. They rise faster, glow brighter and grow a little when the bass
-// thumps (embers(dt, push) is called every frame with the beat).
+// embers flying through the space towards us: they come out of the depth behind the panel (where the golden beams
+// meet), spread out and grow as they come nearer – tiny far away, a few pixels close by. Some are cold blue, more so
+// on the right (the light there). Behind the clip, over the video. On the bass they speed up and leave a short trail
+// (embers(dt, push) is called every frame with the beat; view = where the depth is, set by fit()).
+const view = { x: innerWidth / 2, y: innerHeight * .35, s: innerWidth * .6 };
 const embers = (() => {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return () => {};
   const cv = document.createElement('canvas'); cv.className = 'space-embers'; cv.setAttribute('aria-hidden', 'true');
@@ -44,30 +46,39 @@ const embers = (() => {
     gr = x.createRadialGradient(32, 32, 0, 32, 32, 12); gr.addColorStop(0, core); gr.addColorStop(.55, mid); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
     return c;
   };
-  const warm = sprite('#ffd27a', '#ff6a2b', 'rgba(255,110,40,.28)'), cold = sprite('#e6f4ff', '#6fb6ff', 'rgba(80,160,255,.26)');
+  const warm = sprite('#ffe2a0', '#ff7a2b', 'rgba(255,120,40,.3)'), cold = sprite('#eef7ff', '#7cbcff', 'rgba(90,170,255,.28)');
+  const COLD = ['rgba(150,200,255,', ')'], WARM = ['rgba(255,190,110,', ')'];
   let W = 0, H = 0;
   const list = [];
-  const spawn = (p, anywhere) => {
-    p.x = Math.random(); p.y = anywhere ? Math.random() * 1.1 : 1.05 + Math.random() * .1;   // shares of the screen
-    p.s = 2 + Math.random() * 4; p.v = 1 / (10 + Math.random() * 14);                        // a rise of the screen height in 10–24 s
-    p.dx = (Math.random() - .5) * .14; p.ph = Math.random() * 6.28;
-    p.cold = Math.random() < (p.x > .55 ? .4 : .12);
+  const spawn = (p, anywhere) => {   // x, y: a spot in the space (the depth is at 0, 0), z: 1 = far, 0.08 = by the viewer
+    const a = Math.random() * 6.28, r = .08 + Math.pow(Math.random(), .7) * .9;
+    p.x = Math.cos(a) * r; p.y = Math.sin(a) * r * .75; p.z = anywhere ? .1 + Math.random() * .95 : 1 + Math.random() * .15;
+    p.v = .1 + Math.random() * .08;   // depth per second
+    p.cold = Math.random() < (p.x > .15 ? .45 : .12); p.px = null;
   };
-  for (let i = 0, n = PHONE ? 24 : 56; i < n; i++) { const p = {}; spawn(p, true); list.push(p); }
+  for (let i = 0, n = PHONE ? 45 : 110; i < n; i++) { const p = {}; spawn(p, true); list.push(p); }
   let lift = 0, glowK = 0;
   return (dt, push) => {
     if (cv.width !== Math.round(innerWidth * dpr) || cv.height !== Math.round(innerHeight * dpr)) { W = innerWidth; H = innerHeight; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
-    lift += (push - lift) * (1 - Math.exp(-dt * (push > lift ? 14 : 3)));   // quick to rise with a thump, slow to calm down
+    lift += (push - lift) * (1 - Math.exp(-dt * (push > lift ? 14 : 3)));   // quick to speed up with a thump, slow to calm down
     glowK += (push - glowK) * (1 - Math.exp(-dt * (push > glowK ? 20 : 5)));
-    const speed = 1 + lift * 3.2, size = 1 + glowK * .45;
-    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); g.globalCompositeOperation = 'lighter';
+    const speed = 1 + lift * 3.5;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); g.globalCompositeOperation = 'lighter'; g.lineCap = 'round';
     for (const p of list) {
-      p.y -= p.v * speed * dt; p.ph += dt * 1.3;
-      if (p.y < -.05) spawn(p, false);
-      const f = 1 - (p.y + .05) / 1.15, a = (f < .1 ? f / .1 : f > .8 ? (1 - f) / .2 : 1) * (.55 + .45 * glowK);
-      const x = (p.x + p.dx * f + Math.sin(p.ph) * .004) * W, y = p.y * H, r = p.s * size * 5.3;   // the halo is ~5x the dot
+      p.z -= p.v * speed * dt * Math.max(.35, p.z);   // slower far away, faster as they come near (as things do)
+      const sx = view.x + p.x / p.z * view.s, sy = view.y + p.y / p.z * view.s;
+      if (p.z < .08 || sx < -40 || sx > W + 40 || sy < -40 || sy > H + 40) { spawn(p, false); continue; }
+      const near = Math.min(1, (1.05 - p.z) / .95);                 // 0 far … 1 near
+      const r = Math.min(5, .35 + 1.6 * near * near + .5 / p.z * .3) * (1 + glowK * .35);   // the dot's radius in px
+      const a = Math.min(1, (1.15 - p.z) * 2.2) * (.5 + .5 * glowK);
+      if (p.px !== null && lift > .15) {   // a short trail on the bass
+        const c = p.cold ? COLD : WARM; g.globalAlpha = Math.min(1, a * lift * .9);
+        g.strokeStyle = c[0] + (.55 * near + .15) + c[1]; g.lineWidth = Math.max(.6, r * .7);
+        g.beginPath(); g.moveTo(p.px - (sx - p.px) * 2, p.py - (sy - p.py) * 2); g.lineTo(sx, sy); g.stroke();
+      }
       g.globalAlpha = Math.max(0, Math.min(1, a));
-      g.drawImage(p.cold ? cold : warm, x - r / 2, y - r / 2, r, r);
+      const s = r * 5.3; g.drawImage(p.cold ? cold : warm, sx - s / 2, sy - s / 2, s, s);
+      p.px = sx; p.py = sy;
     }
     g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
   };
@@ -124,6 +135,8 @@ function fit() {
   bg.classList.toggle('upright', H > W * 1.1);
   const p = QUAD.map(([u, v]) => [ox + u * vw, oy + v * vh]);
   clipEl.style.transform = rimEl.style.transform = 'matrix3d(' + quadMatrix(CW, CH, p).join(',') + ')';
+  // the depth the embers come out of: a little above the middle of the panel, where the beams meet
+  view.x = (p[0][0] + p[1][0] + p[2][0] + p[3][0]) / 4; view.y = (p[0][1] + p[1][1]) / 2 * .5 + (p[2][1] + p[3][1]) / 2 * .5 - (p[3][1] - p[0][1]) * .1; view.s = Math.max(W, H) * .55;
   lyricsEl.style.setProperty('--fs', Math.max(16, Math.min(40, vw * .02)) + 'px');
   lyricsEl.style.top = (oy + vh * .63) + 'px';
 }
