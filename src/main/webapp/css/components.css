@@ -713,6 +713,16 @@ body.light .pw-toggle {
 }
 .pw-toggle:hover { color: var(--accent); transform: translateY(-50%); }
 /* inputs in auth cards have a top margin; keep the eye centred on the field */
+/* "Continue with Google" over the form (includes/google-button.jspf): white as Google asks, in both themes */
+.oauth-btn { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 46px; padding: 0 18px; margin: 4px 0 0; border-radius: 999px;
+  background: #fff; color: #1f1f1f; border: 1px solid #dadce0; font-family: var(--font-text); font-size: var(--fs-text); font-weight: 500; letter-spacing: .01em;
+  text-decoration: none; transition: box-shadow .2s, transform .2s; }
+.oauth-btn:hover { text-decoration: none; box-shadow: 0 6px 18px -6px rgba(0, 0, 0, .45); transform: translateY(-1px); }
+.oauth-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.oauth-btn svg { flex: none; }
+.oauth-note { margin: 8px 0 0; font-family: var(--font-text); font-size: var(--fs-small); color: var(--text-dim); text-align: center; }
+.auth-or { display: flex; align-items: center; gap: 12px; margin: 16px 0 6px; color: var(--text-dim); font-size: var(--fs-small); letter-spacing: .14em; text-transform: uppercase; }
+.auth-or::before, .auth-or::after { content: ""; flex: 1; height: 1px; background: color-mix(in srgb, var(--text-dim) 40%, transparent); }
 .auth-card .pw-wrap, .settings-form .pw-wrap { margin-top: 6px; }
 .auth-card .pw-wrap input, .settings-form .pw-wrap input { margin-top: 0; }
 

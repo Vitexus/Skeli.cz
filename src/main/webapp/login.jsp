@@ -15,6 +15,10 @@
       <% if ("1".equals(request.getParameter("reset"))) { %>
       <div class="form-success"><%= t.getProperty("reset.success") %></div>
       <% } %>
+      <% if ("failed".equals(request.getParameter("google"))) { %>
+      <div class="form-alert"><%= t.getProperty("auth.google.failed") %></div>
+      <% } %>
+      <%@ include file="/includes/google-button.jspf" %>
       <form method="post" action="login">
         <% String nextParam = com.github.skeliit.web.auth.LoginServlet.safeNext(request.getParameter("next")); if (nextParam != null) { %><input type="hidden" name="next" value="<%= com.github.skeliit.WebUtils.escapeHtml(nextParam) %>"><% } %>
         <input type="hidden" name="csrf" value="<%= request.getAttribute("csrf") != null ? request.getAttribute("csrf") : "" %>">
