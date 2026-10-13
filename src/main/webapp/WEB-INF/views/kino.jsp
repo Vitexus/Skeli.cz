@@ -3,7 +3,7 @@
 <%-- Karaoke cinema (preview of the coming big karaoke): /karaoke/{song uuid}, KaraokeCinemaServlet fills kinoJson.
      Two rooms: Prostor (/kino/prostor.js, a looping video; the default) and Ořechový salon (/kino/domov.js); switching loads the page again.
      A loading screen stays up until the room is built (no jerk on the way in). Czech only for now. --%>
-<% String v = "5.8.2"; %>
+<% String v = "5.8.3"; %>
 <!doctype html>
 <html lang="cs">
 <head>
@@ -108,18 +108,20 @@ button { font: inherit; color: inherit; }
 @keyframes rim-run { to { --rim-b: 360deg; } }
 @media (prefers-reduced-motion: reduce) { .clip-rim::before, .clip-rim::after { animation: none; } }
 [data-look="p"] .clip .catch.paused::after, [data-look="p"] .clip .big-play { width: 220px; height: 220px; margin: -110px 0 0 -110px; background-size: 90px; }
-[data-look="p"] .lyrics { height: 2.8em; perspective: none; font-family: 'Bruno Ace SC', sans-serif; font-size: var(--fs, 30px); }
+[data-look="p"] .lyrics { height: auto; perspective: none; font-family: 'Bruno Ace SC', sans-serif; font-size: var(--fs, 30px); }
 [data-look="p"] .lyrics::before { width: min(1100px, 100vw); height: 230%; background: radial-gradient(closest-side, rgba(0, 0, 0, .62), rgba(0, 0, 0, .3) 60%, rgba(0, 0, 0, 0)); }
 /* one line, out of smoke (prostor.js): a word comes out of a puff a moment before it is sung, white, and turns gold when
    it is sung; the line drifts up into smoke when the next one starts */
-[data-look="p"] .pline { position: absolute; left: 50%; top: 0; width: min(94vw, 1200px); transform: translateX(-50%); text-align: center; line-height: 1.3; letter-spacing: .03em; }
+[data-look="p"] .pstack { position: relative; display: flex; flex-direction: column; align-items: center; gap: .35em; min-height: 5.6em; }
+[data-look="p"] .pline { position: relative; width: min(94vw, 1200px); text-align: center; line-height: 1.3; letter-spacing: .03em; transition: transform .6s cubic-bezier(.2, .8, .2, 1), opacity .6s; }
+[data-look="p"] .pline.next { opacity: .5; }
 [data-look="p"] .lyrics .w { opacity: 0; margin: 0 .14em; color: #f1f3f8; text-shadow: 0 2px 14px rgba(0, 0, 0, .85); transition: color .25s, text-shadow .25s; }
 [data-look="p"] .lyrics .w.in { animation: p-smoke-in 1s cubic-bezier(.2, .7, .2, 1) forwards; }
 [data-look="p"] .lyrics .w.sung { color: #ffc24a; text-shadow: 0 0 14px rgba(255, 170, 40, .75), 0 2px 12px rgba(0, 0, 0, .8); }
 @keyframes p-smoke-in { from { opacity: 0; filter: blur(14px); transform: scale(1.18) translateY(.15em); } to { opacity: 1; filter: none; transform: none; } }
 [data-look="p"] .pline.instant .w.in { animation: none; opacity: 1; }
 @media (max-height: 500px) { [data-look="p"] .song-tag { display: none; } }
-[data-look="p"] .pline.out { transition: transform 1.6s ease, opacity 1.6s ease, filter 1.6s ease; transform: translate(-50%, -1.1em) scale(1.04); opacity: 0; filter: blur(10px); }
+[data-look="p"] .pline.out { position: absolute; left: 0; right: 0; margin: 0 auto; transition: transform 1.6s ease, opacity 1.6s ease, filter 1.6s ease; transform: translateY(-1.1em) scale(1.04); opacity: 0; filter: blur(10px); }
 .line.instant, .line.instant .c, .line.instant .w { animation: none !important; transition: none !important; }
 
 .title-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; width: 92vw; transition: opacity 1.4s ease, filter 1.4s ease, transform 1.4s ease; }

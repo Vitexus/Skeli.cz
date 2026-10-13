@@ -142,8 +142,8 @@ function fit() {
   clipEl.style.transform = rimEl.style.transform = 'matrix3d(' + quadMatrix(CW, CH, p).join(',') + ')';
   // the depth the embers come out of: a little above the middle of the panel, where the beams meet
   view.x = (p[0][0] + p[1][0] + p[2][0] + p[3][0]) / 4; view.y = (p[0][1] + p[1][1]) / 2 * .5 + (p[2][1] + p[3][1]) / 2 * .5 - (p[3][1] - p[0][1]) * .1; view.s = Math.max(W, H) * .55;
-  lyricsEl.style.setProperty('--fs', Math.max(17, Math.min(38, vw * .0165)) + 'px');
-  lyricsEl.style.top = (oy + vh * .63) + 'px';
+  lyricsEl.style.setProperty('--fs', Math.max(16, Math.min(34, vw * .0145)) + 'px');
+  lyricsEl.style.top = (oy + vh * .615) + 'px';
 }
 
 // ---------------- the clock ----------------
@@ -171,10 +171,12 @@ function startPlayer() {
 }
 bigPlay.onclick = () => { bigPlay.hidden = true; play(); };
 
-// ---------------- the words: one line, out of smoke ----------------
-// The whole line comes out of smoke well before it is sung (its words one after another within half a second), so it
-// can be read in advance; each word turns gold when it is sung. Only one line is on the screen: when the next one starts, the old one drifts up into smoke. In a long pause
-// the line goes up in smoke a while after its last word and the screen stays clear.
+// ---------------- the words: the line being sung and the next one, out of smoke ----------------
+// The line being sung is on top (each word turns gold when it is sung), the next one under it, dimmer, so it can be
+// read ahead; room for both even when each wraps onto two rows. When the top line is done it drifts up into smoke,
+// the next one slides up into its place and the one after comes out of smoke below (its words one after another
+// within half a second). In a long pause the lines go up in smoke a while after the last word; the next pair comes
+// out of smoke well before it is sung.
 const AHEAD = 1.6, STAGGER = .07, HOLD = 2.6, lyricsEl = $('lyrics'), titleCard = $('titleCard'), dotsEl = $('dots');
 const firstWord = (k) => (D.words[k] && D.words[k][0] ? D.words[k][0][0] : D.times[k][0]);
 const lastWord = (k) => { const w = D.words[k]; return w && w.length ? w[w.length - 1][1] : D.times[k][1]; };
@@ -215,33 +217,51 @@ function drawSmoke(dt) {
   });
   fg.globalAlpha = 1;
 }
-function makeLine(k) {
-  const el = document.createElement('div'); el.className = 'pline'; el._i = k;
+const stack = document.createElement('div'); stack.className = 'pstack'; lyricsEl.appendChild(stack);
+function makeLine(k, role, t) {
+  const el = document.createElement('div'); el.className = 'pline ' + role; el._i = k; el._at = t;
   const times = D.words[k] || [];
   el._w = D.lines[k].split(/\s+/).map((tok, n) => { const s = document.createElement('span'); s.className = 'w'; s.textContent = tok; el.appendChild(s); el.appendChild(document.createTextNode(' ')); return { el: s, t: times[n] || D.times[k] }; });
-  lyricsEl.appendChild(el);
+  stack.appendChild(el);
   return el;
 }
 function leaveLine(el, quiet) {
   if (!quiet) el.querySelectorAll('.w.in').forEach((w) => { const r = w.getBoundingClientRect(); puff(r.left + r.width / 2, r.top + r.height * .5, r.height * 1.2, r.height * 1.6, 2, .35); });
   if (!quiet) el.querySelectorAll('.w').forEach((w) => w.classList.add('sung'));   // it leaves as its last word starts
-  el.classList.add('out'); setTimeout(() => el.remove(), 1700);
+  el.style.top = el.offsetTop + 'px'; el.classList.add('out');   // out of the flow, where it stood, then up
+  setTimeout(() => el.remove(), 1700);
 }
-let shown = -2, line = null, lastT = 0;
+let shown = -2, line = null, next = null, lastT = 0;
+const nextShown = (k) => D.times[k + 1] && firstWord(k + 1) - lastWord(k) < HOLD + 1.5;   // not across a long pause
+function slideUp(el, r0) {   // FLIP: from where it stood (r0, measured before the line above left) to its new place
+  el.classList.remove('next'); el.classList.add('cur');
+  const r1 = el.getBoundingClientRect().top;
+  el.style.transition = 'none'; el.style.transform = 'translateY(' + (r0 - r1) + 'px)';
+  void el.offsetWidth; el.style.transition = ''; el.style.transform = '';
+}
 function words(t) {
-  const jumped = Math.abs(t - lastT) > 1.2; lastT = t;   // a seek: build the line at once, without smoke
+  const jumped = Math.abs(t - lastT) > 1.2; lastT = t;   // a seek: build the lines at once, without smoke
   let i = lineAt(t);
   if (i >= 0 && t > lastWord(i) + HOLD && !(D.times[i + 1] && showAt(i + 1) - t < .3)) i = -1;   // a long pause: clear
   if (i !== shown || (jumped && line)) {
-    if (line) leaveLine(line, jumped);
-    shown = i; line = i >= 0 ? makeLine(i) : null;
-    if (line && jumped) line.classList.add('instant');
+    if (jumped || i < 0 || i !== shown + 1) {   // start again: a jump, a pause, or the first line
+      if (line) leaveLine(line, jumped); if (next) leaveLine(next, jumped);
+      line = next = null;
+      if (i >= 0) { line = makeLine(i, 'cur', jumped ? -1e9 : t); if (nextShown(i)) next = makeLine(i + 1, 'next', jumped ? -1e9 : t + .25); }
+    } else {                                     // the usual step: the top line leaves, the next one moves up
+      const r0 = next ? next.getBoundingClientRect().top : 0;
+      if (line) leaveLine(line, false);
+      if (next && next._i === i) { line = next; slideUp(line, r0); } else { if (next) leaveLine(next, false); line = makeLine(i, 'cur', t); }
+      next = nextShown(i) ? makeLine(i + 1, 'next', t + .3) : null;
+    }
+    shown = i;
+    [line, next].forEach((l) => { if (l && jumped) l.classList.add('instant'); });
   }
-  if (line) line._w.forEach((w, n) => {
-    const on = t >= showAt(line._i) + n * STAGGER, sung = t >= w.t[0] - .04;
+  for (const l of [line, next]) if (l) l._w.forEach((w, n) => {
+    const on = t >= l._at + n * STAGGER, sung = l === line && t >= w.t[0] - .04;
     if (on !== w.on) {
       w.on = on; w.el.classList.toggle('in', on);
-      if (on && !line.classList.contains('instant')) { const r = w.el.getBoundingClientRect(); for (let k = 0; k < 3; k++) puff(r.left + r.width * (.15 + .7 * Math.random()), r.top + r.height * .6, r.height * (.8 + Math.random() * .5), r.height * 1.3, 1.4 + Math.random() * .6, .32); }
+      if (on && !l.classList.contains('instant')) { const r = w.el.getBoundingClientRect(); for (let k = 0; k < 3; k++) puff(r.left + r.width * (.15 + .7 * Math.random()), r.top + r.height * .6, r.height * (.8 + Math.random() * .5), r.height * 1.3, 1.4 + Math.random() * .6, .3); }
     }
     if (sung !== w.sung) { w.sung = sung; w.el.classList.toggle('sung', sung); }
   });
