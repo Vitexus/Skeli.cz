@@ -3,7 +3,7 @@
 <%-- Karaoke cinema (preview of the coming big karaoke): /karaoke/{song uuid}, KaraokeCinemaServlet fills kinoJson.
      Two rooms: Prostor (/kino/prostor.js, a looping video; the default) and Ořechový salon (/kino/domov.js); switching loads the page again.
      A loading screen stays up until the room is built (no jerk on the way in). Czech only for now. --%>
-<% String v = "5.7.2"; %>
+<% String v = "5.7.5"; %>
 <!doctype html>
 <html lang="cs">
 <head>
@@ -80,7 +80,29 @@ button { font: inherit; color: inherit; }
    three lines on the floor: the one before grey, the one being sung filling orange word by word, the next grey */
 .space { position: fixed; z-index: 0; object-fit: fill; pointer-events: none; }
 .space.upright { -webkit-mask: linear-gradient(180deg, transparent, #000 12%, #000 86%, transparent); mask: linear-gradient(180deg, transparent, #000 12%, #000 86%, transparent); }
-[data-look="p"] #css3d .clip { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+[data-look="p"] #css3d .clip { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: transparent; box-shadow: none;
+  /* a tilted box gets stair-stepped edges (no anti-aliasing on 3D transforms): fade its last few pixels instead */
+  -webkit-mask: linear-gradient(90deg, transparent, #000 7px, #000 calc(100% - 7px), transparent), linear-gradient(180deg, transparent, #000 7px, #000 calc(100% - 7px), transparent);
+  -webkit-mask-composite: source-in; mask: linear-gradient(90deg, transparent, #000 7px, #000 calc(100% - 7px), transparent), linear-gradient(180deg, transparent, #000 7px, #000 calc(100% - 7px), transparent);
+  mask-composite: intersect; }
+[data-look="p"] #css3d .clip .poster, [data-look="p"] #css3d .clip .player { background: #000; }
+/* the golden rim round the clip (prostor.js sets --k = the bass, 0–1): the colours of the light lines in the space
+   flowing slowly round it, a spark running round, a glow that flares on the beat */
+@property --rim-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --rim-b { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+[data-look="p"] #css3d .clip-rim { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; pointer-events: none; --k: 0;
+  filter: drop-shadow(0 0 calc(10px + var(--k) * 26px) rgba(255, 166, 40, .9)) drop-shadow(0 0 calc(40px + var(--k) * 50px) rgba(255, 120, 20, .45)); }
+.clip-rim::before, .clip-rim::after { content: ""; position: absolute; inset: -8px; padding: 8px; border-radius: 5px;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.clip-rim::before { background: conic-gradient(from var(--rim-a), #7a5200, #e6b730 18%, #ff9a2e 32%, #ffe08a 42%, #e6b730 55%, #8f6600 70%, #c99a12 86%, #7a5200);
+  filter: brightness(calc(.8 + var(--k) * .9));
+  animation: rim-flow 16s linear infinite; }
+.clip-rim::after { inset: -10px; padding: 10px; background: conic-gradient(from var(--rim-b), transparent 0 84%, rgba(255, 220, 140, .3) 89%, #fff7dc 92.5%, rgba(255, 200, 90, .3) 95%, transparent 98%);
+  animation: rim-run 7s linear infinite; }
+@keyframes rim-flow { to { --rim-a: 360deg; } }
+@keyframes rim-run { to { --rim-b: 360deg; } }
+@media (prefers-reduced-motion: reduce) { .clip-rim::before, .clip-rim::after { animation: none; } }
 [data-look="p"] .clip .catch.paused::after, [data-look="p"] .clip .big-play { width: 220px; height: 220px; margin: -110px 0 0 -110px; background-size: 90px; }
 [data-look="p"] .lyrics { height: auto; min-height: 4.6em; perspective: none; font-family: 'Oswald', sans-serif; }
 [data-look="p"] .lyrics::before { width: min(900px, 100vw); height: 200%; background: radial-gradient(closest-side, rgba(0, 0, 0, .6), rgba(0, 0, 0, .3) 60%, rgba(0, 0, 0, 0)); }

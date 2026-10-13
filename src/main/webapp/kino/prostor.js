@@ -40,6 +40,19 @@ clipEl.innerHTML = '<img class="poster" alt=""><div class="player"></div><div cl
 $('css3d').appendChild(clipEl);
 const poster = clipEl.querySelector('.poster'), catcher = clipEl.querySelector('.catch'), bigPlay = clipEl.querySelector('.big-play'), powerEl = clipEl.querySelector('.power');
 poster.onerror = () => { poster.onerror = null; poster.src = D.thumb; };
+// a golden rim round the clip, like the light lines in the space: its colours flow slowly, a spark runs round
+// it and it flares with the song's bass (eq/<id>.json)
+const rimEl = document.createElement('div');
+rimEl.className = 'clip-rim';
+$('css3d').appendChild(rimEl);
+const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+const E = D.eq, energy = unb64(E.energy);
+function bassAt(t) {
+  const f = Math.floor(t * E.fps), o = f * E.bands;
+  if (f < 0 || o + 3 > energy.length) return 0;
+  return (energy[o] + energy[o + 1] + energy[o + 2]) / 765;
+}
+let beat = 0, bassAvg = 0;
 poster.src = D.thumb.replace('hqdefault', 'maxresdefault');
 
 // the clip is laid out at 1920x1080 and bent onto the panel: YouTube then sends a sharper picture than at 720p
@@ -67,7 +80,7 @@ function fit() {
   Object.assign(bg.style, { left: ox + 'px', top: oy + 'px', width: vw + 'px', height: vh + 'px' });
   bg.classList.toggle('upright', H > W * 1.1);
   const p = QUAD.map(([u, v]) => [ox + u * vw, oy + v * vh]);
-  clipEl.style.transform = 'matrix3d(' + quadMatrix(CW, CH, p).join(',') + ')';
+  clipEl.style.transform = rimEl.style.transform = 'matrix3d(' + quadMatrix(CW, CH, p).join(',') + ')';
   lyricsEl.style.setProperty('--fs', Math.max(16, Math.min(40, vw * .02)) + 'px');
   lyricsEl.style.top = (oy + vh * .58) + 'px';
 }
@@ -202,6 +215,9 @@ function frame(ts) {
   const dt = Math.min(.1, (ts - last) / 1000); last = ts;
   const t = now(), pl = playing();
   on += (onTo - on) * (1 - Math.exp(-dt * 2.5));
+  if (pl) { const b = bassAt(t); bassAvg += (b - bassAvg) * (1 - Math.exp(-dt / .7)); beat = Math.max(beat * Math.exp(-dt / .2), Math.min(1, Math.max(0, b - bassAvg * 1.08) * 4.5)); }
+  else beat *= Math.exp(-dt / .3);
+  rimEl.style.setProperty('--k', (beat * on).toFixed(3)); rimEl.style.opacity = (.35 + .65 * on).toFixed(3);
   powerEl.style.opacity = (1 - on).toFixed(3);
   const ended = entered && started && t > Math.min(duration() - 1.5, LAST_END + 6);
   if (ended && !credited) { credited = true; onTo = .15; $('roll').innerHTML = credits(); $('credits').hidden = false; $('credits').classList.add('run'); }
