@@ -172,13 +172,16 @@ function startPlayer() {
 bigPlay.onclick = () => { bigPlay.hidden = true; play(); };
 
 // ---------------- the words: one line, out of smoke ----------------
-// A word comes out of a puff of smoke a moment before it is sung (white, time to read it) and turns gold when it is
-// sung. Only one line is on the screen: when the next one starts, the old one drifts up into smoke. In a long pause
+// The whole line comes out of smoke well before it is sung (its words one after another within half a second), so it
+// can be read in advance; each word turns gold when it is sung. Only one line is on the screen: when the next one starts, the old one drifts up into smoke. In a long pause
 // the line goes up in smoke a while after its last word and the screen stays clear.
-const AHEAD = .8, HOLD = 2.6, lyricsEl = $('lyrics'), titleCard = $('titleCard'), dotsEl = $('dots');
+const AHEAD = 1.6, STAGGER = .07, HOLD = 2.6, lyricsEl = $('lyrics'), titleCard = $('titleCard'), dotsEl = $('dots');
 const firstWord = (k) => (D.words[k] && D.words[k][0] ? D.words[k][0][0] : D.times[k][0]);
 const lastWord = (k) => { const w = D.words[k]; return w && w.length ? w[w.length - 1][1] : D.times[k][1]; };
-const showAt = (k) => Math.max(firstWord(k) - AHEAD, k > 0 ? lastWord(k - 1) : -1e9);   // never over the end of the line before
+const lastWordStart = (k) => { const w = D.words[k]; return w && w.length ? w[w.length - 1][0] : D.times[k][1] - .3; };
+// the line before leaves when its last word starts (it drifts up still showing it), so even back-to-back rap lines
+// can be read ahead
+const showAt = (k) => Math.max(firstWord(k) - AHEAD, k > 0 ? lastWordStart(k - 1) : -1e9);
 function lineAt(t) { let i = -1; for (let k = 0; k < D.times.length; k++) { if (showAt(k) <= t) i = k; else break; } return i; }
 if (!qs.has('auto')) lyricsEl.style.visibility = 'hidden';   // not under the lobby
 // smoke: soft wisps of turbulent noise, drawn on the #fx canvas
@@ -213,7 +216,7 @@ function drawSmoke(dt) {
   fg.globalAlpha = 1;
 }
 function makeLine(k) {
-  const el = document.createElement('div'); el.className = 'pline';
+  const el = document.createElement('div'); el.className = 'pline'; el._i = k;
   const times = D.words[k] || [];
   el._w = D.lines[k].split(/\s+/).map((tok, n) => { const s = document.createElement('span'); s.className = 'w'; s.textContent = tok; el.appendChild(s); el.appendChild(document.createTextNode(' ')); return { el: s, t: times[n] || D.times[k] }; });
   lyricsEl.appendChild(el);
@@ -221,6 +224,7 @@ function makeLine(k) {
 }
 function leaveLine(el, quiet) {
   if (!quiet) el.querySelectorAll('.w.in').forEach((w) => { const r = w.getBoundingClientRect(); puff(r.left + r.width / 2, r.top + r.height * .5, r.height * 1.2, r.height * 1.6, 2, .35); });
+  if (!quiet) el.querySelectorAll('.w').forEach((w) => w.classList.add('sung'));   // it leaves as its last word starts
   el.classList.add('out'); setTimeout(() => el.remove(), 1700);
 }
 let shown = -2, line = null, lastT = 0;
@@ -233,14 +237,14 @@ function words(t) {
     shown = i; line = i >= 0 ? makeLine(i) : null;
     if (line && jumped) line.classList.add('instant');
   }
-  if (line) for (const w of line._w) {
-    const on = t >= w.t[0] - AHEAD, sung = t >= w.t[0] - .04;
+  if (line) line._w.forEach((w, n) => {
+    const on = t >= showAt(line._i) + n * STAGGER, sung = t >= w.t[0] - .04;
     if (on !== w.on) {
       w.on = on; w.el.classList.toggle('in', on);
       if (on && !line.classList.contains('instant')) { const r = w.el.getBoundingClientRect(); for (let k = 0; k < 3; k++) puff(r.left + r.width * (.15 + .7 * Math.random()), r.top + r.height * .6, r.height * (.8 + Math.random() * .5), r.height * 1.3, 1.4 + Math.random() * .6, .32); }
     }
     if (sung !== w.sung) { w.sung = sung; w.el.classList.toggle('sung', sung); }
-  }
+  });
   titleCard.classList.toggle('gone', t > D.times[0][0] - 1.2);
   let sung = -1; for (let s = 0; s < D.times.length && D.times[s][0] <= t; s++) sung = s;
   const nx = D.times[sung + 1], prevEnd = sung >= 0 ? D.times[sung][1] : 0;
