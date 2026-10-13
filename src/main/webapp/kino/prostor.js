@@ -29,22 +29,48 @@ bg.className = 'space';
 bg.muted = true; bg.loop = true; bg.playsInline = true; bg.autoplay = true; bg.preload = 'auto';
 bg.src = '/kino/prostor/prostor-' + (PHONE || Math.max(innerWidth, innerHeight) * (devicePixelRatio || 1) < 1600 ? '720' : '1440') + '.mp4';
 document.body.prepend(bg);
-// embers rising through the space, as on the home page (a quarter of them cold blue, like the light on the right);
-// they are behind the clip, over the video
-if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  const embers = document.createElement('div'); embers.className = 'space-embers'; embers.setAttribute('aria-hidden', 'true');
-  for (let i = 0, n = PHONE ? 18 : 40; i < n; i++) {
-    const s = document.createElement('span'), x = Math.random();
-    if (Math.random() < (x > .55 ? .4 : .12)) s.className = 'cold';
-    s.style.left = (x * 100) + '%';
-    s.style.setProperty('--s', (2 + Math.random() * 4).toFixed(1) + 'px');
-    s.style.setProperty('--t', (10 + Math.random() * 14).toFixed(1) + 's');
-    s.style.setProperty('--delay', (-Math.random() * 24).toFixed(1) + 's');
-    s.style.setProperty('--dx', ((Math.random() - .5) * 180).toFixed(0) + 'px');
-    embers.appendChild(s);
-  }
-  bg.after(embers);
-}
+// embers rising through the space, as on the home page (some of them cold blue, more so on the right, like the
+// light there); behind the clip, over the video. They rise faster, glow brighter and grow a little when the bass
+// thumps (embers(dt, push) is called every frame with the beat).
+const embers = (() => {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return () => {};
+  const cv = document.createElement('canvas'); cv.className = 'space-embers'; cv.setAttribute('aria-hidden', 'true');
+  bg.after(cv);
+  const g = cv.getContext('2d'), dpr = Math.min(2, devicePixelRatio || 1);
+  const sprite = (core, mid, glow) => {   // a soft dot with a halo, drawn once
+    const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
+    let gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, glow); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+    gr = x.createRadialGradient(32, 32, 0, 32, 32, 12); gr.addColorStop(0, core); gr.addColorStop(.55, mid); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+    return c;
+  };
+  const warm = sprite('#ffd27a', '#ff6a2b', 'rgba(255,110,40,.28)'), cold = sprite('#e6f4ff', '#6fb6ff', 'rgba(80,160,255,.26)');
+  let W = 0, H = 0;
+  const list = [];
+  const spawn = (p, anywhere) => {
+    p.x = Math.random(); p.y = anywhere ? Math.random() * 1.1 : 1.05 + Math.random() * .1;   // shares of the screen
+    p.s = 2 + Math.random() * 4; p.v = 1 / (10 + Math.random() * 14);                        // a rise of the screen height in 10–24 s
+    p.dx = (Math.random() - .5) * .14; p.ph = Math.random() * 6.28;
+    p.cold = Math.random() < (p.x > .55 ? .4 : .12);
+  };
+  for (let i = 0, n = PHONE ? 24 : 56; i < n; i++) { const p = {}; spawn(p, true); list.push(p); }
+  let lift = 0, glowK = 0;
+  return (dt, push) => {
+    if (cv.width !== Math.round(innerWidth * dpr) || cv.height !== Math.round(innerHeight * dpr)) { W = innerWidth; H = innerHeight; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    lift += (push - lift) * (1 - Math.exp(-dt * (push > lift ? 14 : 3)));   // quick to rise with a thump, slow to calm down
+    glowK += (push - glowK) * (1 - Math.exp(-dt * (push > glowK ? 20 : 5)));
+    const speed = 1 + lift * 3.2, size = 1 + glowK * .45;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); g.globalCompositeOperation = 'lighter';
+    for (const p of list) {
+      p.y -= p.v * speed * dt; p.ph += dt * 1.3;
+      if (p.y < -.05) spawn(p, false);
+      const f = 1 - (p.y + .05) / 1.15, a = (f < .1 ? f / .1 : f > .8 ? (1 - f) / .2 : 1) * (.55 + .45 * glowK);
+      const x = (p.x + p.dx * f + Math.sin(p.ph) * .004) * W, y = p.y * H, r = p.s * size * 5.3;   // the halo is ~5x the dot
+      g.globalAlpha = Math.max(0, Math.min(1, a));
+      g.drawImage(p.cold ? cold : warm, x - r / 2, y - r / 2, r, r);
+    }
+    g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  };
+})();
 const kick = () => bg.play().catch(() => {});
 kick(); addEventListener('pointerdown', kick, { once: true });
 
@@ -233,6 +259,7 @@ function frame(ts) {
   on += (onTo - on) * (1 - Math.exp(-dt * 2.5));
   if (pl) { const b = bassAt(t); bassAvg += (b - bassAvg) * (1 - Math.exp(-dt / .7)); beat = Math.max(beat * Math.exp(-dt / .2), Math.min(1, Math.max(0, b - bassAvg * 1.08) * 4.5)); }
   else beat *= Math.exp(-dt / .3);
+  embers(dt, pl ? Math.min(1, beat * 1.2 + Math.max(0, bassAvg - .25) * .8) : 0);
   rimEl.style.setProperty('--k', (beat * on).toFixed(3)); rimEl.style.opacity = (.35 + .65 * on).toFixed(3);
   powerEl.style.opacity = (1 - on).toFixed(3);
   const ended = entered && started && t > Math.min(duration() - 1.5, LAST_END + 6);
