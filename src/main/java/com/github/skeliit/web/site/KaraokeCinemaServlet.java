@@ -32,6 +32,8 @@ import java.util.Base64;
 @WebServlet(name = "KaraokeCinemaServlet", urlPatterns = {"/karaoke-kino", "/karaoke-kino/*"})
 public class KaraokeCinemaServlet extends HttpServlet {
     private static final ObjectMapper JSON = new ObjectMapper();
+    /** Karaoke for signed-in visitors only. Off while the cinema is being finished; switch on for the launch. */
+    private static final boolean MEMBERS_ONLY = false;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -39,7 +41,7 @@ public class KaraokeCinemaServlet extends HttpServlet {
         String uuid = path == null ? "" : path.substring(1);
         if (uuid.isEmpty()) { list(req, resp); return; }
         if (!uuid.matches("[0-9a-fA-F-]{36}")) { resp.sendError(404); return; }
-        if (!signedIn(req)) { resp.sendRedirect("/login.jsp?next=" + URLEncoder.encode("/karaoke-kino/" + uuid, StandardCharsets.UTF_8)); return; }
+        if (MEMBERS_ONLY && !signedIn(req)) { resp.sendRedirect("/login.jsp?next=" + URLEncoder.encode("/karaoke-kino/" + uuid, StandardCharsets.UTF_8)); return; }
         String[] song;
         String manual;
         try {
@@ -89,7 +91,7 @@ public class KaraokeCinemaServlet extends HttpServlet {
             throw new ServletException(e);
         }
         req.setAttribute("karaokeSongs", songs);
-        req.setAttribute("karaokeSignedIn", signedIn(req));
+        req.setAttribute("karaokeSignedIn", !MEMBERS_ONLY || signedIn(req));
         req.setAttribute("pageTitle", I18n.bundle(req).getProperty("menu.karaoke"));
         req.getRequestDispatcher("/WEB-INF/views/karaoke-list.jsp").forward(req, resp);
     }
