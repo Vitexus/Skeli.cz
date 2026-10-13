@@ -35,10 +35,15 @@ kick(); addEventListener('pointerdown', kick, { once: true });
 // ---------------- the clip, bent onto the panel ----------------
 const clipEl = document.createElement('div');
 clipEl.className = 'clip';
-clipEl.innerHTML = '<img class="poster" src="' + D.thumb + '" alt=""><div class="player"></div><div class="catch" hidden></div><button class="big-play" hidden aria-label="Přehrát"></button><div class="power"></div>';
+// the big thumbnail (1280x720) on the large panel; not every clip has one, then the usual one
+clipEl.innerHTML = '<img class="poster" alt=""><div class="player"></div><div class="catch" hidden></div><button class="big-play" hidden aria-label="Přehrát"></button><div class="power"></div>';
 $('css3d').appendChild(clipEl);
 const poster = clipEl.querySelector('.poster'), catcher = clipEl.querySelector('.catch'), bigPlay = clipEl.querySelector('.big-play'), powerEl = clipEl.querySelector('.power');
+poster.onerror = () => { poster.onerror = null; poster.src = D.thumb; };
+poster.src = D.thumb.replace('hqdefault', 'maxresdefault');
 
+// the clip is laid out at 1920x1080 and bent onto the panel: YouTube then sends a sharper picture than at 720p
+const CW = 1920, CH = 1080;
 // the CSS matrix3d that maps a w x h box onto the corners p (TL, TR, BR, BL)
 function quadMatrix(w, h, p) {
   const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = p;
@@ -62,7 +67,7 @@ function fit() {
   Object.assign(bg.style, { left: ox + 'px', top: oy + 'px', width: vw + 'px', height: vh + 'px' });
   bg.classList.toggle('upright', H > W * 1.1);
   const p = QUAD.map(([u, v]) => [ox + u * vw, oy + v * vh]);
-  clipEl.style.transform = 'matrix3d(' + quadMatrix(1280, 720, p).join(',') + ')';
+  clipEl.style.transform = 'matrix3d(' + quadMatrix(CW, CH, p).join(',') + ')';
   lyricsEl.style.setProperty('--fs', Math.max(16, Math.min(40, vw * .02)) + 'px');
   lyricsEl.style.top = (oy + vh * .58) + 'px';
 }

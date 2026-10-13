@@ -3,7 +3,7 @@
 <%-- Karaoke cinema (preview of the coming big karaoke): /karaoke/{song uuid}, KaraokeCinemaServlet fills kinoJson.
      Two rooms: Černý luxus (/kino/domov.js) and Prostor (/kino/prostor.js, a looping video; loads the page again).
      A loading screen stays up until the room is built (no jerk on the way in). Czech only for now. --%>
-<% String v = "5.7.0"; %>
+<% String v = "5.7.1"; %>
 <!doctype html>
 <html lang="cs">
 <head>
@@ -80,7 +80,8 @@ button { font: inherit; color: inherit; }
    three lines on the floor: the one before grey, the one being sung filling orange word by word, the next grey */
 .space { position: fixed; z-index: 0; object-fit: fill; pointer-events: none; }
 .space.upright { -webkit-mask: linear-gradient(180deg, transparent, #000 12%, #000 86%, transparent); mask: linear-gradient(180deg, transparent, #000 12%, #000 86%, transparent); }
-[data-look="p"] #css3d .clip { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+[data-look="p"] #css3d .clip { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+[data-look="p"] .clip .catch.paused::after, [data-look="p"] .clip .big-play { width: 220px; height: 220px; margin: -110px 0 0 -110px; background-size: 90px; }
 [data-look="p"] .lyrics { height: auto; min-height: 4.6em; perspective: none; font-family: 'Oswald', sans-serif; }
 [data-look="p"] .lyrics::before { width: min(900px, 100vw); height: 200%; background: radial-gradient(closest-side, rgba(0, 0, 0, .6), rgba(0, 0, 0, .3) 60%, rgba(0, 0, 0, 0)); }
 [data-look="p"] .rows { position: relative; text-align: center; transition: opacity .6s; }
