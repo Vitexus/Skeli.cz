@@ -83,6 +83,10 @@ const embers = (() => {
     g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
   };
 })();
+// the video has a short flaw in its first second (smeared streaks above a rock, right of the panel): a soft blur
+// covers that spot only then, fading in and out with the loop
+const GLITCH = { x0: .684, y0: .186, x1: .752, y1: .272 };
+const glitch = document.createElement('div'); glitch.className = 'space-glitch'; bg.after(glitch);
 const kick = () => bg.play().catch(() => {});
 kick(); addEventListener('pointerdown', kick, { once: true });
 
@@ -132,6 +136,7 @@ function fit() {
     ox = (W - vw) / 2; oy = (H - vh) / 2;
   }
   Object.assign(bg.style, { left: ox + 'px', top: oy + 'px', width: vw + 'px', height: vh + 'px' });
+  Object.assign(glitch.style, { left: (ox + GLITCH.x0 * vw) + 'px', top: (oy + GLITCH.y0 * vh) + 'px', width: ((GLITCH.x1 - GLITCH.x0) * vw) + 'px', height: ((GLITCH.y1 - GLITCH.y0) * vh) + 'px' });
   bg.classList.toggle('upright', H > W * 1.1);
   const p = QUAD.map(([u, v]) => [ox + u * vw, oy + v * vh]);
   clipEl.style.transform = rimEl.style.transform = 'matrix3d(' + quadMatrix(CW, CH, p).join(',') + ')';
@@ -316,6 +321,7 @@ function frame(ts) {
   const ended = entered && started && t > Math.min(duration() - 1.5, LAST_END + 6);
   if (ended && !credited) { credited = true; onTo = .15; $('roll').innerHTML = credits(); $('credits').hidden = false; $('credits').classList.add('run'); }
   if (!ended && credited) { credited = false; onTo = 1; $('credits').hidden = true; $('credits').classList.remove('run'); }
+  { const ct = bg.currentTime, du = bg.duration || 9; glitch.style.opacity = (ct < 1.1 ? 1 : ct < 1.4 ? 1 - (ct - 1.1) / .3 : ct > du - .2 ? (ct - du + .2) / .2 : 0).toFixed(3); }
   if (entered) words(t);
   drawSmoke(dt);
   if (pl && !started && (!clock || clock.time() > .3)) { started = true; if (clock) poster.style.display = 'none'; }
