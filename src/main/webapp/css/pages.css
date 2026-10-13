@@ -1719,3 +1719,13 @@ html.lyric-plain .fs-now, html.lyric-plain .fs-next { font-family: 'Exo 2', syst
 .fb-nudge { margin: 0; padding: 8px 12px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); font-family: var(--font-text); font-size: var(--fs-text); }
 .fb-form textarea.fb-invite { animation: fb-invite 1.4s ease; border-color: var(--accent); }
 @keyframes fb-invite { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
+/* references: messages about the site the artist picked (includes/feedback-refs.jspf) */
+.fb-refs { width: min(1180px, 100%); margin: 10px auto 40px; padding: 0 16px; }
+.fb-refs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; }
+.fb-ref { position: relative; margin: 0; padding: 22px 22px 18px; border-radius: var(--radius); background: var(--panel); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 14px; }
+.fb-ref-mark { color: var(--accent); font-size: 1.4rem; opacity: .8; }
+.fb-ref blockquote { margin: 0; flex: 1; font-family: var(--font-text); font-size: var(--fs-text); font-weight: 300; line-height: 1.5; }
+.fb-ref figcaption { display: flex; align-items: center; gap: 10px; font-size: var(--fs-small); color: var(--text-dim); }
+.fb-ref-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex: none; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 25%, transparent); color: var(--accent); font-size: var(--fs-card); }
+.fb-ref-name { color: var(--text); }
+.fb-ref-vote { margin-left: auto; color: var(--accent); }

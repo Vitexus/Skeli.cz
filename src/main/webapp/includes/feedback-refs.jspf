@@ -1,0 +1,25 @@
+<%-- References on the home page: the messages about the site that the artist picked (a heart in /admin/feedback),
+     up to six, newest pick first; the band shows only when there is at least one --%>
+<%
+  java.util.List<com.github.skeliit.model.SiteFeedback> refs = java.util.List.of();
+  try { refs = new com.github.skeliit.dao.FeedbackDao().hearted(6); } catch (java.sql.SQLException refErr) { /* no band */ }
+  if (!refs.isEmpty()) {
+%>
+  <section class="fb-refs" data-reveal aria-labelledby="fb-refs-title">
+    <div class="section-head"><h2 id="fb-refs-title"><%= t.getProperty("home.refs.title") %></h2></div>
+    <div class="fb-refs-grid">
+    <% for (com.github.skeliit.model.SiteFeedback f : refs) {
+         String av = com.github.skeliit.WebUtils.safeUrl(f.avatar, null); %>
+      <figure class="fb-ref">
+        <i class="fa-solid fa-quote-left fb-ref-mark" aria-hidden="true"></i>
+        <blockquote><%= com.github.skeliit.WebUtils.escapeHtml(f.message).replace("\n", "<br>") %></blockquote>
+        <figcaption>
+          <% if (av != null) { %><img class="fb-ref-avatar" src="<%= com.github.skeliit.WebUtils.escapeHtml(av) %>" alt="" loading="lazy" referrerpolicy="no-referrer"><% } else { %><span class="fb-ref-avatar"><%= com.github.skeliit.WebUtils.escapeHtml(f.username.substring(0, 1).toUpperCase()) %></span><% } %>
+          <span class="fb-ref-name"><%= com.github.skeliit.WebUtils.escapeHtml(f.username) %></span>
+          <i class="fa-solid <%= f.vote > 0 ? "fa-thumbs-up" : "fa-thumbs-down" %> fb-ref-vote" aria-hidden="true"></i>
+        </figcaption>
+      </figure>
+    <% } %>
+    </div>
+  </section>
+<% } %>
