@@ -32,10 +32,24 @@
             <label class="fb-vote up"><input type="radio" name="vote" value="up"<%= fbMine != null && fbUp ? " checked" : "" %> required><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> <%= t.getProperty("home.feedback.like") %></label>
             <label class="fb-vote down"><input type="radio" name="vote" value="down"<%= fbMine != null && !fbUp ? " checked" : "" %>><i class="fa-solid fa-thumbs-down" aria-hidden="true"></i> <%= t.getProperty("home.feedback.dislike") %></label>
           </div>
-          <textarea name="message" maxlength="500" rows="3" placeholder="<%= t.getProperty("home.feedback.placeholder") %>"><%= fbMine != null && fbMine.message != null ? com.github.skeliit.WebUtils.escapeHtml(fbMine.message) : "" %></textarea>
+          <% if (fbMine != null && fbMine.message == null) { %><p class="fb-nudge"><i class="fa-solid fa-pen" aria-hidden="true"></i> <%= t.getProperty("home.feedback.nudge") %></p><% } %>
+          <textarea name="message" maxlength="500" rows="3" placeholder="<%= t.getProperty(fbMine == null ? "home.feedback.placeholder" : fbUp ? "home.feedback.placeholder.up" : "home.feedback.placeholder.down") %>" data-up="<%= t.getProperty("home.feedback.placeholder.up") %>" data-down="<%= t.getProperty("home.feedback.placeholder.down") %>"><%= fbMine != null && fbMine.message != null ? com.github.skeliit.WebUtils.escapeHtml(fbMine.message) : "" %></textarea>
           <button type="submit"><%= t.getProperty(fbMine != null ? "home.feedback.update" : "home.feedback.send") %></button>
           <p class="fb-note"><%= t.getProperty("home.feedback.note") %></p>
         </form>
+        <script>
+          // a thumb invites a message: the box lights up, takes the cursor and asks according to the thumb
+          (function () {
+            var f = document.querySelector("#feedback .fb-form"); if (!f || f.dataset.on) return; f.dataset.on = "1";
+            var box = f.querySelector("textarea");
+            f.addEventListener("change", function (e) {
+              if (e.target.name !== "vote") return;
+              box.placeholder = box.getAttribute("data-" + e.target.value);
+              box.classList.remove("fb-invite"); void box.offsetWidth; box.classList.add("fb-invite");
+              if (!box.value) box.focus({ preventScroll: true });
+            });
+          })();
+        </script>
         <% } else { %>
         <p class="fb-lead"><%= t.getProperty("home.feedback.login") %></p>
         <a class="btn btn-primary fb-login" href="/login.jsp?next=%2Findex.jsp%23feedback"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> <%= t.getProperty("auth.submit.login") %></a>
