@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%-- Karaoke cinema (preview of the coming big karaoke): /karaoke/{song uuid}, KaraokeCinemaServlet fills kinoJson.
-     Two rooms: Černý luxus (/kino/domov.js) and the neon hall (/kino/neon.js, loads the page again).
+     Two rooms: Černý luxus (/kino/domov.js) and Prostor (/kino/prostor.js, a looping video; loads the page again).
      A loading screen stays up until the room is built (no jerk on the way in). Czech only for now. --%>
-<% String v = "5.6.0"; %>
+<% String v = "5.7.0"; %>
 <!doctype html>
 <html lang="cs">
 <head>
@@ -76,28 +76,22 @@ button { font: inherit; color: inherit; }
 [data-look="a"] .lyrics .w.lit { color: #fff0f6; -webkit-text-stroke: 0; text-shadow: 0 0 2px #fff, 0 0 8px #ff4fa8, 0 0 18px #ff2d8a, 0 0 38px rgba(255, 30, 130, .55); animation: neon-on .45s steps(1); }
 [data-look="a"] .lyrics .w.now { color: #fff; text-shadow: 0 0 2px #fff, 0 0 10px #ffd34f, 0 0 22px #ffb000, 0 0 48px rgba(255, 170, 0, .7); }
 @keyframes neon-on { 0%, 30%, 60% { opacity: 1; } 15%, 45% { opacity: .2; } }
-/* N · the neon hall: three lines at most, the newest at the bottom. A word is drawn in left to right as it is
-   sung (--p over --dur) with a short glow; the line being sung is orange, the one before white, the oldest dim;
-   a line that leaves dissolves (neon.js adds the smoke) */
-@property --p { syntax: '<percentage>'; inherits: false; initial-value: 120%; }
-[data-look="n"] .lyrics { font: 500 clamp(18px, 1.75vw, 34px)/1 'Exo 2', sans-serif; height: 5em; letter-spacing: .035em; }
-@media (max-height: 500px) { [data-look="n"] .lyrics { font-size: 15px; } .song-tag { display: none; } }
-[data-look="n"] .lyrics::before { width: min(1000px, 96vw); height: 150%; background: radial-gradient(closest-side, rgba(0, 0, 0, .55), rgba(0, 0, 0, 0)); }
-[data-look="n"] .line { line-height: 1.3; transform: translate(-50%, calc(var(--s, 0) * -1.6em)); filter: none;
-  transition: transform .9s cubic-bezier(.2, .75, .2, 1), opacity 1.2s ease, filter 1.2s ease, color .9s ease; }
-[data-look="n"] .line[data-slot="0"] { --s: 0; }
-[data-look="n"] .line[data-slot="1"] { --s: 1; }
-[data-look="n"] .line[data-slot="2"] { --s: 2; opacity: .5; }
-[data-look="n"] .line.gone { opacity: 0; filter: blur(9px); transform: translate(-50%, calc(var(--s, 0) * -1.6em - 1em)) scale(1.04); transition-duration: .9s, 1.4s, 1.4s, .9s; }
-[data-look="n"] .lyrics .w { margin: -.5em -.36em; padding: .5em; /* room for the glow inside the drawing mask */ color: transparent; transition: color .9s ease, text-shadow .9s ease; }
-[data-look="n"] .lyrics .w.in { color: #ffb15c; text-shadow: 0 0 10px rgba(255, 130, 40, .55), 0 0 26px rgba(255, 80, 20, .3);
-  -webkit-mask: linear-gradient(90deg, #000 calc(var(--p) - 18%), transparent var(--p)); mask: linear-gradient(90deg, #000 calc(var(--p) - 18%), transparent var(--p));
-  animation: n-draw var(--dur, .4s) linear both, n-flare 1.1s ease-out both; }
-[data-look="n"] .lyrics .w.now { color: #ffd9a3; text-shadow: 0 0 6px #fff1dc, 0 0 16px rgba(255, 150, 50, .9), 0 0 38px rgba(255, 90, 20, .55); }
-[data-look="n"] .line[data-slot="1"] .w.in { color: #eef2ff; text-shadow: 0 0 12px rgba(120, 165, 255, .4); }
-[data-look="n"] .line[data-slot="2"] .w.in { color: #aeb6cc; text-shadow: none; }
-@keyframes n-draw { from { --p: -2%; } to { --p: 120%; } }
-@keyframes n-flare { 0% { filter: brightness(1.9) blur(.6px); } 100% { filter: none; } }
+/* P · Prostor: a looping video of the space (prostor.js) under everything; the clip is bent onto the panel in it;
+   three lines on the floor: the one before grey, the one being sung filling orange word by word, the next grey */
+.space { position: fixed; z-index: 0; object-fit: fill; pointer-events: none; }
+.space.upright { -webkit-mask: linear-gradient(180deg, transparent, #000 12%, #000 86%, transparent); mask: linear-gradient(180deg, transparent, #000 12%, #000 86%, transparent); }
+[data-look="p"] #css3d .clip { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+[data-look="p"] .lyrics { height: auto; min-height: 4.6em; perspective: none; font-family: 'Oswald', sans-serif; }
+[data-look="p"] .lyrics::before { width: min(900px, 100vw); height: 200%; background: radial-gradient(closest-side, rgba(0, 0, 0, .6), rgba(0, 0, 0, .3) 60%, rgba(0, 0, 0, 0)); }
+[data-look="p"] .rows { position: relative; text-align: center; transition: opacity .6s; }
+[data-look="p"] .rows.waiting { opacity: 0; }
+[data-look="p"] .rows.slide { animation: rows-up .45s cubic-bezier(.2, .8, .2, 1); }
+@keyframes rows-up { from { transform: translateY(1.5em); } }
+[data-look="p"] .ln { min-height: 1.45em; line-height: 1.45; padding: 0 12px; color: rgba(225, 228, 240, .5); text-shadow: 0 2px 12px #000, 0 0 2px #000; }
+[data-look="p"] .ln.cur { font-size: 1.18em; font-weight: 500; color: rgba(255, 255, 255, .6); }
+@media (max-height: 500px) { [data-look="p"] .song-tag { display: none; } }
+[data-look="p"] .lyrics .w { opacity: 1; margin: 0; transition: color .2s, text-shadow .2s; }
+[data-look="p"] .ln.cur .w.sung { color: #ffb02e; text-shadow: 0 0 14px rgba(255, 160, 40, .55), 0 2px 12px #000; }
 .line.instant, .line.instant .c, .line.instant .w { animation: none !important; transition: none !important; }
 
 .title-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; width: 92vw; transition: opacity 1.4s ease, filter 1.4s ease, transform 1.4s ease; }
@@ -261,7 +255,7 @@ body.fading::after { opacity: 1; pointer-events: auto; }
   <button class="cb room-btn" id="roomBtn" title="Změnit pokoj" aria-label="Změnit pokoj"><svg viewBox="0 0 24 24"><path d="M4 18v3h3v-3h10v3h3v-6H4zm15-8h3v3h-3zM2 10h3v3H2zm15 3H7V5c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2z"/></svg><span>Pokoj</span></button>
   <div class="rooms" id="rooms" hidden>
       <button type="button" class="room" data-room="a" aria-pressed="false"><span class="rt"><b>Černý luxus</b><small>Kůže, ořech, neon v rozích</small></span><img src="/kino/rooms/a.webp" loading="lazy" alt=""></button>
-      <button type="button" class="room" data-room="n" aria-pressed="false"><span class="rt"><b>Neonový sál</b><small>Modrá a oranžová, kouř, mokrá podlaha</small></span><img src="/kino/rooms/n.webp" loading="lazy" alt=""></button>
+      <button type="button" class="room" data-room="p" aria-pressed="false"><span class="rt"><b>Prostor</b><small>Levitující kameny a zlaté světlo</small></span><img src="/kino/rooms/p.webp" loading="lazy" alt=""></button>
   </div>
   <button class="cb" id="fs" title="Celá obrazovka (F)" aria-label="Celá obrazovka"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7zm-2-4h2V7h3V5H5zm12 7h-3v2h5v-5h-2zM14 5v2h3v3h2V5z"/></svg></button>
 </div>
@@ -273,7 +267,7 @@ body.fading::after { opacity: 1; pointer-events: auto; }
     <div class="room-pick" aria-label="Vyber si pokoj">
       <div class="room-k">Vyber si pokoj</div>
       <button type="button" class="room" data-room="a" aria-pressed="false"><span class="rt"><b>Černý luxus</b><small>Kůže, ořech, neon v rozích</small></span><img src="/kino/rooms/a.webp" loading="lazy" alt=""></button>
-      <button type="button" class="room" data-room="n" aria-pressed="false"><span class="rt"><b>Neonový sál</b><small>Modrá a oranžová, kouř, mokrá podlaha</small></span><img src="/kino/rooms/n.webp" loading="lazy" alt=""></button>
+      <button type="button" class="room" data-room="p" aria-pressed="false"><span class="rt"><b>Prostor</b><small>Levitující kameny a zlaté světlo</small></span><img src="/kino/rooms/p.webp" loading="lazy" alt=""></button>
     </div>
     <button class="enter" id="enter"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Vstoupit do kina</button>
     <small>Pusť si zvuk a dej celou obrazovku (F). <a class="back-song" href="/karaoke-kino">← všechny písně</a></small>
@@ -292,17 +286,17 @@ body.fading::after { opacity: 1; pointer-events: auto; }
 <script>window.KDATA = <%= request.getAttribute("kinoJson") %>;</script>
 <script src="/js/yt-clock.js?v=<%= v %>"></script>
 <script>
-  // the room: a = Černý luxus (domov.js), n = the neon hall (neon.js); switching loads the page again
+  // the room: a = Černý luxus (domov.js), p = Prostor (prostor.js); switching loads the page again
   var ROOM = new URLSearchParams(location.search).get("v");
   try { if (!ROOM) ROOM = localStorage.getItem("kinoRoom"); } catch (e) {}
-  if (ROOM === "n") document.body.classList.add("cinema");
+  if (ROOM === "p") document.body.classList.add("cinema");
   document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("[data-room]"); if (!b) return;
     var k = b.dataset.room, cinema = document.body.classList.contains("cinema");
-    if (k === "n" ? !cinema : cinema) { try { localStorage.setItem("kinoRoom", k); } catch (er) {} location.search = "?v=" + k; }
+    if (k === "p" ? !cinema : cinema) { try { localStorage.setItem("kinoRoom", k); } catch (er) {} location.search = "?v=" + k; }
   });
-  if (ROOM === "n") {
-    document.querySelectorAll("[data-room]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.room === "n" ? "true" : "false"); });
+  if (ROOM === "p") {
+    document.querySelectorAll("[data-room]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.room === "p" ? "true" : "false"); });
     document.getElementById("roomBtn").onclick = function (e) { e.stopPropagation(); var r = document.getElementById("rooms"); r.hidden = !r.hidden; };
   }
 </script>
@@ -322,7 +316,7 @@ body.fading::after { opacity: 1; pointer-events: auto; }
     setTimeout(window.kinoLoaded, 25000);
   })();
 </script>
-<script type="module">import(document.body.classList.contains("cinema") ? "/kino/neon.js?v=<%= v %>" : "/kino/domov.js?v=<%= v %>").catch(function (e) { showErr(String(e && e.stack || e)); window.kinoLoaded(); });</script>
+<script type="module">import(document.body.classList.contains("cinema") ? "/kino/prostor.js?v=<%= v %>" : "/kino/domov.js?v=<%= v %>").catch(function (e) { showErr(String(e && e.stack || e)); window.kinoLoaded(); });</script>
 <script>
   // the exit: on the lobby a plain link back to the karaoke list; inside the cinema it leaves the room
   // (the same as the leave button in the controls and Esc)
