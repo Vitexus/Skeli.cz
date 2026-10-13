@@ -3,7 +3,7 @@
 <%-- Karaoke cinema (preview of the coming big karaoke): /karaoke/{song uuid}, KaraokeCinemaServlet fills kinoJson.
      Two rooms: Prostor (/kino/prostor.js, a looping video; the default) and Ořechový salon (/kino/domov.js); switching loads the page again.
      A loading screen stays up until the room is built (no jerk on the way in). Czech only for now. --%>
-<% String v = "5.7.7"; %>
+<% String v = "5.7.8"; %>
 <!doctype html>
 <html lang="cs">
 <head>
@@ -100,13 +100,8 @@ button { font: inherit; color: inherit; }
   animation: rim-flow 16s linear infinite; }
 .clip-rim::after { inset: -10px; padding: 10px; background: conic-gradient(from var(--rim-b), transparent 0 84%, rgba(255, 220, 140, .3) 89%, #fff7dc 92.5%, rgba(255, 200, 90, .3) 95%, transparent 98%);
   animation: rim-run 7s linear infinite; }
-/* embers rising through the space (as .hero-particles on the home page) */
-.space-embers { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
-.space-embers span { position: absolute; bottom: -10px; width: var(--s); height: var(--s); border-radius: 50%; opacity: 0;
-  background: radial-gradient(circle, #ffd27a, #ff6a2b 55%, transparent 70%); box-shadow: 0 0 8px 2px rgba(255, 110, 40, .5);
-  animation: space-ember var(--t) linear var(--delay) infinite; }
-.space-embers span.cold { background: radial-gradient(circle, #e6f4ff, #6fb6ff 55%, transparent 70%); box-shadow: 0 0 8px 2px rgba(80, 160, 255, .45); }
-@keyframes space-ember { 0% { transform: translate(0, 0); opacity: 0; } 10% { opacity: .9; } 80% { opacity: .45; } 100% { transform: translate(var(--dx), -95vh); opacity: 0; } }
+/* embers rising through the space (prostor.js draws them; faster and brighter on the bass) */
+.space-embers { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; }
 @keyframes rim-flow { to { --rim-a: 360deg; } }
 @keyframes rim-run { to { --rim-b: 360deg; } }
 @media (prefers-reduced-motion: reduce) { .clip-rim::before, .clip-rim::after { animation: none; } }
