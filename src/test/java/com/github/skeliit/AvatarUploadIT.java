@@ -45,6 +45,20 @@ public class AvatarUploadIT extends UiTestSupport {
         wait.until(d -> !d.findElement(By.id("avatar-preview-img")).getAttribute("src").equals(before));
         assertTrue(driver.findElement(By.id("avatar-preview-img")).getAttribute("src").contains("/uploads/avatars/"));
         assertTrue(driver.findElement(By.id("avatar-msg")).isDisplayed(), "\"Photo saved.\"");
+
+        // a second photo replaces the file under the same name: its address must change, or the old one stays on screen
+        String first = driver.findElement(By.id("avatar-preview-img")).getAttribute("src");
+        BufferedImage red = new BufferedImage(600, 600, BufferedImage.TYPE_INT_RGB);
+        for (int y = 0; y < 600; y++) for (int x = 0; x < 600; x++) red.setRGB(x, y, 0xcc2222);
+        File g = Files.createTempFile("second-avatar", ".png").toFile();
+        g.deleteOnExit();
+        ImageIO.write(red, "png", g);
+        driver.findElement(By.id("avatar-input")).sendKeys(g.getAbsolutePath());
+        wait.until(d -> d.findElements(By.cssSelector("#cropper-wrap .cropper-container")).stream().anyMatch(e -> e.getSize().getHeight() > 50));
+        jsClick(driver.findElement(By.id("btn-crop-save")));
+        wait.until(d -> !d.findElement(By.id("avatar-preview-img")).getAttribute("src").equals(first));
+        driver.navigate().refresh();
+        assertNotEquals(first, driver.findElement(By.id("avatar-preview-img")).getAttribute("src"), "the new photo after a reload too");
     }
 
     @Test

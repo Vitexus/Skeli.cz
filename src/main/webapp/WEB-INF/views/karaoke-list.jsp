@@ -9,6 +9,9 @@
     @SuppressWarnings("unchecked")
     java.util.List<KaraokeSong> songs = (java.util.List<KaraokeSong>) request.getAttribute("karaokeSongs");
     if (songs == null) songs = java.util.List.of();
+    // karaoke is for members: a visitor who is not signed in sees the songs, each one leads through sign-in
+    boolean member = Boolean.TRUE.equals(request.getAttribute("karaokeSignedIn"));
+    String via = member ? "/karaoke-kino/" : "/login.jsp?next=%2Fkaraoke-kino%2F";
 %>
 <%-- coming back from the cinema: the page rises out of the black the cinema faded to --%>
 <main class="k-lobby">
@@ -21,6 +24,20 @@
         <p class="k-marquee-lead"><%= t.getProperty("karaoke.list.lead") %></p>
     </header>
 
+    <% if (!member) { %>
+    <section class="k-members">
+        <i class="fa-solid fa-ticket" aria-hidden="true"></i>
+        <div>
+            <h2><%= t.getProperty("karaoke.members.title") %></h2>
+            <p><%= t.getProperty("karaoke.members.text") %></p>
+        </div>
+        <div class="k-members-actions">
+            <a class="btn btn-primary" href="/login.jsp?next=%2Fkaraoke-kino"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> <%= t.getProperty("auth.submit.login") %></a>
+            <a class="btn" href="/register.jsp"><%= t.getProperty("auth.submit.register") %></a>
+        </div>
+    </section>
+    <% } %>
+
     <% if (songs.isEmpty()) { %>
         <p class="empty-note"><%= t.getProperty("karaoke.list.none") %></p>
     <% } else {
@@ -28,7 +45,7 @@
         String topMeta = (top.credits == null || top.credits.isBlank() ? "Skeli" : top.credits) + (top.year == null ? "" : " · " + top.year);
     %>
     <%-- the premiere: the newest song, big --%>
-    <a class="k-feature" href="/karaoke-kino/<%= WebUtils.escapeHtml(top.uuid) %>">
+    <a class="k-feature" href="<%= via %><%= WebUtils.escapeHtml(top.uuid) %>">
         <span class="k-feature-bg" aria-hidden="true" style="--bg: url('/yt-thumb/<%= WebUtils.escapeHtml(top.youtubeId) %>/hqdefault.jpg')"></span>
         <span class="k-feature-poster" aria-hidden="true"><img src="/yt-thumb/<%= WebUtils.escapeHtml(top.youtubeId) %>/hqdefault.jpg" alt=""<% if (!top.posterStyle.isEmpty()) { %> style="<%= top.posterStyle %>"<% } %>></span>
         <span class="k-feature-text">
@@ -45,7 +62,7 @@
             KaraokeSong s = songs.get(i);
             String meta = (s.credits == null || s.credits.isBlank() ? "" : s.credits + " · ") + (s.year == null ? "" : String.valueOf(s.year));
         %>
-        <a class="k-poster" href="/karaoke-kino/<%= WebUtils.escapeHtml(s.uuid) %>">
+        <a class="k-poster" href="<%= via %><%= WebUtils.escapeHtml(s.uuid) %>">
             <span class="k-poster-img" aria-hidden="true"><img src="/yt-thumb/<%= WebUtils.escapeHtml(s.youtubeId) %>/hqdefault.jpg" alt="" loading="lazy"<% if (!s.posterStyle.isEmpty()) { %> style="<%= s.posterStyle %>"<% } %>></span>
             <span class="k-poster-no" aria-hidden="true"><%= String.format("%02d", i + 1) %></span>
             <span class="k-poster-text">

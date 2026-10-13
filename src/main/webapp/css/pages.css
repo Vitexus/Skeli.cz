@@ -1673,3 +1673,11 @@ html.lyric-plain .fs-now, html.lyric-plain .fs-next { font-family: 'Exo 2', syst
 .k-from-black[hidden] { display: none; }
 @keyframes k-from-black { to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .k-bulbs, .k-marquee, .k-marquee-kicker { animation: none; } .k-poster, .k-feature-poster { transition: none; } }
+/* not signed in: karaoke is for members (the songs are shown, each leads through sign-in) */
+.k-members { display: flex; align-items: center; gap: 18px; margin: 0 auto 30px; max-width: 760px; padding: 18px 22px; border-radius: var(--radius);
+  background: var(--panel); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); box-shadow: var(--shadow); }
+.k-members > i { flex: none; font-size: 1.8rem; color: var(--accent); }
+.k-members h2 { margin: 0 0 4px; font-size: var(--fs-h4); }
+.k-members p { margin: 0; font-family: var(--font-text); font-size: var(--fs-text); font-weight: 300; color: var(--text-dim); }
+.k-members-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; flex: none; }
+@media (max-width: 700px) { .k-members { flex-direction: column; text-align: center; } .k-members-actions { margin: 4px auto 0; justify-content: center; } }

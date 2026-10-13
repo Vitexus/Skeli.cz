@@ -1,8 +1,9 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%-- Karaoke cinema (preview of the coming big karaoke): /karaoke/{song uuid}, KaraokeCinemaServlet fills kinoJson.
-     The rooms are drawn by /kino/domov.js (a–e) and /kino/kino.js (f, the big cinema). Czech only for now. --%>
-<% String v = "5.5.0"; %>
+     Two rooms: Prostor (/kino/prostor.js, a looping video; the default) and Ořechový salon (/kino/domov.js); switching loads the page again.
+     A loading screen stays up until the room is built (no jerk on the way in). Czech only for now. --%>
+<% String v = "5.7.2"; %>
 <!doctype html>
 <html lang="cs">
 <head>
@@ -11,6 +12,7 @@
 <title>Karaoke – <c:out value="${kinoTitle}"/> | Skeli</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://www.youtube-nocookie.com">
 <style>
 @font-face { font-family: 'Comforter Brush'; font-display: swap; src: url(/fonts/comforter-brush-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
 @font-face { font-family: 'Comforter Brush'; font-display: swap; src: url(/fonts/comforter-brush-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+2000-206F; }
@@ -62,8 +64,7 @@ button { font: inherit; color: inherit; }
 .line { position: absolute; left: 50%; bottom: .2em; width: min(92vw, 1150px); text-align: center; line-height: 1.22; letter-spacing: .015em;
   transform: translate(-50%, var(--y, 0px)); transform-style: preserve-3d;
   transition: transform .9s cubic-bezier(.2, .75, .2, 1), opacity .7s ease, filter .7s ease; }
-/* the lettering of each room (body[data-room]); words arrive out of smoke (domov.js), in the sci-fi room
-   they are decoded on a glass LED panel. Waiting: dimmer; sung: bright; being sung: the room's highlight */
+/* the lettering of each room (body[data-look]). Waiting: dimmer; sung: bright; being sung: the room's highlight */
 .line { transition: transform .9s cubic-bezier(.2, .75, .2, 1), opacity 1s ease .15s, filter 1s ease .15s; }
 .line.gone { opacity: 0; filter: blur(6px); transform: translate(-50%, calc(var(--y, 0px) - .8em)); }
 .lyrics .w { display: inline-block; opacity: 0; margin: 0 .12em; transition: color .35s, text-shadow .35s, filter .35s, transform .25s; }
@@ -75,35 +76,24 @@ button { font: inherit; color: inherit; }
 [data-look="a"] .lyrics .w.lit { color: #fff0f6; -webkit-text-stroke: 0; text-shadow: 0 0 2px #fff, 0 0 8px #ff4fa8, 0 0 18px #ff2d8a, 0 0 38px rgba(255, 30, 130, .55); animation: neon-on .45s steps(1); }
 [data-look="a"] .lyrics .w.now { color: #fff; text-shadow: 0 0 2px #fff, 0 0 10px #ffd34f, 0 0 22px #ffb000, 0 0 48px rgba(255, 170, 0, .7); }
 @keyframes neon-on { 0%, 30%, 60% { opacity: 1; } 15%, 45% { opacity: .2; } }
-/* B · warm wood: warm handwriting */
-[data-look="b"] .lyrics { font-family: 'Comforter Brush', cursive; font-size: calc(var(--fs) * 1.4); }
-[data-look="b"] .lyrics .w { color: rgba(255, 228, 196, .55); }
-[data-look="b"] .lyrics .w.lit { color: #fff1dc; text-shadow: 0 0 12px rgba(255, 170, 80, .45); }
-[data-look="b"] .lyrics .w.now { color: #ffcf6a; text-shadow: 0 0 16px rgba(255, 170, 60, .85); }
-/* C · loft: graffiti */
-[data-look="c"] .lyrics { font-family: 'Oswald', sans-serif; font-weight: 700; text-transform: uppercase; font-size: calc(var(--fs) * 1.1); }
-[data-look="c"] .lyrics .w { color: #b88d24; -webkit-text-stroke: 2px #140e04; paint-order: stroke fill; }
-[data-look="c"] .lyrics .w.lit { color: #ffd64a; }
-[data-look="c"] .lyrics .w.now { color: #fff; transform: rotate(-2deg) scale(1.06); }
-/* D · velvet and gold: gold ink */
-[data-look="d"] .lyrics { font-family: 'Comforter Brush', cursive; font-size: calc(var(--fs) * 1.45); }
-[data-look="d"] .lyrics .w { background: linear-gradient(100deg, #8f6600, #e6b730 35%, #fff1c2 50%, #e6b730 65%, #8f6600) 0 0 / 300% 100%;
-  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: brightness(.6); }
-[data-look="d"] .lyrics .w.lit { filter: brightness(1); animation: sheen 2.4s linear infinite; }
-[data-look="d"] .lyrics .w.now { filter: brightness(1.15) drop-shadow(0 0 10px rgba(255, 200, 80, .75)); }
-@keyframes sheen { to { background-position: -300% 0; } }
-/* E · graphite sci-fi: a glass LED panel, letters decoded */
-[data-look="e"] .lyrics { font-family: 'Exo 2', sans-serif; font-weight: 500; letter-spacing: .02em; }
-[data-look="e"] .lyrics::before { width: min(1020px, 88vw); height: 150%; border-radius: 12px;
-  background: linear-gradient(180deg, rgba(120, 220, 255, .1), rgba(60, 160, 220, .04)), repeating-linear-gradient(180deg, rgba(140, 230, 255, .06) 0 1px, transparent 1px 3px);
-  border: 1px solid rgba(120, 220, 255, .45); box-shadow: 0 0 30px rgba(60, 180, 255, .25), inset 0 0 30px rgba(60, 180, 255, .12); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-[data-look="e"] .lyrics .w { color: #8fe6ff; text-shadow: 0 0 6px rgba(80, 200, 255, .75); }
-[data-look="e"] .lyrics .w.lit { color: #eafcff; }
-[data-look="e"] .lyrics .w.now { background: #8fe6ff; color: #04121a; text-shadow: none; box-shadow: 0 0 14px rgba(140, 230, 255, .8); border-radius: 3px; }
-[data-look="e"] .lyrics .w { white-space: nowrap; }
-[data-look="e"] .lyrics .c { overflow: hidden; vertical-align: bottom; }
-[data-look="e"] .lyrics .c.dec { color: #4fc8ff; opacity: .8; }
-.line.instant, .line.instant .c { animation: none !important; transition: none !important; }
+/* P · Prostor: a looping video of the space (prostor.js) under everything; the clip is bent onto the panel in it;
+   three lines on the floor: the one before grey, the one being sung filling orange word by word, the next grey */
+.space { position: fixed; z-index: 0; object-fit: fill; pointer-events: none; }
+.space.upright { -webkit-mask: linear-gradient(180deg, transparent, #000 12%, #000 86%, transparent); mask: linear-gradient(180deg, transparent, #000 12%, #000 86%, transparent); }
+[data-look="p"] #css3d .clip { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+[data-look="p"] .clip .catch.paused::after, [data-look="p"] .clip .big-play { width: 220px; height: 220px; margin: -110px 0 0 -110px; background-size: 90px; }
+[data-look="p"] .lyrics { height: auto; min-height: 4.6em; perspective: none; font-family: 'Oswald', sans-serif; }
+[data-look="p"] .lyrics::before { width: min(900px, 100vw); height: 200%; background: radial-gradient(closest-side, rgba(0, 0, 0, .6), rgba(0, 0, 0, .3) 60%, rgba(0, 0, 0, 0)); }
+[data-look="p"] .rows { position: relative; text-align: center; transition: opacity .6s; }
+[data-look="p"] .rows.waiting { opacity: 0; }
+[data-look="p"] .rows.slide { animation: rows-up .45s cubic-bezier(.2, .8, .2, 1); }
+@keyframes rows-up { from { transform: translateY(1.5em); } }
+[data-look="p"] .ln { min-height: 1.45em; line-height: 1.45; padding: 0 12px; color: rgba(225, 228, 240, .5); text-shadow: 0 2px 12px #000, 0 0 2px #000; }
+[data-look="p"] .ln.cur { font-size: 1.18em; font-weight: 500; color: rgba(255, 255, 255, .6); }
+@media (max-height: 500px) { [data-look="p"] .song-tag { display: none; } }
+[data-look="p"] .lyrics .w { opacity: 1; margin: 0; transition: color .2s, text-shadow .2s; }
+[data-look="p"] .ln.cur .w.sung { color: #ffb02e; text-shadow: 0 0 14px rgba(255, 160, 40, .55), 0 2px 12px #000; }
+.line.instant, .line.instant .c, .line.instant .w { animation: none !important; transition: none !important; }
 
 .title-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; width: 92vw; transition: opacity 1.4s ease, filter 1.4s ease, transform 1.4s ease; }
 .title-card b { display: block; font: 400 calc(var(--fs) * 1.25) 'Bruno Ace SC'; letter-spacing: .08em;
@@ -191,7 +181,7 @@ button { font: inherit; color: inherit; }
 .room small { font-size: 12px; line-height: 1.25; color: rgba(244, 239, 230, .6); }
 .room[aria-pressed="true"] { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 10px 30px -12px rgba(230, 183, 48, .6); }
 .room[aria-pressed="true"] b { color: var(--gold); }
-.rooms { position: absolute; right: 8px; bottom: calc(100% + 10px); display: grid; grid-template-columns: repeat(2, 270px); gap: 8px; padding: 10px; border-radius: 16px;
+.rooms { position: absolute; right: 8px; bottom: calc(100% + 10px); display: grid; grid-template-columns: 270px; gap: 8px; padding: 10px; border-radius: 16px;
   background: rgba(12, 12, 14, .88); border: 1px solid rgba(255, 255, 255, .1); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
 .rooms[hidden] { display: none; }
 .rooms .room { height: 66px; }
@@ -217,6 +207,14 @@ button { font: inherit; color: inherit; }
 /* leaving: the picture fades to black, then the site comes back */
 body::after { content: ""; position: fixed; inset: 0; z-index: 50; background: #000; opacity: 0; pointer-events: none; transition: opacity 1.3s ease; }
 body.fading::after { opacity: 1; pointer-events: auto; }
+/* the loading screen: up until the room is built and its first frames are drawn (window.kinoLoaded) */
+.loader { position: fixed; inset: 0; z-index: 9; display: grid; place-items: center; text-align: center; background: #030304; transition: opacity .9s ease, visibility 0s linear .9s; }
+.loader.gone { opacity: 0; visibility: hidden; }
+.loader .squad { width: min(280px, 60vw); aspect-ratio: 720 / 182; margin: 0 auto; background: linear-gradient(100deg, #8f6600, #e6b730 35%, #fff1c2 50%, #e6b730 65%, #8f6600) 0 0 / 250% 100%;
+  -webkit-mask: url(/img/squad-logo.webp) center / contain no-repeat; mask: url(/img/squad-logo.webp) center / contain no-repeat; animation: sheen 2.6s ease-in-out infinite; }
+.loader .ld-k { margin-top: 22px; font: 400 12px 'Bruno Ace SC'; letter-spacing: .5em; color: rgba(244, 239, 230, .55); }
+.loader .ld-bar { width: min(240px, 60vw); height: 2px; margin: 18px auto 0; border-radius: 2px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+.loader .ld-bar i { display: block; width: 8%; height: 100%; background: linear-gradient(90deg, var(--gold-deep), var(--gold)); box-shadow: 0 0 10px rgba(230, 183, 48, .7); transition: width .4s ease; }
 .nogl { position: fixed; inset: 0; display: none; place-items: center; z-index: 7; background: #030304; text-align: center; padding: 24px; }
 
 @media (max-width: 700px) {
@@ -232,6 +230,7 @@ body.fading::after { opacity: 1; pointer-events: auto; }
 <script type="importmap">{ "imports": { "three": "/js/vendor/three/three.module.min.js" } }</script>
 </head>
 <body>
+<div class="loader" id="loader" role="status" aria-live="polite"><div><div class="squad" aria-hidden="true"></div><div class="ld-k">Připravujeme kino</div><div class="ld-bar"><i id="ldBar"></i></div></div></div>
 <canvas class="layer" id="back" aria-hidden="true"></canvas>
 <div class="layer" id="css3d"></div>
 <canvas class="layer" id="front" aria-hidden="true"></canvas>
@@ -254,14 +253,10 @@ body.fading::after { opacity: 1; pointer-events: auto; }
   <span class="time" id="time">0:00 / 0:00</span>
   <div class="bar" id="bar"><div class="track"></div><div class="fill" id="fill"></div></div>
   <input class="vol" id="vol" type="range" min="0" max="100" value="90" aria-label="Hlasitost">
-  <button class="cb room-btn" id="roomBtn" title="Změnit pokoj (klávesy 1–6)" aria-label="Změnit pokoj"><svg viewBox="0 0 24 24"><path d="M4 18v3h3v-3h10v3h3v-6H4zm15-8h3v3h-3zM2 10h3v3H2zm15 3H7V5c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2z"/></svg><span>Pokoj</span></button>
+  <button class="cb room-btn" id="roomBtn" title="Změnit pokoj" aria-label="Změnit pokoj"><svg viewBox="0 0 24 24"><path d="M4 18v3h3v-3h10v3h3v-6H4zm15-8h3v3h-3zM2 10h3v3H2zm15 3H7V5c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2z"/></svg><span>Pokoj</span></button>
   <div class="rooms" id="rooms" hidden>
-      <button type="button" class="room" data-room="a" aria-pressed="false"><span class="rt"><b>Černý luxus</b><small>Kůže, ořech, neon v rozích</small></span><img src="/kino/rooms/a.webp" loading="lazy" alt=""></button>
-      <button type="button" class="room" data-room="b" aria-pressed="false"><span class="rt"><b>Teplé dřevo</b><small>Chata, krb a knihy</small></span><img src="/kino/rooms/b.webp" loading="lazy" alt=""></button>
-      <button type="button" class="room" data-room="c" aria-pressed="false"><span class="rt"><b>Loft</b><small>Beton, žárovky, déšť za oknem</small></span><img src="/kino/rooms/c.webp" loading="lazy" alt=""></button>
-      <button type="button" class="room" data-room="d" aria-pressed="false"><span class="rt"><b>Samet a zlato</b><small>Zelený samet, mosaz, les</small></span><img src="/kino/rooms/d.webp" loading="lazy" alt=""></button>
-      <button type="button" class="room" data-room="e" aria-pressed="false"><span class="rt"><b>Grafitové sci-fi</b><small>Hexagony a LED displej</small></span><img src="/kino/rooms/e.webp" loading="lazy" alt=""></button>
-      <button type="button" class="room" data-room="f" aria-pressed="false"><span class="rt"><b>Kino</b><small>Velký sál s reflektory</small></span><img src="/kino/rooms/f.webp" loading="lazy" alt=""></button>
+      <button type="button" class="room" data-room="p" aria-pressed="false"><span class="rt"><b>Prostor</b><small>Kameny ve vzduchu, zlaté světlo</small></span><img src="/kino/rooms/p.webp" loading="lazy" alt=""></button>
+      <button type="button" class="room" data-room="a" aria-pressed="false"><span class="rt"><b>Ořechový salon</b><small>Ořech, kůže, noční město</small></span><img src="/kino/rooms/a.webp" loading="lazy" alt=""></button>
   </div>
   <button class="cb" id="fs" title="Celá obrazovka (F)" aria-label="Celá obrazovka"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7zm-2-4h2V7h3V5H5zm12 7h-3v2h5v-5h-2zM14 5v2h3v3h2V5z"/></svg></button>
 </div>
@@ -272,12 +267,8 @@ body.fading::after { opacity: 1; pointer-events: auto; }
     <p id="lobbyArtist"></p>
     <div class="room-pick" aria-label="Vyber si pokoj">
       <div class="room-k">Vyber si pokoj</div>
-      <button type="button" class="room" data-room="a" aria-pressed="false"><span class="rt"><b>Černý luxus</b><small>Kůže, ořech, neon v rozích</small></span><img src="/kino/rooms/a.webp" loading="lazy" alt=""></button>
-      <button type="button" class="room" data-room="b" aria-pressed="false"><span class="rt"><b>Teplé dřevo</b><small>Chata, krb a knihy</small></span><img src="/kino/rooms/b.webp" loading="lazy" alt=""></button>
-      <button type="button" class="room" data-room="c" aria-pressed="false"><span class="rt"><b>Loft</b><small>Beton, žárovky, déšť za oknem</small></span><img src="/kino/rooms/c.webp" loading="lazy" alt=""></button>
-      <button type="button" class="room" data-room="d" aria-pressed="false"><span class="rt"><b>Samet a zlato</b><small>Zelený samet, mosaz, les</small></span><img src="/kino/rooms/d.webp" loading="lazy" alt=""></button>
-      <button type="button" class="room" data-room="e" aria-pressed="false"><span class="rt"><b>Grafitové sci-fi</b><small>Hexagony a LED displej</small></span><img src="/kino/rooms/e.webp" loading="lazy" alt=""></button>
-      <button type="button" class="room" data-room="f" aria-pressed="false"><span class="rt"><b>Kino</b><small>Velký sál s reflektory</small></span><img src="/kino/rooms/f.webp" loading="lazy" alt=""></button>
+      <button type="button" class="room" data-room="p" aria-pressed="false"><span class="rt"><b>Prostor</b><small>Kameny ve vzduchu, zlaté světlo</small></span><img src="/kino/rooms/p.webp" loading="lazy" alt=""></button>
+      <button type="button" class="room" data-room="a" aria-pressed="false"><span class="rt"><b>Ořechový salon</b><small>Ořech, kůže, noční město</small></span><img src="/kino/rooms/a.webp" loading="lazy" alt=""></button>
     </div>
     <button class="enter" id="enter"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Vstoupit do kina</button>
     <small>Pusť si zvuk a dej celou obrazovku (F). <a class="back-song" href="/karaoke-kino">← všechny písně</a></small>
@@ -296,17 +287,18 @@ body.fading::after { opacity: 1; pointer-events: auto; }
 <script>window.KDATA = <%= request.getAttribute("kinoJson") %>;</script>
 <script src="/js/yt-clock.js?v=<%= v %>"></script>
 <script>
-  // the room: a–e = the home cinema (domov.js, switched live), f = the big cinema (kino.js, loads the page again)
+  // the room: p = Prostor (prostor.js, the default), a = Ořechový salon (domov.js); switching loads the page again
   var ROOM = new URLSearchParams(location.search).get("v");
   try { if (!ROOM) ROOM = localStorage.getItem("kinoRoom"); } catch (e) {}
-  if (ROOM === "f") document.body.classList.add("cinema");
+  if (ROOM !== "a") ROOM = "p";
+  if (ROOM === "p") document.body.classList.add("cinema");
   document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("[data-room]"); if (!b) return;
     var k = b.dataset.room, cinema = document.body.classList.contains("cinema");
-    if (k === "f" ? !cinema : cinema) { try { localStorage.setItem("kinoRoom", k); } catch (er) {} location.search = "?v=" + k; }
+    if (k === "p" ? !cinema : cinema) { try { localStorage.setItem("kinoRoom", k); } catch (er) {} location.search = "?v=" + k; }
   });
-  if (ROOM === "f") {
-    document.querySelectorAll("[data-room]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.room === "f" ? "true" : "false"); });
+  if (ROOM === "p") {
+    document.querySelectorAll("[data-room]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.room === "p" ? "true" : "false"); });
     document.getElementById("roomBtn").onclick = function (e) { e.stopPropagation(); var r = document.getElementById("rooms"); r.hidden = !r.hidden; };
   }
 </script>
@@ -315,7 +307,18 @@ body.fading::after { opacity: 1; pointer-events: auto; }
   function showErr(m) { var d = document.createElement("pre"); d.style.cssText = "position:fixed;left:10px;top:60px;z-index:99;color:#f66;background:#000c;padding:10px;max-width:90vw;white-space:pre-wrap;font:12px monospace"; d.textContent = m; document.body.appendChild(d); }
   addEventListener("error", function (e) { showErr(e.message + " @ " + (e.filename || "") + ":" + e.lineno); });
 </script>
-<script type="module">import(document.body.classList.contains("cinema") ? "/kino/kino.js?v=<%= v %>" : "/kino/domov.js?v=<%= v %>").catch(function (e) { showErr(String(e && e.stack || e)); });</script>
+<script>
+  // the loading screen: the room reports how far its models and textures are (kinoProgress) and when it is
+  // ready (kinoLoaded); it never stays up longer than 25 s
+  (function () {
+    var ld = document.getElementById("loader"), bar = document.getElementById("ldBar"), shown = .08;
+    window.kinoProgress = function (p) { shown = Math.max(shown, Math.min(.95, p)); bar.style.width = (shown * 100) + "%"; };
+    window.kinoLoaded = function () { clearInterval(slow); bar.style.width = "100%"; setTimeout(function () { ld.classList.add("gone"); }, 250); };
+    var slow = setInterval(function () { if (shown < .6) window.kinoProgress(shown + .03); }, 400);   // something moves while shaders build
+    setTimeout(window.kinoLoaded, 25000);
+  })();
+</script>
+<script type="module">import(document.body.classList.contains("cinema") ? "/kino/prostor.js?v=<%= v %>" : "/kino/domov.js?v=<%= v %>").catch(function (e) { showErr(String(e && e.stack || e)); window.kinoLoaded(); });</script>
 <script>
   // the exit: on the lobby a plain link back to the karaoke list; inside the cinema it leaves the room
   // (the same as the leave button in the controls and Esc)
