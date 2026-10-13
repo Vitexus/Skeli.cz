@@ -512,3 +512,5 @@ body.light .report-actions .btn-dismiss { background: transparent; color: var(--
 .poster-editor .k-poster:hover { transform: none; }
 .poster-editor img { transition: none !important; transform: none !important; }
 .poster-editor .k-feature-poster { transform: none; }
+.nl-form textarea { width: 100%; resize: vertical; }
+.nl-actions { display: flex; flex-wrap: wrap; gap: 10px; }

@@ -31,6 +31,14 @@ public class EmailUtil {
      * @throws Exception if email sending fails
      */
     public static void sendMail(String to, String subject, String text) throws Exception {
+        sendMail(to, subject, text, null, null);
+    }
+
+    /**
+     * Sends an e-mail with a plain-text and, when {@code html} is given, an HTML version (mail apps show the one
+     * they can); {@code unsubscribeUrl} adds the List-Unsubscribe header (the app's own unsubscribe button).
+     */
+    public static void sendMail(String to, String subject, String text, String html, String unsubscribeUrl) throws Exception {
         if (to == null || to.isBlank()) return;
         
         String host = getEnv("SMTP_HOST", null);
@@ -56,11 +64,23 @@ public class EmailUtil {
         }
         
         Session session = Session.getInstance(props);
-        Message msg = new MimeMessage(session);
+        MimeMessage msg = new MimeMessage(session);
         msg.setFrom(new InternetAddress(from, fromName));
         msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-        msg.setSubject(subject);
-        msg.setText(text);
+        msg.setSubject(subject, "UTF-8");
+        if (unsubscribeUrl != null) msg.setHeader("List-Unsubscribe", "<" + unsubscribeUrl + ">");
+        if (html == null) {
+            msg.setText(text);
+        } else {
+            jakarta.mail.internet.MimeMultipart alt = new jakarta.mail.internet.MimeMultipart("alternative");
+            jakarta.mail.internet.MimeBodyPart plain = new jakarta.mail.internet.MimeBodyPart();
+            plain.setText(text, "UTF-8");
+            jakarta.mail.internet.MimeBodyPart rich = new jakarta.mail.internet.MimeBodyPart();
+            rich.setContent(html, "text/html; charset=UTF-8");
+            alt.addBodyPart(plain);
+            alt.addBodyPart(rich);
+            msg.setContent(alt);
+        }
         
         Transport.send(msg, user, pass);
     }
