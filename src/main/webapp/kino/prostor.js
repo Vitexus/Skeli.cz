@@ -137,7 +137,7 @@ function fit() {
   clipEl.style.transform = rimEl.style.transform = 'matrix3d(' + quadMatrix(CW, CH, p).join(',') + ')';
   // the depth the embers come out of: a little above the middle of the panel, where the beams meet
   view.x = (p[0][0] + p[1][0] + p[2][0] + p[3][0]) / 4; view.y = (p[0][1] + p[1][1]) / 2 * .5 + (p[2][1] + p[3][1]) / 2 * .5 - (p[3][1] - p[0][1]) * .1; view.s = Math.max(W, H) * .55;
-  lyricsEl.style.setProperty('--fs', Math.max(16, Math.min(40, vw * .02)) + 'px');
+  lyricsEl.style.setProperty('--fs', Math.max(17, Math.min(38, vw * .0165)) + 'px');
   lyricsEl.style.top = (oy + vh * .63) + 'px';
 }
 
@@ -148,7 +148,7 @@ const playing = () => clock ? clock.playing() : simPlaying;
 const duration = () => clock && clock.duration() ? clock.duration() : Math.max(LAST_END + 8, 30);
 function play() { if (clock) clock.play(); else if (!simPlaying) { simAt = performance.now(); simPlaying = true; } }
 function pause() { if (clock) clock.pause(); else if (simPlaying) { simT = now(); simPlaying = false; } }
-function seek(t) { t = Math.max(0, Math.min(duration() - .5, t)); if (clock) clock.seek(t); else { simT = t; simAt = performance.now(); } shown = -2; }
+function seek(t) { t = Math.max(0, Math.min(duration() - .5, t)); if (clock) clock.seek(t); else { simT = t; simAt = performance.now(); } }
 function startPlayer() {
   if (SIM) { play(); return; }
   const f = document.createElement('iframe');
@@ -166,40 +166,77 @@ function startPlayer() {
 }
 bigPlay.onclick = () => { bigPlay.hidden = true; play(); };
 
-// ---------------- the words: three lines ----------------
-// The line being sung in the middle (its words turn orange as they are sung), the one before above it and the
-// next one below it, both grey. A new line slides the three up. In a long pause the middle stays empty.
-const AHEAD = .35, PAUSE = 4, lyricsEl = $('lyrics'), titleCard = $('titleCard'), dotsEl = $('dots');
+// ---------------- the words: one line, out of smoke ----------------
+// A word comes out of a puff of smoke a moment before it is sung (white, time to read it) and turns gold when it is
+// sung. Only one line is on the screen: when the next one starts, the old one drifts up into smoke. In a long pause
+// the line goes up in smoke a while after its last word and the screen stays clear.
+const AHEAD = .8, HOLD = 2.6, lyricsEl = $('lyrics'), titleCard = $('titleCard'), dotsEl = $('dots');
 const firstWord = (k) => (D.words[k] && D.words[k][0] ? D.words[k][0][0] : D.times[k][0]);
-function lineAt(t) { let i = -1; for (let k = 0; k < D.times.length; k++) { if (firstWord(k) - AHEAD <= t) i = k; else break; } return i; }
-const rows = document.createElement('div'); rows.className = 'rows'; lyricsEl.appendChild(rows);
+const lastWord = (k) => { const w = D.words[k]; return w && w.length ? w[w.length - 1][1] : D.times[k][1]; };
+const showAt = (k) => Math.max(firstWord(k) - AHEAD, k > 0 ? lastWord(k - 1) : -1e9);   // never over the end of the line before
+function lineAt(t) { let i = -1; for (let k = 0; k < D.times.length; k++) { if (showAt(k) <= t) i = k; else break; } return i; }
 if (!qs.has('auto')) lyricsEl.style.visibility = 'hidden';   // not under the lobby
-function lineEl(k, cls) {
-  const d = document.createElement('div'); d.className = 'ln ' + cls;
-  if (k >= 0 && k < D.lines.length) {
-    const times = D.words[k] || [];
-    d._w = D.lines[k].split(/\s+/).map((tok, n) => { const s = document.createElement('span'); s.className = 'w'; s.textContent = tok; d.appendChild(s); d.appendChild(document.createTextNode(' ')); return { el: s, t: times[n] || D.times[k] }; });
-  } else d._w = [];
-  return d;
-}
-let shown = -2, rowCur = null;
-function words(t) {
-  let i = lineAt(t);
-  const resting = i >= 0 && t > D.times[i][1] + PAUSE && !(D.times[i + 1] && firstWord(i + 1) - t < 1.5);
-  const key = resting ? -1 - i - 1000 : i;   // a pause between verses: the middle empties, the next line waits below
-  if (key !== shown) {
-    const step = key > shown && shown > -2 && key - shown === 1;
-    shown = key;
-    const cur = resting ? -1 : i, before = resting ? i : i - 1, next = (resting ? i : i) + 1;
-    rows.innerHTML = '';
-    rows.appendChild(lineEl(before, 'before'));
-    rowCur = lineEl(cur, 'cur'); rows.appendChild(rowCur);
-    rows.appendChild(lineEl(next, 'next'));
-    if (step) { rows.classList.remove('slide'); void rows.offsetWidth; rows.classList.add('slide'); }
+// smoke: soft wisps of turbulent noise, drawn on the #fx canvas
+const fx = $('fx'), fg = fx.getContext('2d'), FXR = Math.min(2, devicePixelRatio || 1);
+const smokeSprites = [1, 2, 3].map((sd) => {
+  const S = 96, c = document.createElement('canvas'); c.width = c.height = S; const x = c.getContext('2d'), img = x.createImageData(S, S), o = img.data;
+  const h = (a, b) => { const v = Math.sin(a * 127.1 + b * 311.7 + sd * 74.7) * 43758.5453; return v - Math.floor(v); };
+  const n = (a, b) => { const i = Math.floor(a), k = Math.floor(b), f = a - i, e = b - k, u = f * f * (3 - 2 * f), w = e * e * (3 - 2 * e);
+    return h(i, k) + (h(i + 1, k) - h(i, k)) * u + (h(i, k + 1) - h(i, k)) * w + (h(i, k) - h(i + 1, k) - h(i, k + 1) + h(i + 1, k + 1)) * u * w; };
+  const fbm = (a, b) => { let v = 0, m = .5; for (let k = 0; k < 4; k++) { v += m * n(a, b); a *= 2.03; b *= 2.03; m *= .5; } return v; };
+  for (let py = 0; py < S; py++) for (let px = 0; px < S; px++) {
+    const u = px / S, v = py / S, r = Math.hypot(u - .5, v - .5) * 2, tt = fbm(u * 4 + fbm(u * 3 + 5, v * 3) * 1.6, v * 4 + fbm(u * 3, v * 3 + 9) * 1.6);
+    let al = Math.min(1, Math.max(0, (tt - .38) / .45)); al = al * al * (3 - 2 * al);
+    const i = (py * S + px) * 4; o[i] = 210; o[i + 1] = 212; o[i + 2] = 222; o[i + 3] = Math.round(255 * al * Math.pow(Math.max(0, 1 - r), 1.6));
   }
-  if (rowCur) for (const w of rowCur._w) { const s = t >= w.t[0] - .05; if (s !== w.s) { w.el.classList.toggle('sung', s); w.s = s; } }
+  x.putImageData(img, 0, 0); return c;
+});
+let smoke = [];
+const puff = (x, y, size, grow, life, alpha) => smoke.push({ x, y, age: 0, life, size, grow, rot: Math.random() * 6.28, vr: (Math.random() - .5) * .9, seed: Math.random() * 9, a: alpha, sp: smokeSprites[Math.floor(Math.random() * 3)] });
+function drawSmoke(dt) {
+  const W = innerWidth, H = innerHeight;
+  if (fx.width !== Math.round(W * FXR) || fx.height !== Math.round(H * FXR)) { fx.width = Math.round(W * FXR); fx.height = Math.round(H * FXR); }
+  fg.setTransform(FXR, 0, 0, FXR, 0, 0); fg.clearRect(0, 0, W, H);
+  smoke = smoke.filter((m) => {
+    m.age += dt; if (m.age > m.life) return false;
+    const f = m.age / m.life, s = m.size + m.grow * m.age;
+    m.y -= (26 - 10 * f) * dt; m.x += Math.sin(m.age * 1.6 + m.seed) * 12 * dt; m.rot += m.vr * dt;
+    fg.globalAlpha = Math.min(1, m.age * 3) * Math.pow(1 - f, 1.4) * m.a;
+    fg.save(); fg.translate(m.x, m.y); fg.rotate(m.rot); fg.drawImage(m.sp, -s / 2, -s / 2, s, s); fg.restore();
+    return true;
+  });
+  fg.globalAlpha = 1;
+}
+function makeLine(k) {
+  const el = document.createElement('div'); el.className = 'pline';
+  const times = D.words[k] || [];
+  el._w = D.lines[k].split(/\s+/).map((tok, n) => { const s = document.createElement('span'); s.className = 'w'; s.textContent = tok; el.appendChild(s); el.appendChild(document.createTextNode(' ')); return { el: s, t: times[n] || D.times[k] }; });
+  lyricsEl.appendChild(el);
+  return el;
+}
+function leaveLine(el, quiet) {
+  if (!quiet) el.querySelectorAll('.w.in').forEach((w) => { const r = w.getBoundingClientRect(); puff(r.left + r.width / 2, r.top + r.height * .5, r.height * 1.2, r.height * 1.6, 2, .35); });
+  el.classList.add('out'); setTimeout(() => el.remove(), 1700);
+}
+let shown = -2, line = null, lastT = 0;
+function words(t) {
+  const jumped = Math.abs(t - lastT) > 1.2; lastT = t;   // a seek: build the line at once, without smoke
+  let i = lineAt(t);
+  if (i >= 0 && t > lastWord(i) + HOLD && !(D.times[i + 1] && showAt(i + 1) - t < .3)) i = -1;   // a long pause: clear
+  if (i !== shown || (jumped && line)) {
+    if (line) leaveLine(line, jumped);
+    shown = i; line = i >= 0 ? makeLine(i) : null;
+    if (line && jumped) line.classList.add('instant');
+  }
+  if (line) for (const w of line._w) {
+    const on = t >= w.t[0] - AHEAD, sung = t >= w.t[0] - .04;
+    if (on !== w.on) {
+      w.on = on; w.el.classList.toggle('in', on);
+      if (on && !line.classList.contains('instant')) { const r = w.el.getBoundingClientRect(); for (let k = 0; k < 3; k++) puff(r.left + r.width * (.15 + .7 * Math.random()), r.top + r.height * .6, r.height * (.8 + Math.random() * .5), r.height * 1.3, 1.4 + Math.random() * .6, .32); }
+    }
+    if (sung !== w.sung) { w.sung = sung; w.el.classList.toggle('sung', sung); }
+  }
   titleCard.classList.toggle('gone', t > D.times[0][0] - 1.2);
-  rows.classList.toggle('waiting', t < D.times[0][0] - 1.2);
   let sung = -1; for (let s = 0; s < D.times.length && D.times[s][0] <= t; s++) sung = s;
   const nx = D.times[sung + 1], prevEnd = sung >= 0 ? D.times[sung][1] : 0;
   const wait = nx ? nx[0] - .5 - t : 99, gap = nx ? nx[0] - prevEnd : 0;
@@ -280,6 +317,7 @@ function frame(ts) {
   if (ended && !credited) { credited = true; onTo = .15; $('roll').innerHTML = credits(); $('credits').hidden = false; $('credits').classList.add('run'); }
   if (!ended && credited) { credited = false; onTo = 1; $('credits').hidden = true; $('credits').classList.remove('run'); }
   if (entered) words(t);
+  drawSmoke(dt);
   if (pl && !started && (!clock || clock.time() > .3)) { started = true; if (clock) poster.style.display = 'none'; }
   if (clock && clock.time() > .3) catcher.classList.toggle('paused', !pl);
   $('fill').style.width = (t / duration() * 100) + '%';
