@@ -12,6 +12,7 @@
       {"/admin/quotes", "fa-quote-left", "Citáty", "/admin/quotes"},
       {"/admin/karaoke", "fa-microphone-lines", "Karaoke", "/admin/karaoke"},
       {"/admin/comments", "fa-comments", "Komentáře", "/admin/comments"},
+      {"/admin/feedback", "fa-comment-dots", "Hodnocení webu", "/admin/feedback"},
       {"/admin_users.jsp", "fa-users", "Uživatelé", "/admin_users"},
       {"/admin/newsletter", "fa-envelope-open-text", "Newsletter", "/admin/newsletter"}
   };

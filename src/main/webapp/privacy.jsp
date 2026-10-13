@@ -18,6 +18,7 @@
         <li><%= t.getProperty("privacy.s2.profile") %></li>
         <li><%= t.getProperty("privacy.s2.google") %></li>
         <li><%= t.getProperty("privacy.s2.comments") %></li>
+        <li><%= t.getProperty("privacy.s2.feedback") %></li>
         <li><%= t.getProperty("privacy.s2.newsletter") %></li>
         <li><%= t.getProperty("privacy.s2.security") %></li>
         <li><%= t.getProperty("privacy.s2.stats") %></li>

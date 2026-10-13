@@ -124,6 +124,8 @@
         <a class="side-link" href="/aktuality.jsp"><%= t.getProperty("home.allNews") %></a>
       </div>
 
+<%@ include file="/includes/feedback-card.jspf" %>
+
       <div class="card side-card newsletter card-gold">
         <div class="nl-photo" aria-hidden="true"><img src="/img/photos/point-sm.webp" alt="" loading="lazy" width="640" height="480"></div>
         <p class="nl-lead"><%= t.getProperty("home.newsletter.lead") %></p>
