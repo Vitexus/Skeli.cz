@@ -1,0 +1,54 @@
+<%-- "Co říkáš na web?" in the home page's side column (web/site/FeedbackServlet, dao/FeedbackDao): thumbs up or down
+     for the whole site and an optional message, one per signed-in user (sending again changes it). Messages appear
+     here only with the artist's heart (/admin/feedback). --%>
+<%
+  int[] fbCounts = {0, 0};
+  com.github.skeliit.model.SiteFeedback fbMine = null;
+  java.util.List<com.github.skeliit.model.SiteFeedback> fbHearted = java.util.List.of();
+  Object fbO = session.getAttribute("userId");   // (no pattern matching: the JSP compiler is older Java)
+  Integer fbUser = fbO instanceof Integer ? (Integer) fbO : null;
+  try {
+    com.github.skeliit.dao.FeedbackDao fbDao = new com.github.skeliit.dao.FeedbackDao();
+    fbCounts = fbDao.counts();
+    fbHearted = fbDao.hearted(3);
+    if (fbUser != null) fbMine = fbDao.mine(fbUser);
+  } catch (java.sql.SQLException fbErr) { /* the card shows without numbers */ }
+  String fbState = request.getParameter("feedback");
+%>
+      <div class="card side-card feedback-card" id="feedback">
+        <h3><i class="fa-solid fa-comment-dots"></i> <%= t.getProperty("home.feedback.title") %></h3>
+        <p class="fb-counts" aria-label="<%= fbCounts[0] %> 👍, <%= fbCounts[1] %> 👎">
+          <span class="fb-up"><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> <%= fbCounts[0] %></span>
+          <span class="fb-down"><i class="fa-solid fa-thumbs-down" aria-hidden="true"></i> <%= fbCounts[1] %></span>
+        </p>
+        <% if ("thanks".equals(fbState)) { %><p class="fb-flash"><%= t.getProperty("home.feedback.thanks") %></p><% } %>
+        <% if ("limit".equals(fbState)) { %><p class="fb-flash warn"><%= t.getProperty("home.feedback.limit") %></p><% } %>
+        <% if (fbUser != null) { boolean fbUp = fbMine == null || fbMine.vote > 0; %>
+        <p class="fb-lead"><%= t.getProperty("home.feedback.lead") %></p>
+        <form method="post" action="/feedback" class="fb-form">
+          <input type="hidden" name="csrf" value="<%= request.getAttribute("csrf") %>">
+          <div class="hp-field" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+          <div class="fb-votes" role="radiogroup" aria-label="<%= t.getProperty("home.feedback.title") %>">
+            <label class="fb-vote up"><input type="radio" name="vote" value="up"<%= fbMine != null && fbUp ? " checked" : "" %> required><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> <%= t.getProperty("home.feedback.like") %></label>
+            <label class="fb-vote down"><input type="radio" name="vote" value="down"<%= fbMine != null && !fbUp ? " checked" : "" %>><i class="fa-solid fa-thumbs-down" aria-hidden="true"></i> <%= t.getProperty("home.feedback.dislike") %></label>
+          </div>
+          <textarea name="message" maxlength="500" rows="3" placeholder="<%= t.getProperty("home.feedback.placeholder") %>"><%= fbMine != null && fbMine.message != null ? com.github.skeliit.WebUtils.escapeHtml(fbMine.message) : "" %></textarea>
+          <button type="submit"><%= t.getProperty(fbMine != null ? "home.feedback.update" : "home.feedback.send") %></button>
+          <p class="fb-note"><%= t.getProperty("home.feedback.note") %></p>
+        </form>
+        <% } else { %>
+        <p class="fb-lead"><%= t.getProperty("home.feedback.login") %></p>
+        <a class="btn btn-primary fb-login" href="/login.jsp?next=%2Findex.jsp%23feedback"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> <%= t.getProperty("auth.submit.login") %></a>
+        <% } %>
+        <% if (!fbHearted.isEmpty()) { %>
+        <div class="fb-quotes">
+          <p class="fb-quotes-title"><i class="fa-solid fa-heart" aria-hidden="true"></i> <%= t.getProperty("home.feedback.hearted") %></p>
+          <% for (com.github.skeliit.model.SiteFeedback f : fbHearted) { %>
+          <blockquote class="fb-quote">
+            <p><%= com.github.skeliit.WebUtils.escapeHtml(f.message).replace("\n", "<br>") %></p>
+            <footer><i class="fa-solid <%= f.vote > 0 ? "fa-thumbs-up" : "fa-thumbs-down" %>" aria-hidden="true"></i> <%= com.github.skeliit.WebUtils.escapeHtml(f.username) %></footer>
+          </blockquote>
+          <% } %>
+        </div>
+        <% } %>
+      </div>

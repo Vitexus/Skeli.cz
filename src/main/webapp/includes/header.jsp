@@ -5,7 +5,7 @@
   if (ctx == null) {
     ctx = "";
   }
-  String assetVersion = "5.3.3";
+  String assetVersion = "5.3.5";
 %>
 <%@ include file="/WEB-INF/i18n/i18n.jspf" %>
   <html lang="<%= cur %>">
@@ -454,7 +454,7 @@
                 // allow full reload for language switch to refresh header/nav strings
                 if (href.includes('lang=')) return;
                 // disable PJAX for pages that need full refresh or include page-scoped styles/scripts
-                const noPjax = ['/karaoke-kino/', '/lyrics/', '/texty', '/admin', '/logout', '/login.jsp', '/register.jsp', '/uzivatel.jsp', '/profile.jsp'];
+                const noPjax = ['/auth/', '/karaoke-kino/', '/lyrics/', '/texty', '/admin', '/logout', '/login.jsp', '/register.jsp', '/uzivatel.jsp', '/profile.jsp'];
                 if (noPjax.some(p => href.includes(p))) return;
                 e.preventDefault();
                 navigate(href, true);

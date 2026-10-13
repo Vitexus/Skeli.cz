@@ -17,6 +17,8 @@
         </ul>
       </div>
       <% } %>
+      <% pageContext.setAttribute("googleNote", t.getProperty("auth.google.consent")); %>
+      <%@ include file="/includes/google-button.jspf" %>
       <form method="post" action="register">
         <input type="hidden" name="csrf" value="<%= request.getAttribute("csrf") != null ? request.getAttribute("csrf") : "" %>">
         <%-- honeypot: invisible to people, bots fill it in and are ignored --%>
