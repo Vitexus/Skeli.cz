@@ -29,6 +29,22 @@ bg.className = 'space';
 bg.muted = true; bg.loop = true; bg.playsInline = true; bg.autoplay = true; bg.preload = 'auto';
 bg.src = '/kino/prostor/prostor-' + (PHONE || Math.max(innerWidth, innerHeight) * (devicePixelRatio || 1) < 1600 ? '720' : '1440') + '.mp4';
 document.body.prepend(bg);
+// embers rising through the space, as on the home page (a quarter of them cold blue, like the light on the right);
+// they are behind the clip, over the video
+if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const embers = document.createElement('div'); embers.className = 'space-embers'; embers.setAttribute('aria-hidden', 'true');
+  for (let i = 0, n = PHONE ? 18 : 40; i < n; i++) {
+    const s = document.createElement('span'), x = Math.random();
+    if (Math.random() < (x > .55 ? .4 : .12)) s.className = 'cold';
+    s.style.left = (x * 100) + '%';
+    s.style.setProperty('--s', (2 + Math.random() * 4).toFixed(1) + 'px');
+    s.style.setProperty('--t', (10 + Math.random() * 14).toFixed(1) + 's');
+    s.style.setProperty('--delay', (-Math.random() * 24).toFixed(1) + 's');
+    s.style.setProperty('--dx', ((Math.random() - .5) * 180).toFixed(0) + 'px');
+    embers.appendChild(s);
+  }
+  bg.after(embers);
+}
 const kick = () => bg.play().catch(() => {});
 kick(); addEventListener('pointerdown', kick, { once: true });
 
