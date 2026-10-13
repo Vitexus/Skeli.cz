@@ -180,6 +180,8 @@
 </script>
 
   <%-- a wide photo with a line from Skeli; the photo drifts slower than the page --%>
+<%@ include file="/includes/feedback-refs.jspf" %>
+
   <section class="photo-band" data-reveal>
     <div class="photo-band-img" data-parallax></div>
     <div class="photo-band-text">

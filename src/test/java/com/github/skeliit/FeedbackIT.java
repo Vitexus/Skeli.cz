@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.*;
 /** "Co říkáš na web?" on the home page and /admin/feedback. Requires a running local instance, see {@link UiTestSupport}. */
 public class FeedbackIT extends UiTestSupport {
 
-    /** the messages with the artist's heart on the home page (not the author's own text in the form) */
+    /** the references band on the home page (not the author's own text in the form) */
     private String hearted() {
-        return driver.findElements(By.cssSelector("#feedback .fb-quotes")).stream().map(e -> e.getText()).findFirst().orElse("");
+        return driver.findElements(By.cssSelector(".fb-refs")).stream().map(e -> e.getText()).findFirst().orElse("");
     }
 
     @Test

@@ -1,16 +1,14 @@
 <%-- "Co říkáš na web?" in the home page's side column (web/site/FeedbackServlet, dao/FeedbackDao): thumbs up or down
-     for the whole site and an optional message, one per signed-in user (sending again changes it). Messages appear
-     here only with the artist's heart (/admin/feedback). --%>
+     for the whole site and an optional message, one per signed-in user (sending again changes it). The messages the artist picks in /admin/feedback show
+     as references in their own band (includes/feedback-refs.jspf). --%>
 <%
   int[] fbCounts = {0, 0};
   com.github.skeliit.model.SiteFeedback fbMine = null;
-  java.util.List<com.github.skeliit.model.SiteFeedback> fbHearted = java.util.List.of();
   Object fbO = session.getAttribute("userId");   // (no pattern matching: the JSP compiler is older Java)
   Integer fbUser = fbO instanceof Integer ? (Integer) fbO : null;
   try {
     com.github.skeliit.dao.FeedbackDao fbDao = new com.github.skeliit.dao.FeedbackDao();
     fbCounts = fbDao.counts();
-    fbHearted = fbDao.hearted(3);
     if (fbUser != null) fbMine = fbDao.mine(fbUser);
   } catch (java.sql.SQLException fbErr) { /* the card shows without numbers */ }
   String fbState = request.getParameter("feedback");
@@ -53,16 +51,5 @@
         <% } else { %>
         <p class="fb-lead"><%= t.getProperty("home.feedback.login") %></p>
         <a class="btn btn-primary fb-login" href="/login.jsp?next=%2Findex.jsp%23feedback"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> <%= t.getProperty("auth.submit.login") %></a>
-        <% } %>
-        <% if (!fbHearted.isEmpty()) { %>
-        <div class="fb-quotes">
-          <p class="fb-quotes-title"><i class="fa-solid fa-heart" aria-hidden="true"></i> <%= t.getProperty("home.feedback.hearted") %></p>
-          <% for (com.github.skeliit.model.SiteFeedback f : fbHearted) { %>
-          <blockquote class="fb-quote">
-            <p><%= com.github.skeliit.WebUtils.escapeHtml(f.message).replace("\n", "<br>") %></p>
-            <footer><i class="fa-solid <%= f.vote > 0 ? "fa-thumbs-up" : "fa-thumbs-down" %>" aria-hidden="true"></i> <%= com.github.skeliit.WebUtils.escapeHtml(f.username) %></footer>
-          </blockquote>
-          <% } %>
-        </div>
         <% } %>
       </div>
