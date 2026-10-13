@@ -101,7 +101,8 @@ public class ProfileAvatarServlet extends HttpServlet {
             }
         }
 
-        String relUrl = req.getContextPath() + "/uploads/avatars/" + filename;
+        // the file keeps its name, so each upload gets a new ?v=: otherwise the browser shows the old photo
+        String relUrl = req.getContextPath() + "/uploads/avatars/" + filename + "?v=" + System.currentTimeMillis();
         try (Connection c = Db.get();
                 PreparedStatement ps = c.prepareStatement("UPDATE users SET avatar_url=? WHERE id=?")) {
             ps.setString(1, relUrl);
