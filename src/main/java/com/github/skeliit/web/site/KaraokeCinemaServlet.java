@@ -12,9 +12,12 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Base64;
 
@@ -24,6 +27,7 @@ import java.util.Base64;
  * The page gets everything in one object (window.KDATA): the newest clip, the Czech lines, when every line
  * and word is sung (as /api/karaoke: the admin's correction wins over karaoke/<id>.json) and the clip's
  * colours and bass (eq/<id>.json; without it a calm grey). 404 when the song has no clip, lyrics or timings.
+ * Only signed-in visitors get into the cinema; the others go to the sign-in page and come back.
  */
 @WebServlet(name = "KaraokeCinemaServlet", urlPatterns = {"/karaoke-kino", "/karaoke-kino/*"})
 public class KaraokeCinemaServlet extends HttpServlet {
@@ -35,6 +39,7 @@ public class KaraokeCinemaServlet extends HttpServlet {
         String uuid = path == null ? "" : path.substring(1);
         if (uuid.isEmpty()) { list(req, resp); return; }
         if (!uuid.matches("[0-9a-fA-F-]{36}")) { resp.sendError(404); return; }
+        if (!signedIn(req)) { resp.sendRedirect("/login.jsp?next=" + URLEncoder.encode("/karaoke-kino/" + uuid, StandardCharsets.UTF_8)); return; }
         String[] song;
         String manual;
         try {
@@ -84,8 +89,15 @@ public class KaraokeCinemaServlet extends HttpServlet {
             throw new ServletException(e);
         }
         req.setAttribute("karaokeSongs", songs);
+        req.setAttribute("karaokeSignedIn", signedIn(req));
         req.setAttribute("pageTitle", I18n.bundle(req).getProperty("menu.karaoke"));
         req.getRequestDispatcher("/WEB-INF/views/karaoke-list.jsp").forward(req, resp);
+    }
+
+    /** Karaoke is for members: the list shows everyone the songs, only a signed-in visitor gets into the cinema. */
+    private static boolean signedIn(HttpServletRequest req) {
+        HttpSession s = req.getSession(false);
+        return s != null && s.getAttribute("userId") instanceof Integer;
     }
 
     private JsonNode file(String name) throws IOException {
