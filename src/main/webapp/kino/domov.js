@@ -89,7 +89,10 @@ scene.environment = pmrem.fromScene(new RoomEnvironment(), .04).texture;
 scene.environmentIntensity = .12;
 
 const camera = new THREE.PerspectiveCamera(45, 1, .05, 60);
-const composer = new EffectComposer(renderer);
+// the effects (AO, bloom) draw into a render target, which loses the canvas's own antialiasing: the target itself
+// is multisampled instead, otherwise every edge in the room is jagged
+const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(innerWidth * PR, innerHeight * PR,
+  { type: THREE.HalfFloatType, samples: LOW ? 2 : 4 }));
 composer.addPass(new RenderPass(scene, camera));
 // soft shadow in the corners and under things (room A only, not on a phone)
 let ao = null;

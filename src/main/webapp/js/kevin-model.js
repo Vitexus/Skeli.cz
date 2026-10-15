@@ -34,8 +34,10 @@ export function createKevin(canvas, opts = {}) {
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environmentIntensity = 0.8;
   const cam = new THREE.PerspectiveCamera(30, 1, 0.05, 50);
-  cam.position.set(0, 1.08, 4.7);
-  cam.lookAt(0, 1.0, 0);
+  // opts.view = { y, z, look }: another shot (the cinema frames him wider, for swimming)
+  const view = Object.assign({ y: 1.08, z: 4.7, look: 1.0 }, opts.view || {});
+  cam.position.set(0, view.y, view.z);
+  cam.lookAt(0, view.look, 0);
   const key = new THREE.DirectionalLight(0xfff1d6, 1.8);
   key.position.set(-2, 4, 5);
   scene.add(key);
@@ -64,11 +66,12 @@ export function createKevin(canvas, opts = {}) {
 
   // ---------- state: what he should be doing ----------
   let pose = 'idle', talking = false, talkClip = 'talk', act = null, actEnd = 0, paused = false, disposed = false;
-  let lookX = 0, lookY = 0, spinT = -1, special = null, specialT = 0, frozenUntil = 0;
+  let lookX = 0, lookY = 0, spinT = -1, special = null, specialT = 0, frozenUntil = 0, held = null, turnTo = 0;
   let mixer = null, actions = {}, playing = null, head = null, hips = null, hipsRest = null, clock = 0;
 
   function wanted() {
     if (act) return act;
+    if (held) return held;
     if (talking && (pose === 'idle' || pose === 'point' || pose === 'cool')) return talkClip;
     return POSES[pose] || 'idle';
   }
@@ -133,7 +136,7 @@ export function createKevin(canvas, opts = {}) {
       head.rotation.x += lookY * 0.2;
     }
     // turned away when sulking, a full spin on demand, hiding and walking off for two surprises
-    let yaw = pose === 'sulk' ? Math.PI : 0;
+    let yaw = (pose === 'sulk' ? Math.PI : 0) + turnTo;
     if (spinT >= 0) {
       spinT += dt;
       const p = Math.min(1, spinT / 1.1);
@@ -180,6 +183,18 @@ export function createKevin(canvas, opts = {}) {
       return len * 1000;
     },
     can(feature) { return !CANNOT.has(feature); },
+    // any of his clips by name (the cinema): hold(name) keeps it going until hold(null); once(name) plays it
+    // through and returns its length in ms; turn(yaw) turns him (radians, 0 = facing us)
+    hold(name) { held = name && actions[name] ? name : null; crossfade(); },
+    once(name) {
+      if (!actions[name]) return 0;
+      act = name;
+      actEnd = clock + actions[name].getClip().duration;
+      crossfade();
+      return actions[name].getClip().duration * 1000;
+    },
+    turn(yaw) { turnTo = yaw || 0; },
+    has(name) { return !!actions[name]; },
     look(x, y) { lookX = Math.max(-1, Math.min(1, x)); lookY = Math.max(-1, Math.min(1, y)); },
     setLight,
     setPaused(p) { paused = !!p; },
