@@ -82,6 +82,8 @@
 
   var bubble = root.querySelector('.kevin-bubble'), text = root.querySelector('.kevin-text'), link = root.querySelector('.kevin-link');
   var extra = root.querySelector('.kevin-extra');
+  // his canvas is this many times his box on each axis (.kevin-canvas inset in effects.css: -40 % = 1.8)
+  var KEVIN_OVERSCAN = 1.8;
   var body = root.querySelector('.kevin-body'), canvas = root.querySelector('.kevin-canvas'), still = root.querySelector('.kevin-still');
   var soundBtn = root.querySelector('.kevin-sound');
   var soundOn = store.get('kevinSound') !== 'off';
@@ -115,6 +117,7 @@
       k = m.createKevin(canvas, {
         light: document.body.classList.contains('light'),
         src: '/kevin/kevin.glb' + (version ? '?' + version : ''),
+        overscan: KEVIN_OVERSCAN,   // his canvas reaches past his box (effects.css): big moves are never cut off
         onReady: function () { canvas.hidden = false; still.hidden = true; },
         onError: useStill
       });

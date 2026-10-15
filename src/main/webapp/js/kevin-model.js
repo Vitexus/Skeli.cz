@@ -19,8 +19,8 @@ const ACTS = {
   neck: 'neck', lie: 'lie', thumbsUp: 'thumbsUp', wave: 'wave', nervous: 'nervous', shrug: 'shrug', lookAround: 'lookAround',
   hide: null, freeze: null, leave: 'walk'
 };
-// surprises whose words need something this model hasn't got (none in the current set)
-const CANNOT = new Set(['shades', 'tail', 'lick']);
+// surprises whose words need something this model hasn't got, or whose move doesn't fit his picture
+const CANNOT = new Set(['shades', 'tail', 'lick', 'dive']);   // dive: the clip throws him far out of his picture
 // looping clips played as an act run this long (dances longer: they are the fun), then he goes back
 const LOOP_ACT_S = 4.5, DANCE_S = 7.5;
 const DANCES = new Set(['dance', 'dance2', 'dance3', 'robot', 'silly', 'breakdance', 'flair', 'sing', 'rap']);
@@ -34,7 +34,10 @@ export function createKevin(canvas, opts = {}) {
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environmentIntensity = 0.8;
-  const cam = new THREE.PerspectiveCamera(30, 1, 0.05, 50);
+  // opts.overscan: the canvas is that many times larger than the shot (around its middle), so a dance, a lean or
+  // a breakdance never runs out of the picture; the wider lens keeps him the same size in the same place
+  const overscan = opts.overscan || 1;
+  const cam = new THREE.PerspectiveCamera(2 * Math.atan(overscan * Math.tan(15 * Math.PI / 180)) * 180 / Math.PI, 1, 0.05, 50);
   // opts.view = { y, z, look }: another shot (the cinema frames him wider, for swimming)
   const view = Object.assign({ y: 1.08, z: 4.7, look: 1.0 }, opts.view || {});
   cam.position.set(0, view.y, view.z);
