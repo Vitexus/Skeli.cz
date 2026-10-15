@@ -521,7 +521,7 @@
     var box = el('div', 'kevin-menu');
     var items = adminPage
       ? [['status', 'fa-clipboard-check', L.admin.status], ['find', 'fa-magnifying-glass', L.menu.find], ['play', 'fa-play', L.menu.play]]
-      : [['find', 'fa-magnifying-glass', L.menu.find], ['play', 'fa-play', L.menu.play], ['rap', 'fa-microphone', L.menu.rap],
+      : [['find', 'fa-magnifying-glass', L.menu.find], ['play', 'fa-play', L.menu.play],   // (Zarapuj is off for now: kevin-napady.md)
          ['news', 'fa-bolt', L.menu.news], ['fun', 'fa-wand-magic-sparkles', L.menu.fun]];
     items.forEach(function (it) {
       var b = el('button', 'kevin-chip');
