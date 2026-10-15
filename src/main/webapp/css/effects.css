@@ -1053,3 +1053,22 @@ button.is-sending { cursor: progress; opacity: 0.85; }
   .cookie-bar p { margin-bottom: 8px; }
   .cookie-btn { min-height: 32px; padding: 5px 12px; font-size: 0.78rem; }
 }
+
+/* ---------- Kevin's walk along the bottom edge of the window (js/kevin.js walk) ---------- */
+.kevin-walker {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  z-index: 1100;   /* under the cookie bar, the Spotify button and Kevin himself */
+  width: 130px;
+  height: 150px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  will-change: transform;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .35));
+}
+.kevin-walker[hidden] { display: none; }
+.kevin-walker canvas { width: 100%; height: 100%; display: block; }
+@media (max-width: 1024px), (prefers-reduced-motion: reduce) { .kevin-walker { display: none !important; } }

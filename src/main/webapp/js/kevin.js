@@ -845,6 +845,81 @@
     if (!h) wake();
   }
 
+  // ---------- now and then he takes a walk along the bottom edge of the window ----------
+  // A second, small Kevin (his own canvas; the model comes from the browser's cache) walks in from one side, sometimes
+  // stops to look round or wave, and walks out on the other. PC only (no room on a phone), never while the visitor
+  // types, while Kevin is out talking, in the admin, when he was sent away with the cross, with reduced motion or
+  // save-data. A click on him opens his menu.
+  var walker = null, walkK = null, walking = false;
+  function canWalk() {
+    return !adminPage && !userHidden && !reduced && !saveData && wideMq.matches && !document.hidden
+      && root.hidden && !busy && !isField(document.activeElement) && store.get('kevinLite') !== '1';
+  }
+  function scheduleWalk() {
+    setTimeout(function () { if (canWalk()) walk(); else scheduleWalk(); }, 90000 + Math.random() * 90000);
+  }
+  function walk() {
+    var gl = null;
+    try { gl = document.createElement('canvas').getContext('webgl2'); } catch (e) { gl = null; }
+    if (!gl) return;
+    if (!walker) {
+      walker = document.createElement('button');
+      walker.type = 'button';
+      walker.className = 'kevin-walker';
+      walker.setAttribute('aria-label', L.ui.call);
+      walker.innerHTML = '<canvas aria-hidden="true"></canvas>';
+      walker.addEventListener('click', function () { endWalk(); paw.click(); });
+      document.body.appendChild(walker);
+    }
+    var go = function () {
+      walking = true;
+      var dir = Math.random() < 0.5 ? 1 : -1, W = window.innerWidth, w = walker.offsetWidth || 130;
+      var x = dir > 0 ? -w : W, stopAt = W * (0.3 + Math.random() * 0.4), stopped = false, last = performance.now();
+      walker.hidden = false;
+      walkK.setPaused(false);
+      walkK.turn(dir * Math.PI / 2);
+      walkK.hold('walk');
+      (function step(now) {
+        if (!walking) return;
+        var dt = Math.min(0.1, (now - last) / 1000);
+        last = now;
+        // a stop half way: he turns to you, looks round or waves, then goes on
+        if (!stopped && (dir > 0 ? x + w / 2 >= stopAt : x + w / 2 <= stopAt) && Math.random() < 0.6) {
+          stopped = true;
+          walkK.turn(0);
+          var what = Math.random() < 0.5 ? 'wave' : 'lookAround', ms = walkK.once(what) || 2500;
+          walker.style.transform = 'translateX(' + x + 'px)';
+          return setTimeout(function () { if (!walking) return; walkK.turn(dir * Math.PI / 2); walkK.hold('walk'); last = performance.now(); requestAnimationFrame(step); }, ms);
+        }
+        if (!stopped && (dir > 0 ? x + w / 2 >= stopAt : x + w / 2 <= stopAt)) stopped = true;
+        x += dir * 95 * dt;   // about his stride at this size
+        walker.style.transform = 'translateX(' + x + 'px)';
+        if ((dir > 0 && x > W) || (dir < 0 && x < -w)) return endWalk();
+        requestAnimationFrame(step);
+      })(last);
+    };
+    if (walkK) return go();
+    import('/js/kevin-model.js' + (version ? '?' + version : '')).then(function (m) {
+      walkK = m.createKevin(walker.querySelector('canvas'), {
+        light: document.body.classList.contains('light'),
+        src: '/kevin/kevin.glb' + (version ? '?' + version : ''),
+        view: { y: 1.0, z: 5.0, look: 1.0 },
+        onReady: function () {
+          new MutationObserver(function () { walkK.setLight(document.body.classList.contains('light')); })
+            .observe(document.body, { attributes: true, attributeFilter: ['class'] });
+          go();
+        },
+        onError: function () { walker.remove(); walker = null; }
+      });
+    }).catch(function () { /* no walk this time */ });
+  }
+  function endWalk() {
+    walking = false;
+    if (walker) walker.hidden = true;
+    if (walkK) { walkK.hold(null); walkK.setPaused(true); }
+    scheduleWalk();
+  }
+
   function start() {
     document.body.appendChild(root);
     placePaw();
@@ -861,7 +936,7 @@
     else ensureModel();          // a page without the header bar: he stands there from the start
     wake();
     greet();
-    if (!adminPage) scheduleTip();
+    if (!adminPage) { scheduleTip(); scheduleWalk(); }
   }
 
   // Easter egg: click him over and over (each click within 2.5 s of the last) and at 5, 10 and 20 he
@@ -892,6 +967,7 @@
   root.querySelector('.kevin-hide').addEventListener('click', function () { setHidden(true); });
   // the paw: on a phone straight to his menu (that is why it was tapped), elsewhere a hello
   paw.addEventListener('click', function () {
+    if (walking) endWalk();   // only one Kevin at a time
     if (!root.hidden) { endRap(); hideBubble('idle'); place(false); return; }   // a second tap: back in
     var said = pending;
     pending = null;
@@ -922,7 +998,11 @@
     var a = el.getBoundingClientRect(), b = root.getBoundingClientRect();
     return window.innerWidth <= 1024 || (a.left < b.right + 20 && a.right > b.left - 20 && a.bottom > b.top - 20);
   }
-  document.addEventListener('focusin', function (e) { if (isField(e.target) && covers(e.target)) root.classList.add('ducked'); });
+  document.addEventListener('focusin', function (e) {
+    if (!isField(e.target)) return;
+    if (walking) endWalk();   // the visitor types: no walk across the page
+    if (covers(e.target)) root.classList.add('ducked');
+  });
   document.addEventListener('focusout', function () {
     setTimeout(function () { if (!isField(document.activeElement)) root.classList.remove('ducked'); }, 150);
   });
@@ -946,6 +1026,9 @@
       if (Math.random() < 0.5) react('search', L.search[d.search], d.search === 'found' ? 'point' : 'sulk');
     } else if (d.clip && L.clip[d.clip]) {
       if (d.clip !== 'ok' || Math.random() < 0.5) react('clip', L.clip[d.clip], d.clip === 'ok' ? 'cool' : 'sulk');
+    } else if (d.walk) {
+      // a walk now (also used by the tests)
+      if (!walking && wideMq.matches && !reduced) walk();
     } else if (d.tip) {
       // another script wants a tip now (also used by the tests): he peeks out to say it
       lastAuto = 0;
