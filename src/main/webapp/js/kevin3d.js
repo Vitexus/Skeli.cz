@@ -296,6 +296,65 @@ export const ARMS = {
   sulk: [0, 0.22, 0, -0.22]
 };
 
+// One-shot acts for "Surprise me" (js/kevin.js): name: [seconds, (p, e, t, o) => …]. p runs 0..1, e is a
+// soft in-and-out envelope (0 at both ends), h holds 1 in the middle (for leaving and coming back),
+// t is the clock. The function fills o, offsets on top of the pose for this frame: yaw, headX/Y/Z, x, y,
+// roll, sy (stretch), arms ([rx, rz, lx, lz], null = the pose's own), eyes ([left, right] openness),
+// mouth (openness), tail, freeze (stand still).
+const hold = p => Math.min(1, p / 0.2, (1 - p) / 0.2);
+export const ACTS = {
+  wave: [2.4, (p, e, t, o) => { o.arms = [-2.7, 0.4 + Math.sin(t * 10) * 0.35 * e, null, null]; o.headZ = 0.1 * e; }],
+  smug: [2.6, (p, e, t, o) => { o.headX = -0.25 * e; o.yaw = 0.25 * e; o.eyes = [0.55, 0.55]; }],
+  stretch: [2.8, (p, e, t, o) => {
+    if (p < 0.8) o.arms = [-3, 0.25, -3, -0.25];
+    o.sy = 1 + 0.12 * e; o.eyes = [0.15, 0.15]; o.mouth = 0.5 * e;
+  }],
+  yawn: [2.4, (p, e, t, o) => { o.mouth = 1.3 * e; o.eyes = [0.1, 0.1]; o.headX = -0.3 * e; }],
+  lick: [3, (p, e, t, o) => {
+    o.arms = [null, null, -2.4, 0.15]; o.headX = 0.15 * e; o.headZ = 0.2 * e;
+    o.mouth = 0.4 * (0.5 + 0.5 * Math.sin(t * 14)) * e; o.eyes = [0.3, 0.3];
+  }],
+  lookaround: [3, (p, e, t, o) => { o.headY = Math.sin(p * Math.PI * 2) * 0.8 * e; o.eyes = [1.1, 1.1]; }],
+  squint: [2.6, (p, e, t, o) => { o.eyes = [0.4, 0.4]; o.headZ = 0.3 * e; o.headX = 0.1 * e; }],
+  wink: [1.6, (p, e, t, o) => { o.eyes = [1, p > 0.3 && p < 0.7 ? 0.08 : 1]; o.headZ = 0.12 * e; o.mouth = 0.25 * e; }],
+  tail: [2, (p, e, t, o) => { o.tail = Math.sin(t * 14) * 0.7 * e; }],
+  startle: [1.8, (p, e, t, o) => {
+    o.y = p < 0.3 ? Math.sin(p / 0.3 * Math.PI) * 0.6 : 0;
+    if (p < 0.6) { o.eyes = [1.35, 1.35]; o.arms = [-1.2, 1.2, -1.2, -1.2]; }
+  }],
+  hunt: [3.4, (p, e, t, o) => {
+    o.y = -0.25 * e; o.headX = 0.25 * e; o.headY = Math.sin(t * 3) * 0.5 * e;
+    o.eyes = [1.25, 1.25]; o.tail = Math.sin(t * 20) * 0.3 * e;
+  }],
+  jump: [1.6, (p, e, t, o) => { o.y = Math.sin(p * Math.PI) * 1.2; o.arms = [-2.6, 0.6, -2.6, -0.6]; }],
+  hide: [3.2, (p, e, t, o) => { o.y = -6 * hold(p); }],
+  peek: [3, (p, e, t, o) => { const h = hold(p); o.roll = -0.35 * h; o.x = 0.6 * h; o.headY = -0.4 * h; o.eyes = [1.15, 1.15]; }],
+  roll: [1.8, (p, e, t, o) => { o.roll = (1 - Math.cos(p * Math.PI)) * Math.PI; o.y = Math.sin(p * Math.PI) * 0.5; }],
+  grin: [2.4, (p, e, t, o) => { o.eyes = [0.5, 0.5]; o.mouth = 0.35 * e; o.headZ = -0.15 * e; o.headX = -0.1 * e; }],
+  frown: [2.4, (p, e, t, o) => { o.eyes = [0.45, 0.45]; o.headX = 0.22 * e; }],
+  meow: [1.6, (p, e, t, o) => { o.mouth = 0.9 * e; o.headX = -0.2 * e; o.eyes = [0.7, 0.7]; }],
+  purr: [3.2, (p, e, t, o) => { o.eyes = [0.12, 0.12]; o.y = Math.sin(t * 50) * 0.012 * e; o.headZ = 0.15 * e; }],
+  desk: [2.8, (p, e, t, o) => { o.arms = [-1.5, 0.15, -1.5, -0.15]; o.headX = 0.1 * e; }],
+  sad: [3, (p, e, t, o) => { o.headX = 0.35 * e; o.headZ = 0.1 * e; o.eyes = [0.6, 0.6]; o.arms = [-0.2, 0.1, -0.2, -0.1]; }],
+  dance: [3.2, (p, e, t, o) => {
+    const s = Math.sin(t * 8);
+    o.roll = s * 0.25 * e; o.y = Math.abs(s) * 0.25 * e; o.headZ = s * 0.2 * e;
+    o.arms = [-2.4 + s * 0.4, 0.6, -2.4 - s * 0.4, -0.6];
+  }],
+  sway: [3.4, (p, e, t, o) => { o.roll = Math.sin(t * 4) * 0.15 * e; o.headZ = Math.sin(t * 4) * 0.15 * e; o.eyes = [0.5, 0.5]; }],
+  claws: [2.6, (p, e, t, o) => { o.arms = [-1.6, -0.3, null, null]; o.headX = 0.25 * e; o.headY = -0.25 * e; }],
+  wow: [1.8, (p, e, t, o) => { o.eyes = [1.4, 1.4]; o.mouth = 0.5 * e; o.headX = -0.15 * e; o.y = 0.15 * e; }],
+  nod: [2, (p, e, t, o) => { o.headX = Math.sin(t * 10) * 0.2 * e; o.eyes = [0.7, 0.7]; }],
+  freeze: [3, (p, e, t, o) => { o.freeze = true; }],
+  whiskers: [2.6, (p, e, t, o) => {
+    const s = Math.sin(t * 9) * 0.15;
+    o.arms = [-2.4, -0.55 + s, -2.4, 0.55 - s]; o.eyes = [0.4, 0.4];
+  }],
+  comfy: [3.6, (p, e, t, o) => { o.x = Math.sin(p * Math.PI * 2) * 0.6 * e; o.roll = Math.sin(p * Math.PI * 4) * 0.12 * e; o.headY = -o.x * 0.4; }],
+  leave: [3.6, (p, e, t, o) => { const h = hold(p); o.x = 5 * h; o.yaw = -Math.PI / 2 * h; }],
+  photo: [2.6, (p, e, t, o) => { o.arms = [-1.15, 1.05, -1.25, -1.05]; o.headX = -0.15 * e; o.headZ = 0.2 * e; o.yaw = 0.35 * e; }]
+};
+
 export function createKevin(canvas, opts = {}) {
   const imgBase = opts.img || '/img/';
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
@@ -320,6 +379,7 @@ export function createKevin(canvas, opts = {}) {
   kevin.rotation.y = opts.yaw || 0;
 
   let pose = 'idle', talking = false, paused = false, lookX = 0, lookY = 0, spinT = -1, disposed = false, drawn = false;
+  let act = null, actT = 0;
   function setLight(light) {
     rim.color.set(light ? 0x9cc8ff : 0xff7a2a);
     rim.intensity = light ? 1.6 : 3.2;
@@ -353,8 +413,20 @@ export function createKevin(canvas, opts = {}) {
     const beat = t * (BPM / 60) * Math.PI * 2;
     const ease = (cur, to, k) => cur + (to - cur) * k;
     const asleep = pose === 'sleep';
+    // a one-shot act on top of the pose
+    const o = { yaw: 0, headX: 0, headY: 0, headZ: 0, x: 0, y: 0, roll: 0, sy: 1, arms: null, eyes: null, mouth: null, tail: 0, freeze: false };
+    if (act) {
+      actT += dt;
+      const p = Math.min(1, actT / act[0]);
+      act[1](p, Math.sin(p * Math.PI), t, o);
+      if (p >= 1) act = null;
+    }
+    if (o.freeze) { renderer.render(scene, cam); return; }
+    kevin.position.set(o.x, o.y, 0);
+    kevin.rotation.z = o.roll;
+    kevin.scale.set(1 / Math.sqrt(o.sy), o.sy, 1 / Math.sqrt(o.sy));
     // turn towards the mouse (away when sulking), a full spin on demand
-    let yaw = pose === 'sulk' ? Math.PI : (opts.yaw ?? 0) + lookX * 0.6;
+    let yaw = (pose === 'sulk' ? Math.PI : (opts.yaw ?? 0) + lookX * 0.6) + o.yaw;
     if (spinT >= 0) {
       spinT += dt;
       const p = Math.min(1, spinT / 1.1);
@@ -362,26 +434,29 @@ export function createKevin(canvas, opts = {}) {
       if (p >= 1) spinT = -1;
     }
     kevin.rotation.y = spinT >= 0 ? yaw : ease(kevin.rotation.y, yaw, 0.08);
-    u.head.rotation.x = ease(u.head.rotation.x, asleep ? 0.38 : lookY * 0.25, 0.08);
+    u.head.rotation.x = ease(u.head.rotation.x, (asleep ? 0.38 : lookY * 0.25) + o.headX, 0.08);
+    u.head.rotation.y = ease(u.head.rotation.y, o.headY, 0.15);
     // nod to the beat (calm breathing when asleep)
     const nod = asleep ? Math.sin(t * 1.4) * 0.02 : Math.abs(Math.sin(beat / 2));
     u.body.position.y = asleep ? 0 : nod * 0.05;
     u.head.position.y = 2.05 + (asleep ? nod : nod * 0.09);
-    u.head.rotation.z = asleep ? 0.12 : Math.sin(beat / 2) * 0.05;
-    const a = ARMS[pose] || ARMS.idle;
+    u.head.rotation.z = (asleep ? 0.12 : Math.sin(beat / 2) * 0.05) + o.headZ;
+    const pa = ARMS[pose] || ARMS.idle;
+    const a = o.arms ? pa.map((v, i) => o.arms[i] ?? v) : pa;
     const wobble = pose === 'rap' ? Math.sin(beat) * 0.25 : 0;
     u.armR.rotation.x = ease(u.armR.rotation.x, a[0], 0.12);
     u.armR.rotation.z = ease(u.armR.rotation.z, a[1], 0.12);
     u.armL.rotation.x = ease(u.armL.rotation.x, a[2] + wobble, 0.12);
     u.armL.rotation.z = ease(u.armL.rotation.z, a[3], 0.12);
     const open = talking || pose === 'rap' || pose === 'beatbox';
-    u.mouth.scale.y = ease(u.mouth.scale.y, open ? 0.35 + Math.abs(Math.sin(beat * 2)) * 0.6 : 0.05, 0.3);
+    const mouthTo = o.mouth ?? (open ? 0.35 + Math.abs(Math.sin(beat * 2)) * 0.6 : 0.05);
+    u.mouth.scale.y = ease(u.mouth.scale.y, mouthTo, 0.3);
     u.shades.visible = pose === 'cool';
     // blink every few seconds; closed when asleep, happy squint for beatbox
     const blink = (t % 4.2) < 0.12;
     const eyeY = asleep ? 0.08 : pose === 'beatbox' ? 0.35 : blink ? 0.1 : 1;
-    u.eyes.forEach(e => { e.scale.y = ease(e.scale.y, eyeY, 0.5); });
-    u.tail.rotation.y = Math.sin(t * 1.3) * 0.12;
+    u.eyes.forEach((e, i) => { e.scale.y = ease(e.scale.y, o.eyes ? Math.min(o.eyes[i], blink ? 0.1 : 9) : eyeY, 0.5); });
+    u.tail.rotation.y = Math.sin(t * 1.3) * 0.12 + o.tail;
     renderer.render(scene, cam);
   }
   requestAnimationFrame(frame);
@@ -391,6 +466,13 @@ export function createKevin(canvas, opts = {}) {
     get pose() { return pose; },
     setTalking(on) { talking = !!on; },
     spin() { spinT = 0; },
+    // a one-shot act from ACTS; returns how long it takes (ms), 0 for an unknown one
+    act(name) {
+      if (!ACTS[name]) return 0;
+      act = ACTS[name];
+      actT = 0;
+      return act[0] * 1000;
+    },
     look(x, y) { lookX = Math.max(-1, Math.min(1, x)); lookY = Math.max(-1, Math.min(1, y)); },
     setLight,
     setPaused(p) { paused = !!p; },

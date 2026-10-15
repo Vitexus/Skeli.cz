@@ -131,6 +131,7 @@
               iframe.setAttribute('allowfullscreen', '');
               box.innerHTML = '';
               box.appendChild(iframe);
+              window.dispatchEvent(new CustomEvent('kevin', { detail: { clip: 'ok' } }));
             });
           }
           bind();
@@ -374,6 +375,7 @@
             like.querySelector('i').className = (d.liked ? 'fa-solid' : 'fa-regular') + ' fa-heart';
             like.querySelector('.like-count').textContent = d.likes > 0 ? d.likes : '';
             if (d.liked) { like.classList.remove('pop'); void like.offsetWidth; like.classList.add('pop'); }
+            window.dispatchEvent(new CustomEvent('kevin', { detail: { heart: d.liked ? 'on' : 'off' } }));
           })
           .catch(function () { like.disabled = false; });
       });
