@@ -1673,6 +1673,26 @@ html.lyric-plain .fs-now, html.lyric-plain .fs-next { font-family: 'Exo 2', syst
 .k-from-black[hidden] { display: none; }
 @keyframes k-from-black { to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .k-bulbs, .k-marquee, .k-marquee-kicker { animation: none; } .k-poster, .k-feature-poster { transition: none; } }
+/* light theme: a cinema foyer by day – frosted glass and gold instead of black boxes on a bright page.
+   The sign keeps its running light in a deeper gold; the posters stay pictures, their ticket stubs go cream. */
+body.light .k-marquee {
+  background: radial-gradient(ellipse at 50% 0%, rgba(255, 200, 80, .22), transparent 62%), var(--panel-strong);
+  backdrop-filter: blur(12px); border-color: #d9a520;
+  box-shadow: 0 0 0 1px rgba(163, 123, 0, .25), 0 0 18px rgba(230, 170, 30, .45), 0 0 46px rgba(230, 150, 30, .22), var(--shadow); }
+body.light .k-bulbs { background: conic-gradient(from var(--k-a), transparent 0 62%, rgba(201, 154, 18, .5) 72%, #fff6d6 80%, #d08a1c 86%, transparent 94%);
+  filter: drop-shadow(0 0 4px rgba(230, 170, 30, .8)); }
+body.light .k-marquee-kicker { color: #8f6600; text-shadow: 0 0 8px rgba(255, 200, 60, .55); }
+body.light .k-marquee-title { background-image: linear-gradient(100deg, #e6b730, #c99a12 35%, #8f6600 70%, #b8860b); }
+body.light .k-marquee-lead { color: var(--text-dim); }
+body.light .k-feature { color: var(--text); background: var(--panel); border-color: rgba(163, 123, 0, .3); box-shadow: var(--shadow); backdrop-filter: blur(12px); }
+body.light .k-feature-bg { filter: blur(30px) saturate(1.3) brightness(1.15); opacity: .4; }
+body.light .k-feature-bg::after { background: linear-gradient(90deg, rgba(255, 255, 255, .2), rgba(255, 255, 255, .75)); }
+body.light .k-feature-poster { box-shadow: 0 0 0 1px rgba(163, 123, 0, .45), 0 22px 44px -18px rgba(0, 0, 0, .45); }
+body.light .k-feature-meta { color: var(--text-dim); }
+body.light .k-poster { background: #fff; border-color: rgba(163, 123, 0, .3); }
+body.light .k-poster:hover { border-color: #c99a12; box-shadow: 0 0 0 1px #c99a12, 0 24px 44px -20px rgba(0, 0, 0, .45), 0 0 34px -12px rgba(230, 170, 30, .5); }
+body.light .k-ticket { background: #fff8e6; color: #8f6600; border-top-color: rgba(163, 123, 0, .45); }
+body.light .k-poster:hover .k-ticket { background: #e6b730; color: #141414; }
 /* not signed in: karaoke is for members (the songs are shown, each leads through sign-in) */
 .k-members { display: flex; align-items: center; gap: 18px; margin: 0 auto 30px; max-width: 760px; padding: 18px 22px; border-radius: var(--radius);
   background: var(--panel); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); box-shadow: var(--shadow); }
