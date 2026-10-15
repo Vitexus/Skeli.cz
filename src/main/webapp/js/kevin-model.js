@@ -10,7 +10,7 @@ import { MeshoptDecoder } from './vendor/three/meshopt_decoder.module.js';
 
 // poses he stays in (looping clips)
 const POSES = { idle: 'idle', rap: 'rap', beatbox: 'silly', cool: 'bored', point: 'idle', sleep: 'lie', sulk: 'bored' };
-// one-shot acts for "Surprise me" (keys of KEVIN_LINES.surprise) → clips; null = done in code here
+// one-shot acts for "Do something" (keys of KEVIN_LINES.surprise) → clips; null = done in code here
 // (each surprise in kevin-lines.js is one of his real moves; beatbox and the rhyme dance with a beat)
 const ACTS = {
   beatbox: 'silly', rhyme: 'rap', dance: 'dance', dance2: 'dance2', dance3: 'dance3', robot: 'robot', silly: 'silly',
@@ -172,7 +172,7 @@ export function createKevin(canvas, opts = {}) {
       crossfade();
     },
     spin() { spinT = 0; },
-    // a one-shot act from "Surprise me"; returns how long it takes (ms), 0 for one he can't do
+    // a one-shot act from "Do something"; returns how long it takes (ms), 0 for one he can't do
     act(name) {
       if (CANNOT.has(name) || !(name in ACTS)) return 0;
       if (name === 'freeze') { frozenUntil = clock + 3; return 3000; }

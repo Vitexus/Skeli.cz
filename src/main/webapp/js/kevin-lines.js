@@ -22,7 +22,6 @@ window.KEVIN_LINES = {
         "Nazdar. Rozhlídni se, máme tu docela hezky. Teda díky mně.",
         "Vítej. Hudba je tamhle, obdivné pohledy na mě můžeš posílat rovnou.",
         "Čau. Jestli hledáš něco zajímavého, zkus Hudbu. Jestli něco dokonalého, právě se na to díváš.",
-        "Tak co dneska objevíme? A ne, mou misku hledat nemusíš.",
         "Vítej na webu. Boty si zouvat nemusíš. Tlapky taky ne."
       ],
       evening: [
@@ -41,7 +40,7 @@ window.KEVIN_LINES = {
       ],
       three: ["Tři hodiny. Čas běhat po bytě jako splašenej. Přidáš se?"]
     },
-    first: ["Neznám tě. Očichám tě. …Dobře, můžeš zůstat."],
+    first: [],
     back: {
       news: [
         "Jsi zpátky. A něco se tu mezitím dělo.",
@@ -52,7 +51,6 @@ window.KEVIN_LINES = {
       plain: [
         "Á, stará známá tvář. Teda aspoň podle historie návštěv.",
         "Už zase ty? Výborně. Aspoň nemusím vysvětlovat, kde co je.",
-        "Vítej zpátky. Já se mezitím nikam nedostal.",
         "Tak pokračujeme tam, kde jsme skončili. Pokud si to ještě pamatuješ."
       ]
     },
@@ -122,14 +120,12 @@ window.KEVIN_LINES = {
         "404. Stránka se někam zatoulala. Kočky to dělají pořád.",
         "Tak tohle nevyšlo. Zkusíme jinou cestu?",
         "Prázdno. Skoro jako moje miska po snídani.",
-        "Tudy ne. Zpátky na známé území.",
         "Stránka zmizela. Kdybych měl ocas jako detektor, už bych ji našel.",
         "Tuhle stránku jsem shodil ze stolu. Z principu."
       ]
     },
     // when he peeks out from the side of the screen: useful tips …
     tips: [
-      "Nemůžeš najít písničku? Zkus vyhledávání. Já hledám myši, ty tracky.",
       "Líbí se ti písnička? Dej jí ❤. Skeli to vidí. Já taky, ale dělám, že ne.",
       "Nahoře si můžeš přepnout světlý a tmavý režim. Já jsem zlatej v obou.",
       "Přihlas se a můžeš se zapojit do komentářů. Slušně, prosím. Já si rýpu jen profesionálně.",
@@ -188,8 +184,7 @@ window.KEVIN_LINES = {
         "Dvě hesla, dva různé názory.",
         "Zkus je seznámit. Zatím si moc nerozumí.",
         "Jedno z nich si žije vlastním životem.",
-        "Takhle se neshodnou ani dvě kočky u jedné misky.",
-        "Zkontroluj druhé políčko. Možná tam píše někdo jiný."
+        "Takhle se neshodnou ani dvě kočky u jedné misky."
       ],
       strong: [
         "Tak tohle už vypadá slibně. Respekt.",
@@ -251,7 +246,6 @@ window.KEVIN_LINES = {
         "Srdíčko přistálo. Někdo bude mít radost.",
         "Tak tenhle track ti sedl, co?",
         "Dobrá volba. A neříkám to jen proto, že tu bydlím.",
-        "Jedno srdce navíc. Malá věc, příjemný pocit.",
         "Kdybych měl palec, dal bych like. Mám tlapku. Dostaneš tlapku."
       ],
       off: [
@@ -286,7 +280,7 @@ window.KEVIN_LINES = {
         "Teď to nevyšlo. Zkus jiný klip nebo to za chvíli opakuj."
       ]
     },
-    menu: { hint: "Co pro tebe můžu udělat?", find: "Najdi song", play: "Pusť něco", rap: "Zarapuj", news: "Co je nového?", fun: "Překvap mě" },
+    menu: { hint: "Co pro tebe můžu udělat?", find: "Najdi song", play: "Pusť něco", rap: "Zarapuj", news: "Co je nového?", fun: "Něco udělej" },
     find: {
       prompt: [
         "Co hledáš? Název, kus textu, cokoliv. Jen po mně nechtěj, ať to zazpívám.",
@@ -396,7 +390,7 @@ window.KEVIN_LINES = {
       fistPump: "Jo! Další level odemčen.",
       laugh: "Promiň, vzpomněl jsem si na vysavač.",
       sing: "Taky umím zpívat. Sousedi o tom ví.",
-      rap: "Bars bez textu. Čistý flow.",
+      rap: "Mikrofon mám, beat mám… a text jsem zapomněl. Kočičí paměť.",
       typing: "Píšu Radkovi, ať koupí granule. Velkými písmeny.",
       stretchArms: "Moment. Musím si srovnat všechny kosti.",
       neck: "Krk mám ztuhlý, jak se na tebe pořád koukám.",
@@ -425,7 +419,6 @@ window.KEVIN_LINES = {
         "Hey. Look around, it's quite nice here. Thanks to me.",
         "Welcome. The music's over there; admiring looks can come straight to me.",
         "Hi. Looking for something interesting? Try Music. Something perfect? You're looking at it.",
-        "So what shall we discover today? And no, you don't need to look for my bowl.",
         "Welcome to the site. No need to take your shoes off. Or your paws."
       ],
       evening: [
@@ -444,7 +437,7 @@ window.KEVIN_LINES = {
       ],
       three: ["Three o'clock. Time to race round the flat like mad. Coming?"]
     },
-    first: ["I don't know you. Let me sniff you. …Fine, you can stay."],
+    first: [],
     back: {
       news: [
         "You're back. And things happened in the meantime.",
@@ -455,7 +448,6 @@ window.KEVIN_LINES = {
       plain: [
         "Ah, a familiar face. At least according to the visit history.",
         "You again? Great. At least I don't have to explain where everything is.",
-        "Welcome back. I haven't got anywhere in the meantime.",
         "Let's pick up where we left off. If you still remember."
       ]
     },
@@ -524,13 +516,11 @@ window.KEVIN_LINES = {
         "404. The page wandered off. Cats do it all the time.",
         "Well, that didn't work. Shall we try another way?",
         "Empty. Almost like my bowl after breakfast.",
-        "Not this way. Back to familiar ground.",
         "The page has vanished. If my tail were a detector, I'd have found it already.",
         "I knocked this page off the table. On principle."
       ]
     },
     tips: [
-      "Can't find a song? Try the search. I hunt mice, you hunt tracks.",
       "Like a song? Give it a ❤. Skeli sees it. So do I, but I pretend not to.",
       "Up top you can switch between the light and dark theme. I'm gold in both.",
       "Sign in and you can join the comments. Politely, please. I only tease professionally.",
@@ -588,8 +578,7 @@ window.KEVIN_LINES = {
         "Two passwords, two different opinions.",
         "Try introducing them. They don't get along yet.",
         "One of them is living its own life.",
-        "Even two cats at one bowl agree better than this.",
-        "Check the second box. Maybe someone else is typing there."
+        "Even two cats at one bowl agree better than this."
       ],
       strong: [
         "Now that looks promising. Respect.",
@@ -651,7 +640,6 @@ window.KEVIN_LINES = {
         "The heart has landed. Someone will be happy.",
         "This track hit the spot, huh?",
         "Good choice. And I'm not just saying that because I live here.",
-        "One more heart. A small thing, a nice feeling.",
         "If I had a thumb, I'd give it a like. I have a paw. You get a paw."
       ],
       off: [
@@ -684,7 +672,7 @@ window.KEVIN_LINES = {
         "That didn't work. Try another clip or try again in a moment."
       ]
     },
-    menu: { hint: "What can I do for you?", find: "Find a song", play: "Play something", rap: "Rap for me", news: "What's new?", fun: "Surprise me" },
+    menu: { hint: "What can I do for you?", find: "Find a song", play: "Play something", rap: "Rap for me", news: "What's new?", fun: "Do something" },
     find: {
       prompt: [
         "What are you looking for? A title, a bit of the lyrics, anything. Just don't ask me to sing it.",
@@ -793,7 +781,7 @@ window.KEVIN_LINES = {
       fistPump: "Yes! Next level unlocked.",
       laugh: "Sorry, I just remembered the vacuum cleaner.",
       sing: "I can sing too. The neighbours know.",
-      rap: "Bars without words. Pure flow.",
+      rap: "Got the mic, got the beat… and forgot the words. Cat memory.",
       typing: "Texting Radek to buy cat food. In capitals.",
       stretchArms: "One moment. I have to put all my bones in order.",
       neck: "Stiff neck from watching you all the time.",
@@ -822,7 +810,6 @@ window.KEVIN_LINES = {
         "Hi. Schau dich um, ganz schön hier. Dank mir.",
         "Willkommen. Die Musik ist da drüben, bewundernde Blicke direkt an mich.",
         "Hey. Suchst du was Interessantes? Probier Musik. Was Perfektes? Du siehst es gerade an.",
-        "Was entdecken wir heute? Und nein, meinen Napf musst du nicht suchen.",
         "Willkommen auf der Seite. Schuhe ausziehen musst du nicht. Pfoten auch nicht."
       ],
       evening: [
@@ -841,7 +828,7 @@ window.KEVIN_LINES = {
       ],
       three: ["Drei Uhr. Zeit, wie verrückt durch die Wohnung zu rennen. Machst du mit?"]
     },
-    first: ["Ich kenn dich nicht. Ich beschnupper dich mal. …Gut, du darfst bleiben."],
+    first: [],
     back: {
       news: [
         "Du bist zurück. Und inzwischen ist was passiert.",
@@ -852,7 +839,6 @@ window.KEVIN_LINES = {
       plain: [
         "Ah, ein bekanntes Gesicht. Zumindest laut Besuchsverlauf.",
         "Schon wieder du? Prima. Dann muss ich nicht erklären, wo was ist.",
-        "Willkommen zurück. Ich bin inzwischen nirgendwo hingekommen.",
         "Machen wir weiter, wo wir aufgehört haben. Falls du dich noch erinnerst."
       ]
     },
@@ -921,13 +907,11 @@ window.KEVIN_LINES = {
         "404. Die Seite hat sich verlaufen. Katzen machen das ständig.",
         "Das hat nicht geklappt. Versuchen wir einen anderen Weg?",
         "Leer. Fast wie mein Napf nach dem Frühstück.",
-        "Hier nicht lang. Zurück auf bekanntes Gebiet.",
         "Die Seite ist verschwunden. Wäre mein Schwanz ein Detektor, hätt ich sie schon gefunden.",
         "Diese Seite hab ich vom Tisch geschubst. Aus Prinzip."
       ]
     },
     tips: [
-      "Findest du einen Song nicht? Probier die Suche. Ich such Mäuse, du Tracks.",
       "Gefällt dir ein Song? Gib ihm ein ❤. Skeli sieht das. Ich auch, aber ich tu so, als nicht.",
       "Oben kannst du zwischen hellem und dunklem Modus wechseln. Ich bin in beiden golden.",
       "Melde dich an und mach bei den Kommentaren mit. Höflich, bitte. Ich stichel nur professionell.",
@@ -985,8 +969,7 @@ window.KEVIN_LINES = {
         "Zwei Passwörter, zwei Meinungen.",
         "Stell sie einander vor. Noch verstehen sie sich nicht.",
         "Eins von beiden führt ein Eigenleben.",
-        "So uneinig sind nicht mal zwei Katzen an einem Napf.",
-        "Prüf das zweite Feld. Vielleicht tippt da jemand anders."
+        "So uneinig sind nicht mal zwei Katzen an einem Napf."
       ],
       strong: [
         "Das sieht schon vielversprechend aus. Respekt.",
@@ -1048,7 +1031,6 @@ window.KEVIN_LINES = {
         "Das Herz ist gelandet. Da freut sich jemand.",
         "Der Track hat gesessen, was?",
         "Gute Wahl. Und das sag ich nicht nur, weil ich hier wohne.",
-        "Ein Herz mehr. Kleine Sache, schönes Gefühl.",
         "Hätte ich einen Daumen, gäb's ein Like. Ich hab eine Pfote. Du kriegst eine Pfote."
       ],
       off: [
@@ -1081,7 +1063,7 @@ window.KEVIN_LINES = {
         "Hat nicht geklappt. Probier einen anderen Clip oder gleich nochmal."
       ]
     },
-    menu: { hint: "Was kann ich für dich tun?", find: "Song finden", play: "Spiel was", rap: "Rapp mal", news: "Was gibt's Neues?", fun: "Überrasch mich" },
+    menu: { hint: "Was kann ich für dich tun?", find: "Song finden", play: "Spiel was", rap: "Rapp mal", news: "Was gibt's Neues?", fun: "Mach was" },
     find: {
       prompt: [
         "Was suchst du? Titel, ein Stück Text, egal. Nur verlang nicht, dass ich's singe.",
@@ -1190,7 +1172,7 @@ window.KEVIN_LINES = {
       fistPump: "Ja! Nächstes Level freigeschaltet.",
       laugh: "Sorry, mir ist gerade der Staubsauger eingefallen.",
       sing: "Singen kann ich auch. Die Nachbarn wissen das.",
-      rap: "Bars ohne Text. Purer Flow.",
+      rap: "Mikro hab ich, Beat hab ich… und den Text vergessen. Katzengedächtnis.",
       typing: "Ich schreib Radek, er soll Katzenfutter kaufen. In Großbuchstaben.",
       stretchArms: "Moment. Ich muss alle Knochen sortieren.",
       neck: "Steifer Nacken, weil ich dich ständig anschaue.",
@@ -1219,7 +1201,6 @@ window.KEVIN_LINES = {
         "Привіт. Озирнися, тут доволі гарно. Завдяки мені.",
         "Ласкаво просимо. Музика он там, захоплені погляди можна надсилати одразу мені.",
         "Привіт. Шукаєш щось цікаве? Спробуй Музику. Щось досконале? Ти якраз на це дивишся.",
-        "Ну що відкриємо сьогодні? І ні, мою миску шукати не треба.",
         "Ласкаво просимо на сайт. Взуття знімати не треба. Лапи теж."
       ],
       evening: [
@@ -1238,7 +1219,7 @@ window.KEVIN_LINES = {
       ],
       three: ["Третя година. Час гасати по квартирі як навіжений. Приєднаєшся?"]
     },
-    first: ["Я тебе не знаю. Обнюхаю. …Гаразд, можеш лишитися."],
+    first: [],
     back: {
       news: [
         "Ти повернувся(-лася). А тут тим часом дещо сталося.",
@@ -1249,7 +1230,6 @@ window.KEVIN_LINES = {
       plain: [
         "О, знайоме обличчя. Принаймні за історією відвідувань.",
         "Знову ти? Чудово. Хоч не треба пояснювати, де що.",
-        "З поверненням. Я тим часом нікуди не дійшов.",
         "Продовжимо, де зупинилися. Якщо ти ще пам'ятаєш."
       ]
     },
@@ -1318,13 +1298,11 @@ window.KEVIN_LINES = {
         "404. Сторінка кудись забрела. Коти так роблять постійно.",
         "Не вийшло. Спробуємо інший шлях?",
         "Порожньо. Майже як моя миска після сніданку.",
-        "Не сюди. Назад на знайому територію.",
         "Сторінка зникла. Якби мій хвіст був детектором, я б її вже знайшов.",
         "Цю сторінку я скинув зі столу. З принципу."
       ]
     },
     tips: [
-      "Не можеш знайти пісню? Спробуй пошук. Я шукаю мишей, ти — треки.",
       "Подобається пісня? Постав їй ❤. Скелі це бачить. Я теж, але вдаю, що ні.",
       "Угорі можна перемкнути світлий і темний режим. Я золотий в обох.",
       "Увійди — і зможеш долучитися до коментарів. Чемно, будь ласка. Я дражнюся лише професійно.",
@@ -1382,8 +1360,7 @@ window.KEVIN_LINES = {
         "Два паролі, дві різні думки.",
         "Познайом їх. Поки що вони не дуже ладнають.",
         "Один із них живе власним життям.",
-        "Так не сперечаються навіть два коти біля однієї миски.",
-        "Перевір друге поле. Може, там пише хтось інший."
+        "Так не сперечаються навіть два коти біля однієї миски."
       ],
       strong: [
         "Ось це вже виглядає багатообіцяюче. Респект.",
@@ -1445,7 +1422,6 @@ window.KEVIN_LINES = {
         "Сердечко приземлилося. Хтось зрадіє.",
         "Цей трек зайшов, так?",
         "Гарний вибір. І я кажу це не лише тому, що тут живу.",
-        "На одне серце більше. Дрібниця, а приємно.",
         "Якби в мене був великий палець, я б поставив лайк. У мене лапа. Отримуй лапу."
       ],
       off: [
@@ -1478,7 +1454,7 @@ window.KEVIN_LINES = {
         "Зараз не вийшло. Спробуй інший кліп або повтори за хвилинку."
       ]
     },
-    menu: { hint: "Що я можу для тебе зробити?", find: "Знайди пісню", play: "Увімкни щось", rap: "Зачитай", news: "Що нового?", fun: "Здивуй мене" },
+    menu: { hint: "Що я можу для тебе зробити?", find: "Знайди пісню", play: "Увімкни щось", rap: "Зачитай", news: "Що нового?", fun: "Зроби щось" },
     find: {
       prompt: [
         "Що шукаєш? Назву, шматок тексту, будь-що. Тільки не проси заспівати.",
@@ -1587,7 +1563,7 @@ window.KEVIN_LINES = {
       fistPump: "Так! Новий рівень відкрито.",
       laugh: "Вибач, згадав пилосос.",
       sing: "Я теж умію співати. Сусіди знають.",
-      rap: "Бари без тексту. Чистий флоу.",
+      rap: "Мікрофон є, біт є… а текст я забув. Котяча пам’ять.",
       typing: "Пишу Радекові, щоб купив корм. Великими літерами.",
       stretchArms: "Хвилинку. Мушу розкласти всі кістки по місцях.",
       neck: "Шия затерпла, бо весь час дивлюся на тебе.",
@@ -1616,7 +1592,6 @@ window.KEVIN_LINES = {
         "Chào. Nhìn quanh đi, ở đây khá đẹp. Nhờ tôi đấy.",
         "Chào mừng. Nhạc ở đằng kia, ánh mắt ngưỡng mộ thì gửi thẳng cho tôi.",
         "Chào. Tìm gì đó thú vị thì thử mục Nhạc. Tìm gì đó hoàn hảo thì bạn đang nhìn nó đấy.",
-        "Hôm nay mình khám phá gì đây? Và không, không cần tìm bát ăn của tôi.",
         "Chào mừng đến với trang web. Không cần cởi giày. Cả chân mèo cũng không."
       ],
       evening: [
@@ -1635,7 +1610,7 @@ window.KEVIN_LINES = {
       ],
       three: ["Ba giờ sáng. Đến giờ chạy khắp nhà như điên. Tham gia không?"]
     },
-    first: ["Tôi không biết bạn. Để tôi ngửi thử. …Được rồi, bạn ở lại được."],
+    first: [],
     back: {
       news: [
         "Bạn quay lại rồi. Và trong lúc đó có chuyện xảy ra.",
@@ -1646,7 +1621,6 @@ window.KEVIN_LINES = {
       plain: [
         "À, gương mặt quen. Ít nhất là theo lịch sử truy cập.",
         "Lại là bạn à? Tuyệt. Đỡ phải giải thích cái gì ở đâu.",
-        "Chào mừng trở lại. Trong lúc đó tôi chẳng đi đâu cả.",
         "Tiếp tục từ chỗ ta dừng lại nhé. Nếu bạn còn nhớ."
       ]
     },
@@ -1715,13 +1689,11 @@ window.KEVIN_LINES = {
         "404. Trang này đi lạc đâu mất. Mèo làm thế suốt.",
         "Không được rồi. Thử đường khác nhé?",
         "Trống trơn. Gần giống bát của tôi sau bữa sáng.",
-        "Không phải lối này. Quay về chỗ quen thuộc thôi.",
         "Trang biến mất rồi. Nếu đuôi tôi là máy dò, tôi đã tìm ra nó rồi.",
         "Tôi đã gạt trang này khỏi bàn. Vì nguyên tắc."
       ]
     },
     tips: [
-      "Không tìm được bài? Thử tìm kiếm đi. Tôi săn chuột, bạn săn bài.",
       "Thích bài nào à? Thả ❤ cho nó. Skeli thấy đấy. Tôi cũng thấy, nhưng giả vờ không.",
       "Ở trên cùng có thể đổi chế độ sáng và tối. Tôi vàng óng ở cả hai.",
       "Đăng nhập là tham gia bình luận được. Lịch sự nhé. Tôi chỉ châm chọc chuyên nghiệp thôi.",
@@ -1779,8 +1751,7 @@ window.KEVIN_LINES = {
         "Hai mật khẩu, hai ý kiến khác nhau.",
         "Giới thiệu chúng với nhau đi. Chúng chưa hợp nhau lắm.",
         "Một trong hai đang sống cuộc đời riêng.",
-        "Đến hai con mèo bên một cái bát còn hợp nhau hơn.",
-        "Kiểm tra ô thứ hai. Có khi ai khác đang gõ ở đó."
+        "Đến hai con mèo bên một cái bát còn hợp nhau hơn."
       ],
       strong: [
         "Cái này trông hứa hẹn đấy. Nể.",
@@ -1842,7 +1813,6 @@ window.KEVIN_LINES = {
         "Trái tim đã hạ cánh. Ai đó sẽ vui lắm.",
         "Bài này hợp với bạn nhỉ?",
         "Lựa chọn tốt. Và tôi không nói vậy chỉ vì tôi sống ở đây.",
-        "Thêm một trái tim. Chuyện nhỏ, cảm giác dễ chịu.",
         "Nếu có ngón cái, tôi đã bấm like. Tôi có chân mèo. Bạn nhận chân mèo."
       ],
       off: [
@@ -1875,7 +1845,7 @@ window.KEVIN_LINES = {
         "Lần này không được. Thử clip khác hoặc lát nữa thử lại."
       ]
     },
-    menu: { hint: "Tôi có thể làm gì cho bạn?", find: "Tìm bài hát", play: "Bật gì đó", rap: "Rap đi", news: "Có gì mới?", fun: "Làm tôi bất ngờ" },
+    menu: { hint: "Tôi có thể làm gì cho bạn?", find: "Tìm bài hát", play: "Bật gì đó", rap: "Rap đi", news: "Có gì mới?", fun: "Làm gì đi" },
     find: {
       prompt: [
         "Bạn tìm gì? Tên bài, một đoạn lời, gì cũng được. Chỉ đừng bắt tôi hát.",
@@ -1984,7 +1954,7 @@ window.KEVIN_LINES = {
       fistPump: "Yeah! Mở khóa cấp độ mới.",
       laugh: "Xin lỗi, tôi vừa nhớ ra cái máy hút bụi.",
       sing: "Tôi cũng biết hát. Hàng xóm biết rõ.",
-      rap: "Rap không lời. Toàn flow.",
+      rap: "Có mic, có beat… mà quên mất lời. Trí nhớ mèo.",
       typing: "Đang nhắn Radek mua đồ ăn cho mèo. Viết hoa hết.",
       stretchArms: "Chờ chút. Phải sắp xếp lại hết xương đã.",
       neck: "Cứng cổ vì cứ nhìn bạn suốt.",
@@ -2026,7 +1996,7 @@ window.KEVIN_LINES = {
       register: ["Jo, vím. Další účet. Ale aspoň ti nebudu posílat 48 e-mailů denně."]
     },
     tips: ["Komentáře: napiš něco chytrýho. A kdyby někdo zlobil, admin má tlačítko Smazat."],
-    auth: { welcome: ["Tak vítej v klubu. Nic za to nedostaneš.", "Účet vytvořen. Tak teď už oficiálně patříš k nám."] },
+    auth: { welcome: ["Účet vytvořen. Tak teď už oficiálně patříš k nám."] },
     heart: { on: ["No konečně někdo s vkusem."], off: ["…"] },
     comment: { added: ["Dobře. To nebylo úplně blbý.", "Komentář proletěl internetem a přežil.", "Kontroluju… Hmm… Tohle projde."] },
     clip: { fail: ["Technika tvrdí, že za to nemůže. Já tvrdím, že může."] },
@@ -2051,7 +2021,7 @@ window.KEVIN_LINES = {
       register: ["Yes, I know. Another account. But at least I won't send you 48 e-mails a day."]
     },
     tips: ["Comments: write something clever. And if anyone misbehaves, the admin has a Delete button."],
-    auth: { welcome: ["Welcome to the club. You don't get anything for it.", "Account created. Now you're officially one of us."] },
+    auth: { welcome: ["Account created. Now you're officially one of us."] },
     heart: { on: ["Finally someone with taste."], off: ["…"] },
     comment: { added: ["Fine. That wasn't totally dumb.", "Your comment flew across the internet and survived.", "Checking… Hmm… That'll pass."] },
     clip: { fail: ["The tech says it's not to blame. I say it is."] },
@@ -2076,7 +2046,7 @@ window.KEVIN_LINES = {
       register: ["Ja, ich weiß. Noch ein Konto. Aber wenigstens schick ich dir keine 48 E-Mails am Tag."]
     },
     tips: ["Kommentare: Schreib was Kluges. Und falls sich jemand danebenbenimmt, hat der Admin einen Löschknopf."],
-    auth: { welcome: ["Willkommen im Club. Du kriegst nichts dafür.", "Konto erstellt. Jetzt gehörst du offiziell zu uns."] },
+    auth: { welcome: ["Konto erstellt. Jetzt gehörst du offiziell zu uns."] },
     heart: { on: ["Endlich jemand mit Geschmack."], off: ["…"] },
     comment: { added: ["Gut. Das war nicht ganz blöd.", "Dein Kommentar ist durchs Internet geflogen und hat überlebt.", "Ich prüfe… Hmm… Das geht durch."] },
     clip: { fail: ["Die Technik sagt, sie ist nicht schuld. Ich sage, doch."] },
@@ -2101,7 +2071,7 @@ window.KEVIN_LINES = {
       register: ["Так, знаю. Ще один акаунт. Зате я не надсилатиму тобі 48 листів на день."]
     },
     tips: ["Коментарі: напиши щось розумне. А якщо хтось бешкетуватиме, в адміна є кнопка Видалити."],
-    auth: { welcome: ["Ласкаво просимо до клубу. Нічого за це не отримаєш.", "Акаунт створено. Тепер ти офіційно з нами."] },
+    auth: { welcome: ["Акаунт створено. Тепер ти офіційно з нами."] },
     heart: { on: ["Нарешті хтось зі смаком."], off: ["…"] },
     comment: { added: ["Добре. Це було не зовсім дурне.", "Коментар пролетів інтернетом і вижив.", "Перевіряю… Хм… Це пройде."] },
     clip: { fail: ["Техніка каже, що вона не винна. А я кажу, що винна."] },
@@ -2126,7 +2096,7 @@ window.KEVIN_LINES = {
       register: ["Ừ, biết rồi. Thêm một tài khoản. Nhưng ít ra tôi không gửi bạn 48 email mỗi ngày."]
     },
     tips: ["Bình luận: viết gì đó thông minh nhé. Ai quậy thì admin có nút Xóa."],
-    auth: { welcome: ["Chào mừng vào hội. Không được gì đâu.", "Đã tạo tài khoản. Giờ bạn chính thức là người nhà rồi."] },
+    auth: { welcome: ["Đã tạo tài khoản. Giờ bạn chính thức là người nhà rồi."] },
     heart: { on: ["Cuối cùng cũng có người có gu."], off: ["…"] },
     comment: { added: ["Được. Cái đó không ngớ ngẩn lắm.", "Bình luận đã bay qua internet và sống sót.", "Đang kiểm tra… Hừm… Cái này qua."] },
     clip: { fail: ["Kỹ thuật bảo không phải lỗi của nó. Tôi bảo là có."] },

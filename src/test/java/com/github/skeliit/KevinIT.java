@@ -134,15 +134,16 @@ class KevinIT extends UiTestSupport {
     }
 
     @Test
-    @DisplayName("'Surprise me' goes through a shuffled deck: no surprise twice until all have been")
+    @DisplayName("'Do something' goes through a shuffled deck: no surprise twice until all have been")
     void surpriseNeverRepeats() throws Exception {
         openWithKevin("/", "sessionStorage.setItem('kevinHello','1');");
         jsClick(waitFor(".kevin-paw"));   // he starts a moment after the page: wait for his paw
         JavascriptExecutor js = (JavascriptExecutor) driver;
         java.util.Set<String> seen = new java.util.HashSet<>();
         for (int i = 0; i < 8; i++) {
-            // a beatbox keeps him busy for a few seconds: the first click then only stops it
-            new WebDriverWait(driver, Duration.ofSeconds(10)).until(d -> {
+            // a beatbox keeps him busy for a few seconds: the first click then only stops it. Clicks 3 s apart:
+            // five quick ones in a row would be his "stop clicking me" joke instead of the menu
+            new WebDriverWait(driver, Duration.ofSeconds(20), Duration.ofSeconds(3)).until(d -> {
                 if (d.findElements(By.cssSelector(".kevin-menu .kevin-chip")).size() < 5) js.executeScript("document.querySelector('.kevin-body').click()");
                 return d.findElements(By.cssSelector(".kevin-menu .kevin-chip")).size() >= 5;
             });

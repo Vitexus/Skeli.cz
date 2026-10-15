@@ -230,7 +230,7 @@
     if (el.closest('.kevin, .kevin-paw, .bg-slides')) return true;   // the background photos are background
     return !el.closest('a, button, input, select, textarea, label, img, picture, video, iframe, canvas, svg, '
       + 'p, h1, h2, h3, h4, h5, li, pre, blockquote, figure, table, header, footer, nav, form, aside, article, section, '
-      + '.card, .tape, .photo-band, .cookie-bar, [class*="spotify"], .notif-panel');
+      + '.card, .tape, .photo-band, .cookie-bar, [class*="spotify"], .sp-bar, .sp-minbar, #sp-min, .notif-panel');
   }
   function boxFree(x0, w, y0, h) {
     for (var gx = 0; gx <= 5; gx++) {
@@ -416,7 +416,7 @@
     };
   }
 
-  // a short meow or a purr (only from "Surprise me", so always after a click), synthesised
+  // a short meow or a purr (only from "Do something", so always after a click), synthesised
   function sfx(kind) {
     if (!soundOn) return;
     try {
@@ -657,7 +657,7 @@
     });
   }
 
-  // "Surprise me": a shuffled deck of everything in L.surprise, none again until all of them have been
+  // "Do something": a shuffled deck of everything in L.surprise, none again until all of them have been
   // (the deck lives in the browser session, so a new page does not start it over)
   var BIG_SURPRISES = ['beatbox', 'rhyme', 'dance', 'dance2', 'dance3', 'robot', 'silly', 'breakdance', 'flair', 'kick', 'dive', 'cheer', 'jump'];
   function nextSurprise() {
@@ -849,11 +849,54 @@
   }
 
   // ---------- now and then he takes a walk along the bottom edge of the window ----------
-  // A second, small Kevin (his own canvas; the model comes from the browser's cache) walks in from one side, sometimes
+  // A second, small Kevin (his own canvas; the model comes from the browser's cache) jumps up onto the top edge of a card
+  // low in the window and walks along it (or, with no card there, along the bottom edge of the window), sometimes
   // stops to look round or wave, and walks out on the other. PC only (no room on a phone), never while the visitor
   // types, while Kevin is out talking, in the admin, when he was sent away with the cross, with reduced motion or
   // save-data. A click on him opens his menu.
   var walker = null, walkK = null, walking = false;
+  // where his feet are in his picture (the walker's camera: view below), as a share of its height
+  var WALK_FEET = (1 + 1 / (5.0 * Math.tan(15 * Math.PI / 180))) / 2;
+  // the surfaces he can walk on: cards and panels of the page, the footer
+  var SURFACES = '.card, .admin-card, .prose-card, .side-card, .about-card, .card-gold, .acct-card, .auth-card, .feature-card, '
+    + '.song-row, .disco-card, .news-card, .quote-card, .donate-card, .feedback-card, .site-footer, footer';
+  // the lowest top edge in the window (not under the header bar) with a free stretch above it, where he covers
+  // nothing: columns every 20 px are probed every 12 px up to his height over the edge (Kevin never covers content); he walks
+  // only along the longest free run
+  // free for a walk: empty space, also inside a section or column that only holds the cards (the gap between them);
+  // another card, text, a picture, a control, the header or the tapes are not
+  function walkFree(el) {
+    if (!el || el === document.documentElement || el === document.body) return true;
+    if (el.closest('.kevin, .kevin-paw, .bg-slides')) return true;
+    return !el.closest(SURFACES + ', a, button, input, select, textarea, label, img, picture, video, iframe, canvas, svg, '
+      + 'p, h1, h2, h3, h4, h5, li, pre, blockquote, figure, table, .site-header, nav, form, .tape, .photo-band, '
+      + '.cookie-bar, [class*="spotify"], .sp-bar, .sp-minbar, #sp-min, .notif-panel');
+  }
+  // the longest free stretch over a horizontal edge at y (window coordinates) between from and to, 260 px at least
+  function freeRun(y, from, to) {
+    var run = null, cur = null;
+    for (var x = from + 10; x <= to - 10; x += 20) {
+      var free = [6, 18, 30, 42, 54, 66, 78, 90, 102, 114, 124].every(function (dy) { return walkFree(document.elementFromPoint(x, y - dy)); });
+      if (free) { if (!cur) cur = { left: x - 10 }; cur.right = x + 10; if (!run || cur.right - cur.left > run.right - run.left) run = { left: cur.left, right: cur.right }; }
+      else cur = null;
+    }
+    return run && run.right - run.left >= 260 ? run : null;
+  }
+  // { el, r: {top, left, right} }: a card's edge (el) or the window's bottom edge (el null), null = no free ground now
+  function findSurface() {
+    var best = null, H = window.innerHeight, W = window.innerWidth, top = (document.querySelector('.site-header') || { getBoundingClientRect: function () { return { bottom: 0 }; } }).getBoundingClientRect().bottom;
+    document.querySelectorAll(SURFACES).forEach(function (el) {
+      if (root.contains(el) || !el.offsetParent) return;
+      var b = el.getBoundingClientRect();
+      if (b.top < top + 150 || b.top > H - 30 || (best && b.top <= best.r.top)) return;
+      // only the part of the edge inside the window (a card in a carousel may stick out)
+      var run = freeRun(b.top, Math.max(b.left, 8), Math.min(b.right, W - 8));
+      if (run) best = { el: el, r: { top: b.top, left: run.left, right: run.right } };
+    });
+    if (best) return best;
+    var low = freeRun(H, 0, W);
+    return low ? { el: null, r: { top: H, left: low.left, right: low.right } } : null;
+  }
   function canWalk() {
     return !adminPage && !userHidden && !reduced && !saveData && wideMq.matches && !document.hidden
       && root.hidden && !busy && !isField(document.activeElement) && store.get('kevinLite') !== '1';
@@ -869,6 +912,7 @@
       walker = document.createElement('button');
       walker.type = 'button';
       walker.className = 'kevin-walker';
+      walker.hidden = true;
       walker.setAttribute('aria-label', L.ui.call);
       walker.innerHTML = '<canvas aria-hidden="true"></canvas>';
       walker.addEventListener('click', function () { endWalk(); paw.click(); });
@@ -876,21 +920,75 @@
     }
     var go = function () {
       walking = true;
-      var dir = Math.random() < 0.5 ? 1 : -1, W = window.innerWidth, w = walker.offsetWidth || 130;
-      // the right third stays clear of the Spotify button; a cardboard box on the way now and then (cats and boxes)
-      var x = dir > 0 ? -w : W, stopAt = W * (0.25 + Math.random() * 0.4), stopped = false, last = performance.now();
-      var box = boxNext || Math.random() < 0.35 ? cardboardBox(stopAt) : null;
-      boxNext = false;
+      // the ground: the top edge of a card or panel low in the window (he walks on it and moves with the page), or
+      // else the bottom edge of the window itself; the feet stand exactly on it (WALK_FEET = where they are in his picture)
+      // (looked for while he is still hidden: he isn't in the way). Nowhere free: no walk this time.
+      var s = findSurface(), x0, x1, ground = null, sy = window.scrollY, fromSide = false, toSide = false;
+      if (!s) { walking = false; return scheduleWalk(); }
       walker.hidden = false;
+      var w = walker.offsetWidth || 130, h = walker.offsetHeight || 150, c = walker.querySelector('canvas');
+      x0 = s.r.left - w * 0.3;
+      x1 = s.r.right - w * 0.7;
+      if (s.el) {
+        x0 += window.scrollX;
+        x1 += window.scrollX;
+        ground = s.r.top + window.scrollY;
+        Object.assign(walker.style, { position: 'absolute', top: (ground - WALK_FEET * h + 1) + 'px', bottom: 'auto' });
+      } else {
+        // the window's edge: where the free stretch reaches the side of the window he walks in or out from there
+        if (s.r.left < 20) { x0 = -w; fromSide = true; }
+        if (s.r.right > window.innerWidth - 20) { x1 = window.innerWidth; toSide = true; }
+        Object.assign(walker.style, { position: 'fixed', top: 'auto', bottom: (-(1 - WALK_FEET) * h) + 'px' });
+      }
+      var dir = Math.random() < 0.5 ? 1 : -1, x = dir > 0 ? x0 : x1;
+      var inFromSide = dir > 0 ? fromSide : toSide, outToSide = dir > 0 ? toSide : fromSide;
+      var stopAt = x0 + w / 2 + (x1 - x0) * (0.25 + Math.random() * 0.5), stopped = false, last = performance.now();
+      // the box (160 px) must stand whole on the free stretch
+      var rl = s.r.left + (s.el ? window.scrollX : 0), rr = s.r.right + (s.el ? window.scrollX : 0);
+      stopAt = Math.min(Math.max(stopAt, rl + 85), rr - 85);
+      // a cardboard box on the way now and then (cats and boxes), on the same ground
+      var box = boxNext && x1 - x0 > 320 ? cardboardBox(stopAt, ground) : null;   // only on request (tests) until the box has a real look
+      boxNext = false;
+      walker.style.transform = 'translateX(' + x + 'px)';
       walkK.setPaused(false);
-      walkK.turn(dir * Math.PI / 2);
-      walkK.hold('walk');
-      (function step(now) {
+      var goOn = function () { if (!walking) return; walkK.turn(dir * Math.PI / 2); walkK.hold('walk'); last = performance.now(); requestAnimationFrame(step); };
+      // he jumps up onto his ground at one end (or walks in from the side of the window)
+      if (!inFromSide) {
+        walkK.turn(dir * Math.PI / 2);
+        walkK.once('jump');
+        walker.classList.add('airborne');
+        c.animate([{ transform: 'translateY(' + h * 0.5 + 'px)', opacity: 0 }, { transform: 'translateY(' + -h * 0.22 + 'px)', opacity: 1, offset: 0.55 }, { transform: 'translateY(0)', opacity: 1 }],
+          { duration: 900, easing: 'ease-out', fill: 'forwards' });
+        setTimeout(function () { walker.classList.remove('airborne'); goOn(); }, 900);
+      } else { walker.classList.remove('airborne'); goOn(); }
+      // at the far end he jumps off the card and is gone
+      function jumpOff() {
+        walkK.once('jump');
+        walker.classList.add('airborne');
+        c.animate([{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(' + -h * 0.22 + 'px)', opacity: 1, offset: 0.4 }, { transform: 'translateY(' + h * 0.6 + 'px)', opacity: 0 }],
+          { duration: 900, easing: 'ease-in', fill: 'forwards' }).onfinish = endWalk;
+      }
+      // the card stays his ground: it moved (an image loaded above it) → he moves with it; it is gone (another
+      // page) or scrolled far out of sight → the walk is over. On the window's edge the page must not scroll under
+      // him (he would cover it).
+      function onGround() {
+        if (ground == null) return Math.abs(window.scrollY - sy) < 30;
+        if (!s.el.isConnected) return false;
+        var top = s.el.getBoundingClientRect().top;
+        if (top < -200 || top > window.innerHeight + 200) return false;
+        if (Math.abs(top + window.scrollY - ground) > 0.5) {
+          ground = top + window.scrollY;
+          walker.style.top = (ground - WALK_FEET * h + 1) + 'px';
+          if (box) box.moveTo(ground);
+        }
+        return true;
+      }
+      function step(now) {
         if (!walking) return;
+        if (!onGround()) return ground != null && !s.el.isConnected ? endWalk() : jumpOff();
         var dt = Math.min(0.1, (now - last) / 1000);
         last = now;
         var there = dir > 0 ? x + w / 2 >= stopAt : x + w / 2 <= stopAt;
-        var goOn = function () { if (!walking) return; walkK.turn(dir * Math.PI / 2); walkK.hold('walk'); last = performance.now(); requestAnimationFrame(step); };
         // the box: he jumps in, peeks out over its edge for a while, jumps out and goes on
         if (!stopped && there && box) {
           stopped = true;
@@ -908,9 +1006,9 @@
         if (!stopped && (dir > 0 ? x + w / 2 >= stopAt : x + w / 2 <= stopAt)) stopped = true;
         x += dir * 95 * dt;   // about his stride at this size
         walker.style.transform = 'translateX(' + x + 'px)';
-        if ((dir > 0 && x > W) || (dir < 0 && x < -w)) return endWalk();
+        if ((dir > 0 && x >= x1) || (dir < 0 && x <= x0)) return outToSide ? endWalk() : jumpOff();
         requestAnimationFrame(step);
-      })(last);
+      }
     };
     if (walkK) return go();
     import('/js/kevin-model.js' + (version ? '?' + version : '')).then(function (m) {
@@ -927,10 +1025,11 @@
       });
     }).catch(function () { /* no walk this time */ });
   }
-  // a cardboard box on the bottom edge, its middle at x: the back (inside and back flaps) behind Kevin, the front
-  // panel in front of him, so in the box only his head shows over its edge
+  // a cardboard box on his ground (a card's top edge in the page at `ground`, or null = the window's bottom edge),
+  // its middle at x: the back (inside and back flaps) behind Kevin, the front panel in front of him, so in the box
+  // only his head shows over its edge
   var boxNext = false;
-  function cardboardBox(x) {
+  function cardboardBox(x, ground) {
     var back = document.createElement('div'), front = document.createElement('div');
     back.className = 'kevin-box kevin-box-back';
     front.className = 'kevin-box kevin-box-front';
@@ -942,23 +1041,32 @@
       + '<path d="M14 52 L146 52 L146 60 L14 60 Z" fill="#a2743f"/><path d="M14 52 L4 74 L60 70 L72 52 Z" fill="#d3a56b"/>'
       + '<path d="M146 52 L156 74 L100 70 L88 52 Z" fill="#c99b60"/><rect x="72" y="52" width="16" height="66" fill="#d9c08f" opacity=".75"/>'
       + '<text x="80" y="98" text-anchor="middle" font-size="11" font-family="Arial Black, sans-serif" fill="#5a3a18" opacity=".7" transform="rotate(-4 80 98)">SKELO SQUAD</text></svg>';
-    [back, front].forEach(function (el) { el.style.left = (x - 80) + 'px'; document.body.appendChild(el); });
-    return { back: back, front: front, remove: function () { [back, front].forEach(function (el) { el.classList.add('gone'); setTimeout(function () { el.remove(); }, 900); }); } };
+    // its bottom (y 118 of 120 in the picture) stands on the edge
+    var moveTo = function (g) { [back, front].forEach(function (el) { el.style.top = (g - 118) + 'px'; }); };
+    [back, front].forEach(function (el) {
+      el.style.left = (x - 80) + 'px';
+      if (ground != null) el.classList.add('on-card');
+      document.body.appendChild(el);
+    });
+    if (ground != null) moveTo(ground);
+    return { back: back, front: front, moveTo: moveTo, remove: function () { [back, front].forEach(function (el) { el.classList.add('gone'); setTimeout(function () { el.remove(); }, 900); }); } };
   }
   // up, then down into the box (only the head over its edge), a look round, up and out again
   function intoTheBox(box, then) {
     var c = walker.querySelector('canvas');
     walkK.turn(0);
     walkK.once('jump');
-    c.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-60px)', offset: 0.45 }, { transform: 'translateY(24px)' }],
+    c.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-60px)', offset: 0.45 }, { transform: 'translateY(12px)' }],
       { duration: 1100, easing: 'ease-in-out', fill: 'forwards' });
     setTimeout(function () {
       if (!walking) return;
-      walkK.hold('lookAround');
+      // he stands in it and only turns his head: left, right, at you (the lookAround clip bends him down out of sight)
+      walkK.hold('idle');
+      [[-0.9, 0.1, 0], [0.9, 0.1, 1100], [0, 0.25, 2300]].forEach(function (l) { setTimeout(function () { if (walking) walkK.look(l[0], l[1]); }, l[2]); });
       setTimeout(function () {
         if (!walking) return;
         walkK.once('jump');
-        c.animate([{ transform: 'translateY(24px)' }, { transform: 'translateY(-60px)', offset: 0.5 }, { transform: 'translateY(0)' }],
+        c.animate([{ transform: 'translateY(12px)' }, { transform: 'translateY(-60px)', offset: 0.5 }, { transform: 'translateY(0)' }],
           { duration: 1100, easing: 'ease-in-out', fill: 'forwards' });
         setTimeout(function () { box.remove(); then(); }, 1100);
       }, 3600);

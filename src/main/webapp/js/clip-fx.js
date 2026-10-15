@@ -67,7 +67,7 @@
     img.onload = function () {
       if (clipId !== id) return;
       var W = 16, c = document.createElement('canvas'); c.width = W; c.height = 64;
-      var x = c.getContext('2d'); x.drawImage(img, 0, 0, W, 64);
+      var x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0, W, 64);
       var px = x.getImageData(0, 0, W, 64).data;
       var lum = function (y) { var s = 0; for (var i = 0; i < W; i++) { var o = (y * W + i) * 4; s += px[o] + px[o + 1] + px[o + 2]; } return s / W / 3; };
       var top = 0, bot = 63; while (top < 30 && lum(top) < 14) top++; while (bot > 34 && lum(bot) < 14) bot--;   // skip black bars
