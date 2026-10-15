@@ -265,39 +265,57 @@ body.light .report-actions .btn-dismiss { background: transparent; color: var(--
   line-height: 1.45;
 }
 
-/* the admin's bar */
-.admin-bar {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin: 0 0 28px;
-  padding: 8px 8px 8px 18px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-  background: var(--panel);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: var(--shadow);
-  overflow-x: auto;
-  scrollbar-width: none;
+/* the admin's side menu (includes/admin-nav.jspf): on a phone one button that opens the list,
+   from 1025 px a column on the left that stays in view while the page scrolls */
+.admin-side { margin: 0 0 20px; }
+.admin-side-toggle { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 46px; padding: 0 16px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); background: var(--panel); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  color: var(--text); font: inherit; font-size: var(--fs-card); cursor: pointer; box-shadow: var(--shadow); }
+.admin-side-toggle b { color: var(--accent); font-weight: 400; }
+.admin-side-toggle .fa-chevron-down { margin-left: auto; transition: transform .2s; }
+.admin-side.open .admin-side-toggle .fa-chevron-down { transform: rotate(180deg); }
+.admin-side-list { display: none; margin-top: 8px; padding: 10px; border-radius: var(--radius); border: 1px solid var(--panel-border);
+  background: var(--panel-strong); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: var(--shadow); }
+.admin-side.open .admin-side-list { display: grid; gap: 2px; }
+.admin-side-title { display: none; }
+.admin-side-group { margin: 12px 12px 4px; font-size: var(--fs-small); letter-spacing: .16em; text-transform: uppercase; color: var(--text-dim); }
+.admin-side-title + .admin-side-group { margin-top: 4px; }
+.admin-side-list a { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 12px; border-radius: 10px;
+  color: var(--text-dim); font-size: var(--fs-card); text-decoration: none; transition: background .2s, color .2s; }
+.admin-side-list a i { width: 18px; text-align: center; color: var(--accent); }
+.admin-side-list a:hover { background: var(--accent-soft); color: var(--text); text-decoration: none; }
+.admin-side-list a.active { background: var(--accent); color: var(--accent-ink); }
+.admin-side-list a.active i { color: inherit; }
+.admin-badge { margin-left: auto; min-width: 22px; padding: 1px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--accent);
+  font-style: normal; font-size: var(--fs-small); text-align: center; }
+.admin-badge.urgent { background: #e5383b; color: #fff; }
+.admin-side-list a.active .admin-badge { background: rgba(0, 0, 0, .2); color: inherit; }
+@media (min-width: 1025px) {
+  main.admin-page { display: grid; grid-template-columns: 236px minmax(0, 1fr); column-gap: 28px; align-items: start; max-width: 1480px; }
+  main.admin-page > * { grid-column: 2; min-width: 0; }
+  main.admin-page > .admin-side { grid-column: 1; grid-row: 1 / span 80; position: sticky; top: calc(var(--header-h) + 16px); margin: 0;
+    max-height: calc(100vh - var(--header-h) - 32px); overflow-y: auto; scrollbar-width: thin; }
+  .admin-side-toggle { display: none; }
+  .admin-side-list { display: grid; gap: 1px; margin: 0; padding: 8px; }
+  /* compact enough that the whole menu fits a laptop screen (mouse, not fingers) */
+  .admin-side-list a { min-height: 34px; }
+  .admin-side-group { margin: 8px 12px 2px; }
+  .admin-side-title { display: flex; align-items: center; gap: 8px; padding: 4px 12px 6px; color: var(--accent); font-size: var(--fs-card); letter-spacing: .12em; }
 }
-.admin-bar::-webkit-scrollbar { display: none; }
-.admin-bar-title { flex: none; color: var(--accent); font-size: var(--fs-card); letter-spacing: 0.12em; }
-.admin-bar-tabs { display: flex; gap: 4px; flex: none; }
-.admin-bar-tabs a {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 15px;
-  border-radius: 999px;
-  color: var(--text-dim);
-  font-size: var(--fs-card);
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background .2s, color .2s;
-}
-.admin-bar-tabs a:hover { color: var(--text); background: var(--accent-soft); text-decoration: none; }
-.admin-bar-tabs a.active { background: var(--accent); color: var(--accent-ink); }
+
+/* dashboard: visits at a glance, quick actions, the manual song form folded away */
+.admin-glance { display: grid; gap: 12px; margin-top: 16px; }
+.admin-glance-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.admin-glance-head h3 { margin: 0; }
+.admin-glance-head a { font-size: var(--fs-small); color: var(--accent); }
+.admin-glance .admin-stats { margin: 0; }
+.admin-spark { height: 70px; }
+.admin-spark-note { margin: 0; font-size: var(--fs-small); }
+.admin-quick { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+.admin-manual > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px; min-height: 40px; font-size: var(--fs-h4); }
+.admin-manual > summary::-webkit-details-marker { display: none; }
+.admin-manual > summary i { color: var(--accent); }
+.admin-manual[open] > summary { margin-bottom: 10px; }
 
 /* dashboard */
 .admin-head { margin: 0 0 22px; }

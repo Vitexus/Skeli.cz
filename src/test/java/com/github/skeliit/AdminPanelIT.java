@@ -38,7 +38,7 @@ public class AdminPanelIT extends UiTestSupport {
 
         assertTrue(driver.getCurrentUrl().endsWith("/admin.jsp"), "got: " + driver.getCurrentUrl());
         assertEquals("Admin", driver.findElement(By.cssSelector(".admin-head h2")).getText());
-        assertFalse(driver.findElements(By.cssSelector(".admin-bar a.active[href='/admin.jsp']")).isEmpty(), "the admin bar marks the dashboard");
+        assertFalse(driver.findElements(By.cssSelector(".admin-side a.active[href='/admin.jsp']")).isEmpty(), "the side menu marks the dashboard");
         assertFalse(driver.findElements(By.cssSelector("form[action='/admin/video']")).isEmpty());
         assertFalse(driver.findElements(By.cssSelector("a[href='/admin/comments']")).isEmpty(), "the dashboard links to the comments");
     }
@@ -46,7 +46,7 @@ public class AdminPanelIT extends UiTestSupport {
     @Test
     @DisplayName("All admin pages return 200 for an admin")
     void adminPagesLoad() throws Exception {
-        for (String path : new String[]{"/admin.jsp", "/admin_users.jsp", "/admin/songs", "/admin/newsletter", "/admin/comments", "/admin/track", "/admin/quotes"}) {
+        for (String path : new String[]{"/admin.jsp", "/admin_users.jsp", "/admin/songs", "/admin/newsletter", "/admin/comments", "/admin/track", "/admin/quotes", "/admin/stats", "/admin/system"}) {
             assertEquals(200, httpStatus(path), "ADMIN GET " + path);
         }
 
@@ -132,6 +132,7 @@ public class AdminPanelIT extends UiTestSupport {
         update("INSERT INTO videos (youtube_id, title) VALUES (?, 'old title')", youtubeId);
         try {
             driver.get(BASE_URL + "/admin.jsp");
+            ((org.openqa.selenium.JavascriptExecutor) driver).executeScript("document.querySelector('.admin-manual').open = true");   // the manual form is folded on the dashboard
             driver.findElement(By.cssSelector("form[action='/admin/video'] input[name=youtube_id]")).sendKeys(youtubeId);
             driver.findElement(By.cssSelector("form[action='/admin/video'] input[name=title]")).sendKeys("New IT title");
             driver.findElement(By.cssSelector("form[action='/admin/video'] input[name=song_name]")).sendKeys(songName);
@@ -155,6 +156,7 @@ public class AdminPanelIT extends UiTestSupport {
         String noVideo = "IT Spotify only " + uniq();
         try {
             driver.get(BASE_URL + "/admin.jsp");
+            ((org.openqa.selenium.JavascriptExecutor) driver).executeScript("document.querySelector('.admin-manual').open = true");   // the manual form is folded on the dashboard
             driver.findElement(By.cssSelector("form[action='/admin/video'] input[name=youtube_id]"))
                     .sendKeys("https://youtu.be/" + youtubeId + "?si=x");
             driver.findElement(By.cssSelector("form[action='/admin/video'] input[name=title]")).sendKeys("Other channel clip");
@@ -269,9 +271,11 @@ public class AdminPanelIT extends UiTestSupport {
     }
 
     @Test
-    @DisplayName("The dashboard shows the visits and the counters can be reset to zero")
+    @DisplayName("The statistics page shows the visits and the counters can be reset to zero (the dashboard shows four of them)")
     void visitStatsAndReset() throws Exception {
         driver.get(BASE_URL + "/admin.jsp");
+        assertEquals(4, driver.findElements(By.cssSelector(".admin-glance .admin-stat")).size(), "visits at a glance on the dashboard");
+        driver.get(BASE_URL + "/admin/stats");
         assertFalse(driver.findElements(By.cssSelector("#stats")).isEmpty(), "NĂˇvĹˇtÄ›vnost section");
         assertEquals(8, driver.findElements(By.cssSelector(".admin-visits .admin-stat")).size());
 
@@ -299,7 +303,7 @@ public class AdminPanelIT extends UiTestSupport {
             clickAndWaitReload(driver.findElement(By.cssSelector(".track-lookup button[type=submit]")), false);
             WebElement form = driver.findElement(By.cssSelector("form.track-form"));
             assertEquals(youtubeId, form.findElement(By.name("youtube_id")).getAttribute("value"), "the ID is read from the link");
-            form.findElement(By.cssSelector("input[name=song_mode][value=new]")).click();
+            jsClick(form.findElement(By.cssSelector("input[name=song_mode][value=new]")));
             WebElement name = form.findElement(By.name("song_name"));
             name.clear();
             name.sendKeys(songName);

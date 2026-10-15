@@ -280,6 +280,23 @@ public final class VisitStats {
         return out;
     }
 
+    /** People (visitors) on each of the last {@code days} days, the oldest first (today last). */
+    public static long[] dailyVisits(int days) throws SQLException {
+        long[] out = new long[days];
+        LocalDate first = today().minusDays(days - 1L);
+        try (Connection c = Db.get();
+             PreparedStatement ps = c.prepareStatement("SELECT day, COUNT(*) FROM visit_days WHERE day >= ? GROUP BY day")) {
+            ps.setObject(1, first);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int i = (int) java.time.temporal.ChronoUnit.DAYS.between(first, rs.getObject(1, LocalDate.class));
+                    if (i >= 0 && i < days) out[i] = rs.getLong(2);
+                }
+            }
+        }
+        return out;
+    }
+
     /** Plays of a kind on each of the last {@code days} days, the oldest first (today last). */
     public static long[] dailyPlays(String kind, int days) throws SQLException {
         long[] out = new long[days];

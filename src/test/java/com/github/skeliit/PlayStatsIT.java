@@ -39,7 +39,7 @@ class PlayStatsIT extends UiTestSupport {
             update("UPDATE users SET role='ADMIN' WHERE id=?", id);
             logout();
             login(admin, PASSWORD);
-            driver.get(BASE_URL + "/admin.jsp?plays=clip&period=7#plays");
+            driver.get(BASE_URL + "/admin/stats?plays=clip&period=7#plays");
             String card = driver.findElement(By.id("plays")).getText();
             assertTrue(card.contains("1×"), "the clip is in the top list: " + card);
             assertEquals(7, driver.findElements(By.cssSelector("#plays .play-day")).size(), "a column for each of the 7 days");

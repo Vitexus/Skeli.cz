@@ -1,27 +1,63 @@
 <%@ page pageEncoding="UTF-8" %>
-<%-- The admin's own bar at the top of every admin page: where you are and the other sections --%>
+<%-- The admin's side menu on every admin page, in groups, with numbers where something waits.
+     On a PC it stands on the left (css/admin.css: main.admin-page becomes two columns); on a phone it folds
+     into one button "Admin: <this page>" that opens the list. --%>
 <%
-  String adminUri = (String) request.getAttribute("jakarta.servlet.forward.request_uri");
-  if (adminUri == null) adminUri = request.getRequestURI();
-  // {link, icon, label, the address prefix that marks it active}
-  String[][] adminTabs = {
-      {"/admin.jsp", "fa-gauge-high", "Nástěnka", "/admin.jsp"},
-      {"/admin/songs", "fa-music", "Písně", "/admin/song"},
-      {"/admin/track", "fa-plus", "Přidat track", "/admin/track"},
-      {"/admin/lyrics", "fa-align-left", "Texty", "/admin/lyrics"},
-      {"/admin/quotes", "fa-quote-left", "Citáty", "/admin/quotes"},
-      {"/admin/karaoke", "fa-microphone-lines", "Karaoke", "/admin/karaoke"},
-      {"/admin/comments", "fa-comments", "Komentáře", "/admin/comments"},
-      {"/admin/feedback", "fa-comment-dots", "Hodnocení webu", "/admin/feedback"},
-      {"/admin_users.jsp", "fa-users", "Uživatelé", "/admin_users"},
-      {"/admin/newsletter", "fa-envelope-open-text", "Newsletter", "/admin/newsletter"}
+  String anUri = (String) request.getAttribute("jakarta.servlet.forward.request_uri");
+  if (anUri == null) anUri = request.getRequestURI();
+  java.util.Map<String, Integer> anCount = new java.util.HashMap<>();
+  try {
+    anCount = new com.github.skeliit.dao.AdminDao().stats();
+  } catch (java.sql.SQLException e) {
+    application.log("Admin nav", e);
+  }
+  int anTodo = anCount.getOrDefault("clipsWithoutSong", 0) + anCount.getOrDefault("songsWithoutLyrics", 0);
+  // {group} or {link, icon, label, the address prefix that marks it active, badge, "urgent" for a red badge}
+  String[][] anItems = {
+      {"Přehled"},
+      {"/admin.jsp", "fa-gauge-high", "Nástěnka", "/admin.jsp", "", ""},
+      {"/admin/stats", "fa-chart-column", "Statistiky", "/admin/stats", "", ""},
+      {"Hudba"},
+      {"/admin/songs", "fa-music", "Písně", "/admin/song", anTodo > 0 ? String.valueOf(anTodo) : "", ""},
+      {"/admin/track", "fa-plus", "Přidat track", "/admin/track", "", ""},
+      {"/admin/lyrics", "fa-align-left", "Texty", "/admin/lyrics", "", ""},
+      {"/admin/karaoke", "fa-microphone-lines", "Karaoke", "/admin/karaoke", "", ""},
+      {"/admin/quotes", "fa-quote-left", "Citáty na úvodu", "/admin/quotes", "", ""},
+      {"Lidé"},
+      {"/admin/comments", "fa-comments", "Komentáře", "/admin/comments", anCount.getOrDefault("reports", 0) > 0 ? String.valueOf(anCount.get("reports")) : "", "urgent"},
+      {"/admin/feedback", "fa-comment-dots", "Hodnocení webu", "/admin/feedback", anCount.getOrDefault("newFeedback", 0) > 0 ? String.valueOf(anCount.get("newFeedback")) : "", ""},
+      {"/admin_users.jsp", "fa-users", "Uživatelé", "/admin_users", "", ""},
+      {"Novinky"},
+      {"/admin/newsletter", "fa-envelope-open-text", "Novinky e-mailem", "/admin/newsletter", "", ""},
+      {"Systém"},
+      {"/admin/system", "fa-arrows-rotate", "Synchronizace a export", "/admin/system", "", ""}
   };
+  String anHere = "Nástěnka";
+  for (String[] it : anItems) if (it.length > 1 && anUri.startsWith(it[3])) anHere = it[2];
 %>
-<nav class="admin-bar" aria-label="Administrace">
-  <span class="admin-bar-title"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Admin</span>
-  <div class="admin-bar-tabs">
-  <% for (String[] tab : adminTabs) { boolean on = adminUri.startsWith(tab[3]); %>
-    <a href="<%= tab[0] %>"<%= on ? " class=\"active\" aria-current=\"page\"" : "" %>><i class="fa-solid <%= tab[1] %>" aria-hidden="true"></i><span><%= tab[2] %></span></a>
-  <% } %>
+<nav class="admin-side" aria-label="Administrace">
+  <button type="button" class="admin-side-toggle" aria-expanded="false" aria-controls="adminSideList">
+    <i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Admin: <b><%= anHere %></b> <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+  </button>
+  <div class="admin-side-list" id="adminSideList">
+    <span class="admin-side-title"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Admin</span>
+    <% for (String[] it : anItems) {
+         if (it.length == 1) { %><span class="admin-side-group"><%= it[0] %></span><% continue; }
+         boolean on = anUri.startsWith(it[3]); %>
+    <a href="<%= it[0] %>"<%= on ? " class=\"active\" aria-current=\"page\"" : "" %>><i class="fa-solid <%= it[1] %>" aria-hidden="true"></i><span><%= it[2] %></span><% if (!it[4].isEmpty()) { %><em class="admin-badge<%= "urgent".equals(it[5]) ? " urgent" : "" %>"><%= it[4] %></em><% } %></a>
+    <% } %>
   </div>
 </nav>
+<script>
+  // the phone's fold-out menu (one listener for the whole site, also after PJAX)
+  if (!window.__adminSide) {
+    window.__adminSide = true;
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('.admin-side-toggle');
+      if (!b) return;
+      var open = b.getAttribute('aria-expanded') !== 'true';
+      b.setAttribute('aria-expanded', String(open));
+      b.parentNode.classList.toggle('open', open);
+    });
+  }
+</script>

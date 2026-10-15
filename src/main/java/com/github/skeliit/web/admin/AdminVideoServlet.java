@@ -84,7 +84,7 @@ public class AdminVideoServlet extends HttpServlet {
         } catch (SQLException e) {
             throw new ServletException(e);
         }
-        resp.sendRedirect("/admin.jsp");
+        resp.sendRedirect("/admin.jsp?manual=saved#manual");   // back to the form, unfolded
     }
 
     private Integer ensureSong(Connection conn, String name, Integer year, String uuid) throws SQLException {
