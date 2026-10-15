@@ -54,7 +54,7 @@
   root.innerHTML =
     '<div class="kevin-bubble" role="status" aria-live="polite" hidden><p class="kevin-text"></p><a class="kevin-link" hidden></a><div class="kevin-extra" hidden></div></div>'
     + '<button type="button" class="kevin-body" aria-label="' + esc(L.ui.call) + '" title="' + esc(L.ui.call) + '">'
-    + '<canvas class="kevin-canvas" aria-hidden="true"></canvas><img class="kevin-still" src="/img/kevin.webp" alt="" hidden></button>'
+    + '<canvas class="kevin-canvas" aria-hidden="true"></canvas><img class="kevin-still" src="/img/kevin.webp' + (version ? '?' + version : '') + '" alt="" hidden></button>'
     + '<div class="kevin-tools">'
     + '<button type="button" class="kevin-sound" aria-pressed="true" title="' + esc(L.ui.sound) + '" aria-label="' + esc(L.ui.sound) + '"><i class="fa-solid fa-volume-high"></i></button>'
     + '<button type="button" class="kevin-hide" title="' + esc(L.ui.hide) + '" aria-label="' + esc(L.ui.hide) + '"><i class="fa-solid fa-xmark"></i></button>'
@@ -108,10 +108,16 @@
   function load3d() {
     var gl = null;
     try { gl = document.createElement('canvas').getContext('webgl2'); } catch (e) { gl = null; }
-    if (reduced || saveData || !gl) return useStill();
-    import('/js/kevin3d.js' + (version ? '?' + version : '')).then(function (m) {
-      k = m.createKevin(canvas, { light: document.body.classList.contains('light') });
-      canvas.hidden = false; still.hidden = true;
+    // localStorage.kevinLite = '1': just the picture (slow devices; the tests, whose software WebGL can't keep up)
+    if (reduced || saveData || !gl || store.get('kevinLite') === '1') return useStill();
+    // the ginger cat (js/kevin-model.js, about 5 MB with all his moves): the still image stays until he is on screen
+    import('/js/kevin-model.js' + (version ? '?' + version : '')).then(function (m) {
+      k = m.createKevin(canvas, {
+        light: document.body.classList.contains('light'),
+        src: '/kevin/kevin.glb' + (version ? '?' + version : ''),
+        onReady: function () { canvas.hidden = false; still.hidden = true; },
+        onError: useStill
+      });
       k.setPaused(root.hidden);
       new MutationObserver(function () { k.setLight(document.body.classList.contains('light')); })
         .observe(document.body, { attributes: true, attributeFilter: ['class'] });
@@ -565,7 +571,8 @@
   // "Surprise me": a shuffled deck of everything in L.surprise, none again until all of them have been
   // (the deck lives in the browser session, so a new page does not start it over)
   function nextSurprise() {
-    var all = Object.keys(L.surprise || {}), deck;
+    // only what this model can show (the ginger cat has no sunglasses and no moving tail)
+    var all = Object.keys(L.surprise || {}).filter(function (id) { return !model().can || model().can(id); }), deck;
     try { deck = JSON.parse(session.get('kevinDeck')) || []; } catch (e) { deck = []; }
     deck = deck.filter(function (id) { return all.indexOf(id) >= 0; });
     if (!deck.length) {
