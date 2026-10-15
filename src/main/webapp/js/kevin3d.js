@@ -296,7 +296,7 @@ export const ARMS = {
   sulk: [0, 0.22, 0, -0.22]
 };
 
-// One-shot acts for "Surprise me" (js/kevin.js): name: [seconds, (p, e, t, o) => …]. p runs 0..1, e is a
+// One-shot acts for "Do something" (js/kevin.js): name: [seconds, (p, e, t, o) => …]. p runs 0..1, e is a
 // soft in-and-out envelope (0 at both ends), h holds 1 in the middle (for leaving and coming back),
 // t is the clock. The function fills o, offsets on top of the pose for this frame: yaw, headX/Y/Z, x, y,
 // roll, sy (stretch), arms ([rx, rz, lx, lz], null = the pose's own), eyes ([left, right] openness),

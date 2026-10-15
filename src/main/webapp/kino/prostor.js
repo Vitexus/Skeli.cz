@@ -94,7 +94,7 @@ kick(); addEventListener('pointerdown', kick, { once: true });
 const VER = new URL(import.meta.url).search;
 let sfx = null, guest = null;
 import('./space-fx.js' + VER).then((m) => { sfx = m.spaceFx(glitch, view, coloursAt); }).catch(() => {});
-if (!qs.has('nokevin')) import('./kevin-guest.js' + VER).then((m) => m.kevinGuest(VER)).then((gst) => { guest = gst; fit(); }).catch(() => {});   // #nokevin: without him (slow computers, tests)
+if (!qs.has('nokevin')) import('./kevin-guest.js' + VER).then((m) => m.kevinGuest(VER, qs.has('kevinnow'))).then((gst) => { guest = gst; fit(); }).catch(() => {});   // #nokevin: without him (slow computers, tests)
 // the chorus: lines that come more than once
 const seenLine = {}, lineKeys = D.lines.map((l) => { const k = l.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ''); seenLine[k] = (seenLine[k] || 0) + 1; return k; });
 const isChorus = lineKeys.map((k) => k && seenLine[k] > 1);
@@ -158,8 +158,15 @@ function fit() {
   const p = QUAD.map(([u, v]) => [ox + u * vw, oy + v * vh]);
   panel = p;
   clipEl.style.transform = rimEl.style.transform = 'matrix3d(' + quadMatrix(CW, CH, p).join(',') + ')';
-  // Kevin: among the floating rocks left of the panel, level with it (the words are below it, never there)
-  if (guest) { const size = Math.min(vw * .19, vh * .4, p[0][0] - 16); guest.place(Math.max(8, p[0][0] - size - vw * .03), oy + vh * .2, Math.max(0, size)); }
+  // Kevin's spots when he drops by: the frame's top edge (a sixth of the way from its left corner, tilted with it) or
+  // the wet floor of the space left of the panel
+  if (guest) {
+    const f = .16, ph = p[3][1] - p[0][1];
+    guest.place({
+      edge: { x: p[0][0] + (p[1][0] - p[0][0]) * f, y: p[0][1] + (p[1][1] - p[0][1]) * f, angle: Math.atan2(p[1][1] - p[0][1], p[1][0] - p[0][0]) },
+      floor: { x: Math.max(ph * .4, p[0][0] - ph * .45), y: Math.min(H - 90, oy + vh * .74), angle: 0 }
+    }, ph);
+  }
   // the depth the embers come out of: a little above the middle of the panel, where the beams meet
   view.x = (p[0][0] + p[1][0] + p[2][0] + p[3][0]) / 4; view.y = (p[0][1] + p[1][1]) / 2 * .5 + (p[2][1] + p[3][1]) / 2 * .5 - (p[3][1] - p[0][1]) * .1; view.s = Math.max(W, H) * .55;
   lyricsEl.style.setProperty('--fs', Math.max(16, Math.min(34, vw * .0145)) + 'px');
@@ -374,7 +381,7 @@ function frame(ts) {
   const chorus = pl && si >= 0 && isChorus[si] && t <= D.times[si][1] + 2;
   const gap = pl && (si < 0 ? !!nx && nx[0] - t > 4 : t - prevEnd > 1.5 && (!nx || nx[0] - t > 3));
   if (sfx) sfx.frame(dt, { t, playing: pl, energy: Math.min(1, bassAvg * 1.6), chorus });
-  if (guest) guest.update({ playing: pl && started, chorus, gap, ended, entered });
+  if (guest) guest.update({ t, playing: pl && started, chorus, gap, ended, entered });
   if (!ended && credited) { credited = false; onTo = 1; $('credits').hidden = true; $('credits').classList.remove('run'); }
   { const ct = bg.currentTime, du = bg.duration || 9; glitch.style.opacity = (ct < 1.1 ? 1 : ct < 1.4 ? 1 - (ct - 1.1) / .3 : ct > du - .2 ? (ct - du + .2) / .2 : 0).toFixed(3); }
   if (entered) words(t);

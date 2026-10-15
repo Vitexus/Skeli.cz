@@ -60,7 +60,7 @@
           </td>
           <td>
             <a href="/admin/song?uuid=${song.uuid}" class="link-btn">Upravit</a>
-            <c:if test="${not empty song.uuid}">
+            <c:if test="${not empty song.uuid and song.hasLyrics}">
               <a href="/cs/song/${song.uuid}" class="link-btn" target="_blank">Text</a>
             </c:if>
           </td>
