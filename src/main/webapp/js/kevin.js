@@ -157,6 +157,8 @@
   function hideBubble(pose) {
     endPeek();
     if (stopBeat) { stopBeat(); stopBeat = null; }   // the beat ends with his words
+    clearTimeout(rapTimer);                           // and a rap stops for good
+    busy = false;
     bubble.hidden = true;
     extra.innerHTML = '';
     root.classList.remove('talking');
@@ -167,7 +169,8 @@
   // the bubble stays while the visitor points at it or types in it
   function holdBubble() { clearTimeout(hideTimer); }
   function releaseBubble() {
-    if (bubble.hidden || bubble.contains(document.activeElement)) return;
+    // not while he raps (the mouse leaving the bubble after the click on "Rap" closed it after three words)
+    if (busy || bubble.hidden || bubble.contains(document.activeElement)) return;
     clearTimeout(hideTimer);
     hideTimer = setTimeout(function () { hideBubble(hideAfter); }, 6000);
   }
