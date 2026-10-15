@@ -514,3 +514,33 @@ body.light .report-actions .btn-dismiss { background: transparent; color: var(--
 .poster-editor .k-feature-poster { transform: none; }
 .nl-form textarea { width: 100%; resize: vertical; }
 .nl-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ---------- "Co se nejvíc pouští" (admin.jsp #plays): columns by day + the top ten as bars ---------- */
+.play-card { margin: 16px 0 8px; display: grid; gap: 14px; }
+.play-card h3 { margin: 0; }
+.play-switch { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; }
+.play-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.play-tabs a { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 999px;
+  border: 1px solid var(--panel-border); color: var(--text); font-size: var(--fs-card); text-decoration: none; }
+.play-tabs a:hover { border-color: var(--accent); color: var(--accent); }
+.play-tabs a.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.play-chart { margin: 0; }
+.play-chart figcaption { font-size: var(--fs-small); color: var(--text-dim); margin-bottom: 8px; }
+.play-chart figcaption b { color: var(--accent); font-weight: 400; }
+.play-days { display: flex; align-items: flex-end; gap: 3px; height: 130px; padding: 0 2px; border-bottom: 1px solid var(--panel-border); }
+.play-day { position: relative; flex: 1 1 0; min-width: 0; height: max(var(--h), 3px); border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 55%, transparent)); }
+.play-day.zero { background: var(--panel-border); }
+.play-day b { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 400; color: var(--text-dim); white-space: nowrap; }
+.play-days:has(.play-day:nth-child(15)) .play-day b { display: none; }   /* 30 days: numbers only on hover (title) */
+.play-axis { display: flex; justify-content: space-between; font-size: var(--fs-small); color: var(--text-dim); margin-top: 4px; }
+.play-top { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; counter-reset: play; }
+.play-top li { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 0 12px;
+  border-radius: 8px; overflow: hidden; counter-increment: play; isolation: isolate; }
+.play-top li::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--w); z-index: -1; border-radius: 8px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 34%, transparent), color-mix(in srgb, var(--accent) 12%, transparent)); }
+.play-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-text); font-size: var(--fs-text); }
+.play-name::before { content: counter(play) ". "; color: var(--text-dim); }
+.play-top b { flex: none; font-weight: 400; color: var(--accent); }
+.play-note { margin: 0; font-size: var(--fs-small); }
+@media (max-width: 600px) { .play-switch { flex-direction: column; } .play-days { height: 100px; gap: 2px; } }

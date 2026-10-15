@@ -73,6 +73,7 @@ public class KaraokeCinemaServlet extends HttpServlet {
 
         // safe inside <script>: no "</script>", no line separators that end a JavaScript string
         String json = JSON.writeValueAsString(data).replace("</", "<\\/").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029");
+        com.github.skeliit.service.VisitStats.countPlay(req, "karaoke", uuid);   // the admin's "what is played most"
         req.setAttribute("kinoJson", json);
         req.setAttribute("kinoTitle", title.title);
         req.getRequestDispatcher("/WEB-INF/views/kino.jsp").forward(req, resp);

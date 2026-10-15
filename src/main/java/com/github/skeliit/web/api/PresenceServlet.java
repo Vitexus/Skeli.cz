@@ -11,7 +11,8 @@ import java.io.IOException;
 /**
  * Called by js/presence.js: when a page is shown (?view=1, on a lyric page also &lyric=ID) and then
  * once a minute while the tab is visible. Counts the visit (VisitStats) and answers how many people
- * are on the site right now: {"online":3}. Bots without JavaScript never call it.
+ * are on the site right now: {"online":3}. Bots without JavaScript never call it. With ?play=clip&id= it only
+ * counts a started clip for the admin's charts.
  */
 @WebServlet(name = "PresenceServlet", urlPatterns = {"/api/presence"})
 public class PresenceServlet extends HttpServlet {
@@ -22,6 +23,12 @@ public class PresenceServlet extends HttpServlet {
         Integer lyricId = null;
         String l = req.getParameter("lyric");
         if (l != null && l.matches("[0-9]{1,9}")) lyricId = Integer.valueOf(l);
+        // ?play=clip&id=<YouTube id>: a clip was started (js/presence.js on the event 'skeli:play'); lyrics and karaoke count themselves
+        if ("clip".equals(req.getParameter("play"))) {
+            VisitStats.countPlay(req, "clip", req.getParameter("id"));
+            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            return;
+        }
         int online = VisitStats.ping(req, newPage, lyricId);
         resp.setHeader("Cache-Control", "no-store");
         resp.setContentType("application/json; charset=UTF-8");

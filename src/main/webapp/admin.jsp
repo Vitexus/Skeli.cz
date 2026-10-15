@@ -114,6 +114,65 @@
     </section>
   </div>
 
+<%
+  // what is played most (VisitStats.countPlay): lyrics read, karaoke entered, clips started – per day, no personal data
+  String playKind = request.getParameter("plays");
+  if (playKind == null || !com.github.skeliit.service.VisitStats.PLAY_KINDS.contains(playKind)) playKind = "lyric";
+  String periodParam = request.getParameter("period");
+  int period = "7".equals(periodParam) ? 7 : "0".equals(periodParam) ? 0 : 30;
+  int chartDays = period == 7 ? 7 : 30;
+  java.util.List<String[]> topPlays = new java.util.ArrayList<>();
+  long[] daily = new long[chartDays];
+  try {
+    topPlays = com.github.skeliit.service.VisitStats.topPlays(playKind, period, 10);
+    daily = com.github.skeliit.service.VisitStats.dailyPlays(playKind, chartDays);
+  } catch (java.sql.SQLException e) {
+    application.log("Play stats", e);
+  }
+  long dayMax = 1, dayTotal = 0;
+  for (long d : daily) { dayMax = Math.max(dayMax, d); dayTotal += d; }
+  long topMax = topPlays.isEmpty() ? 1 : Math.max(1, Long.parseLong(topPlays.get(0)[1]));
+  String[][] playTabs = {{"lyric", "fa-align-left", "Texty"}, {"karaoke", "fa-microphone", "Karaoke"}, {"clip", "fa-play", "Hudba (klipy)"}};
+  String[][] periods = {{"7", "7 dní"}, {"30", "30 dní"}, {"0", "Celkem"}};
+  java.time.LocalDate firstDay = java.time.LocalDate.now(java.time.ZoneId.of("Europe/Prague")).minusDays(chartDays - 1);
+  java.time.format.DateTimeFormatter dm = java.time.format.DateTimeFormatter.ofPattern("d. M.");
+%>
+  <section class="admin-card play-card" id="plays">
+    <h3><i class="fa-solid fa-chart-column" aria-hidden="true"></i> Co se nejvíc pouští</h3>
+    <div class="play-switch">
+      <nav class="play-tabs" aria-label="Co počítat">
+        <% for (String[] tab : playTabs) { %>
+        <a href="?plays=<%= tab[0] %>&amp;period=<%= period %>#plays" class="<%= tab[0].equals(playKind) ? "on" : "" %>"<%= tab[0].equals(playKind) ? " aria-current=\"page\"" : "" %>><i class="fa-solid <%= tab[1] %>" aria-hidden="true"></i> <%= tab[2] %></a>
+        <% } %>
+      </nav>
+      <nav class="play-tabs play-period" aria-label="Období">
+        <% for (String[] p : periods) { boolean on = p[0].equals(String.valueOf(period)); %>
+        <a href="?plays=<%= playKind %>&amp;period=<%= p[0] %>#plays" class="<%= on ? "on" : "" %>"<%= on ? " aria-current=\"page\"" : "" %>><%= p[1] %></a>
+        <% } %>
+      </nav>
+    </div>
+    <%-- one column a day; the newest on the right --%>
+    <figure class="play-chart">
+      <figcaption>Po dnech, posledních <%= chartDays %> dní: <b><%= dayTotal %></b> celkem</figcaption>
+      <div class="play-days" role="img" aria-label="Spuštění po dnech za posledních <%= chartDays %> dní, celkem <%= dayTotal %>">
+        <% for (int i = 0; i < daily.length; i++) { java.time.LocalDate d = firstDay.plusDays(i); %>
+        <span class="play-day<%= daily[i] == 0 ? " zero" : "" %>" style="--h: <%= Math.round(daily[i] * 100.0 / dayMax) %>%" title="<%= d.format(dm) %>: <%= daily[i] %>×"><b><%= daily[i] > 0 ? daily[i] : "" %></b></span>
+        <% } %>
+      </div>
+      <div class="play-axis"><span><%= firstDay.format(dm) %></span><span><%= firstDay.plusDays(chartDays / 2).format(dm) %></span><span>dnes</span></div>
+    </figure>
+    <% if (topPlays.isEmpty()) { %>
+      <p class="text-dim">Za tohle období zatím nic. Počítá se od nasazení téhle verze webu.</p>
+    <% } else { %>
+    <ol class="play-top">
+      <% for (String[] row : topPlays) { long n = Long.parseLong(row[1]); %>
+      <li style="--w: <%= Math.round(n * 100.0 / topMax) %>%"><span class="play-name"><%= com.github.skeliit.WebUtils.escapeHtml(row[0]) %></span><b><%= n %>×</b></li>
+      <% } %>
+    </ol>
+    <% } %>
+    <p class="text-dim play-note">Každý člověk se u každé písně nebo klipu započítá jednou za den. Texty = otevřený text písně, Karaoke = vstup do kina, Hudba = spuštěný klip (na Hudbě, u písně i v Kevinově televizi). Roboti a admini se nepočítají.</p>
+  </section>
+
   <h3 class="admin-section-title"><i class="fa-solid fa-compact-disc" aria-hidden="true"></i> Obsah</h3>
   <div class="admin-grid">
     <section class="admin-card admin-link-card">

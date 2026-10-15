@@ -167,6 +167,14 @@ public final class VisitStats {
                 ps.executeUpdate();
             }
             if (lyricId != null) {
+                // the charts count the song (whatever the language of its text)
+                try (PreparedStatement ps = c.prepareStatement(
+                        "SELECT s.uuid FROM lyrics l JOIN songs s ON s.id = l.song_id WHERE l.id = ?")) {
+                    ps.setInt(1, lyricId);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next() && rs.getString(1) != null) recordPlay(c, day, "lyric", rs.getString(1), visitor);
+                    }
+                }
                 int fresh;
                 // only a lyric that exists, and only the first time today for this visitor
                 try (PreparedStatement ps = c.prepareStatement(
@@ -186,13 +194,110 @@ public final class VisitStats {
             }
             if (!day.equals(lastCleanup)) {
                 // yesterday's rows are still needed until midnight has passed everywhere; older ones never
-                try (PreparedStatement ps = c.prepareStatement("DELETE FROM lyric_view_days WHERE day < ?")) {
-                    ps.setObject(1, day.minusDays(1));
-                    ps.executeUpdate();
+                for (String sql : new String[]{"DELETE FROM lyric_view_days WHERE day < ?", "DELETE FROM play_seen WHERE day < ?"}) {
+                    try (PreparedStatement ps = c.prepareStatement(sql)) {
+                        ps.setObject(1, day.minusDays(1));
+                        ps.executeUpdate();
+                    }
                 }
                 lastCleanup = day;
             }
         }
+    }
+
+    // ---------- what is played most ----------
+
+    public static final List<String> PLAY_KINDS = List.of("lyric", "karaoke", "clip");
+
+    /**
+     * A song or a clip was played: lyric and karaoke by the song's uuid, clip by its YouTube id. Counted once
+     * per visitor and day, never for robots or admins, at most 120 an hour from one address.
+     */
+    public static void countPlay(HttpServletRequest req, String kind, String item) {
+        if (!PLAY_KINDS.contains(kind) || item == null || !item.matches("[A-Za-z0-9_-]{6,40}")) return;
+        if (isBot(req.getHeader("User-Agent"))) return;
+        HttpSession s = req.getSession(false);
+        if (s != null && "ADMIN".equals(s.getAttribute("role"))) return;
+        if (!WebUtils.isDirectLocalRequest(req) && !RequestLimiter.tryAcquire("play", WebUtils.clientIp(req), 120, RequestLimiter.HOUR)) return;
+        try (Connection c = Db.get()) {
+            recordPlay(c, today(), kind, item, visitorId(req));
+        } catch (SQLException e) {
+            req.getServletContext().log("Play stats", e);
+        }
+    }
+
+    /** Only an item that exists, and only the first time today for this visitor. */
+    static void recordPlay(Connection c, LocalDate day, String kind, String item, String visitor) throws SQLException {
+        String exists = "clip".equals(kind) ? "SELECT 1 FROM videos WHERE youtube_id = ?" : "SELECT 1 FROM songs WHERE uuid = ?";
+        int fresh;
+        try (PreparedStatement ps = c.prepareStatement(
+                "INSERT IGNORE INTO play_seen (day, kind, item, visitor) SELECT ?, ?, ?, ? FROM DUAL WHERE EXISTS (" + exists + ")")) {
+            ps.setObject(1, day);
+            ps.setString(2, kind);
+            ps.setString(3, item);
+            ps.setString(4, visitor);
+            ps.setString(5, item);
+            fresh = ps.executeUpdate();
+        }
+        if (fresh != 1) return;
+        try (PreparedStatement ps = c.prepareStatement(
+                "INSERT INTO play_daily (day, kind, item, plays) VALUES (?, ?, ?, 1) ON DUPLICATE KEY UPDATE plays = plays + 1")) {
+            ps.setObject(1, day);
+            ps.setString(2, kind);
+            ps.setString(3, item);
+            ps.executeUpdate();
+        }
+    }
+
+    /** The most played items of a kind over the last {@code days} days (0 = since counting began): {name, plays}. */
+    public static List<String[]> topPlays(String kind, int days, int limit) throws SQLException {
+        List<String[]> out = new ArrayList<>();
+        if (!PLAY_KINDS.contains(kind)) return out;
+        try (Connection c = Db.get()) {
+            List<String[]> rows = new ArrayList<>();
+            try (PreparedStatement ps = c.prepareStatement(
+                    "SELECT item, SUM(plays) AS n FROM play_daily WHERE kind = ? AND day > ? GROUP BY item ORDER BY n DESC, item LIMIT ?")) {
+                ps.setString(1, kind);
+                ps.setObject(2, days > 0 ? today().minusDays(days) : LocalDate.of(2000, 1, 1));
+                ps.setInt(3, limit);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) rows.add(new String[]{rs.getString(1), rs.getString(2)});
+                }
+            }
+            String nameSql = "clip".equals(kind) ? "SELECT title FROM videos WHERE youtube_id = ?" : "SELECT name FROM songs WHERE uuid = ?";
+            try (PreparedStatement ps = c.prepareStatement(nameSql)) {
+                for (String[] r : rows) {
+                    ps.setString(1, r[0]);
+                    String name = null;
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) name = rs.getString(1);
+                    }
+                    if (name == null) continue;   // removed since
+                    out.add(new String[]{"clip".equals(kind) ? com.github.skeliit.job.VideoTitles.display(name) : name, r[1]});
+                }
+            }
+        }
+        return out;
+    }
+
+    /** Plays of a kind on each of the last {@code days} days, the oldest first (today last). */
+    public static long[] dailyPlays(String kind, int days) throws SQLException {
+        long[] out = new long[days];
+        if (!PLAY_KINDS.contains(kind)) return out;
+        LocalDate first = today().minusDays(days - 1L);
+        try (Connection c = Db.get();
+             PreparedStatement ps = c.prepareStatement(
+                     "SELECT day, SUM(plays) FROM play_daily WHERE kind = ? AND day >= ? GROUP BY day")) {
+            ps.setString(1, kind);
+            ps.setObject(2, first);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int i = (int) java.time.temporal.ChronoUnit.DAYS.between(first, rs.getObject(1, LocalDate.class));
+                    if (i >= 0 && i < days) out[i] = rs.getLong(2);
+                }
+            }
+        }
+        return out;
     }
 
     // ---------- admin ----------
@@ -250,7 +355,7 @@ public final class VisitStats {
     public static void reset() throws SQLException {
         try (Connection c = Db.get()) {
             for (String sql : new String[]{"DELETE FROM lyric_views", "DELETE FROM lyric_view_days", "DELETE FROM visit_days",
-                    "DELETE FROM site_stats_daily",
+                    "DELETE FROM site_stats_daily", "DELETE FROM play_daily", "DELETE FROM play_seen",
                     "INSERT INTO app_settings (k, v) VALUES ('stats_since', DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i')) "
                             + "ON DUPLICATE KEY UPDATE v = VALUES(v)"}) {
                 try (PreparedStatement ps = c.prepareStatement(sql)) {

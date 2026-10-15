@@ -517,6 +517,7 @@
       x.addEventListener('click', closeTv);
       tv.appendChild(frame);
       tv.appendChild(x);
+      window.dispatchEvent(new CustomEvent('skeli:play', { detail: { yt: c.youtubeId } }));   // the admin's play counts
       document.body.appendChild(tv);
       root.classList.add('has-tv');
       show(say(pick(L.play.pick), 0, c.title), { pose: 'cool', href: c.href, linkText: L.play.song, ms: 8000 });

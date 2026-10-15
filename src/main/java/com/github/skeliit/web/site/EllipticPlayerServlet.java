@@ -131,6 +131,8 @@ public class EllipticPlayerServlet extends HttpServlet {
                 out.println("    return;");
                 out.println("  }");
                 out.println("  if (poster) { poster.hidden = true; poster.onclick = null; }");
+                // a clip the visitor started: counted for the admin's "what is played most" (js/presence.js)
+                out.println("  if (autoplay) window.dispatchEvent(new CustomEvent('skeli:play', { detail: { yt: id } }));");
                 out.println(
                                 "  frame.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=${ap}&rel=0&playsinline=1&enablejsapi=1`;");
                 out.println("}");
