@@ -100,7 +100,7 @@
                         <td>
                             <form method="post" action="/admin/newsletter" class="inline-form">
                                 <input type="hidden" name="csrf" value="${csrf}">
-                                <input type="hidden" name="email" value="<%= com.github.skeliit.WebUtils.escapeHtml(row[0]) %>">
+                                <input type="hidden" name="id" value="<%= com.github.skeliit.WebUtils.escapeHtml(row[4]) %>">
                                 <button type="submit" class="btn-delete" onclick="return confirm('Opravdu smazat?')">Smazat</button>
                             </form>
                         </td>

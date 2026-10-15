@@ -104,16 +104,18 @@ public class AdminPanelIT extends UiTestSupport {
     }
 
     @Test
-    @DisplayName("Newsletter admin lists a subscriber and can remove them")
+    @DisplayName("Newsletter admin lists a subscriber (address masked, not even in the page source) and can remove them")
     void removeNewsletterSubscriber() throws Exception {
         String email = "nl" + uniq() + "@example.com";
         update("INSERT INTO newsletter_emails (email, unsubscribe_token) VALUES (?, ?)", email, "tok" + uniq());
+        String id = queryString("SELECT id FROM newsletter_emails WHERE email=?", email);
         try {
             driver.get(BASE_URL + "/admin/newsletter");
-            assertTrue(bodyText().contains(email), "subscriber should be listed");
+            assertTrue(bodyText().contains("nl•••@e•••.com"), "subscriber should be listed, masked");
+            assertFalse(driver.getPageSource().contains(email), "the whole address is nowhere in the page");
 
             WebElement btn = driver.findElement(By.xpath(
-                    "//form[@action='/admin/newsletter'][.//input[@name='email'][@value='" + email + "']]//button"));
+                    "//form[@action='/admin/newsletter'][.//input[@name='id'][@value='" + id + "']]//button"));
             clickAndWaitReload(btn, true);
 
             assertFalse(exists("SELECT 1 FROM newsletter_emails WHERE email=?", email), "subscriber should be removed");

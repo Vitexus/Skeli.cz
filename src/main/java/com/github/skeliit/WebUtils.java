@@ -14,6 +14,21 @@ public class WebUtils {
         return slug;
     }
 
+    /**
+     * A visitor's e-mail as the admin sees it: enough to tell addresses apart, not enough to write to it
+     * ("jan.novak@seznam.cz" → "ja•••@s•••.cz"). The admin pages never need the whole address.
+     */
+    public static String maskEmail(String email) {
+        if (email == null || email.isBlank()) return "";
+        int at = email.lastIndexOf('@');
+        if (at < 0) return email.charAt(0) + "•••";
+        String local = email.substring(0, at), domain = email.substring(at + 1);
+        int dot = domain.lastIndexOf('.');
+        String host = dot > 0 ? domain.substring(0, dot) : domain, tld = dot > 0 ? domain.substring(dot) : "";
+        String shownLocal = local.length() > 3 ? local.substring(0, 2) : local.isEmpty() ? "" : local.substring(0, 1);
+        return shownLocal + "•••@" + (host.isEmpty() ? "" : host.charAt(0)) + "•••" + tld;
+    }
+
     /** Escapes text for safe output into HTML element content and quoted attributes. */
     public static String escapeHtml(Object o) {
         if (o == null) return "";

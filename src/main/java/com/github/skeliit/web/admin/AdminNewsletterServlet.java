@@ -30,10 +30,12 @@ public class AdminNewsletterServlet extends HttpServlet {
         if (!isAdmin(req.getSession(false))) { resp.sendError(403); return; }
         List<String[]> emails = new ArrayList<>();
         try (Connection conn = getConn();
-             PreparedStatement ps = conn.prepareStatement("SELECT email, subscribed_at, unsubscribed_at, confirmed_at FROM newsletter_emails ORDER BY subscribed_at DESC");
+             PreparedStatement ps = conn.prepareStatement("SELECT email, subscribed_at, unsubscribed_at, confirmed_at, id FROM newsletter_emails ORDER BY subscribed_at DESC");
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                emails.add(new String[]{rs.getString(1), String.valueOf(rs.getTimestamp(2)), String.valueOf(rs.getTimestamp(3)), String.valueOf(rs.getTimestamp(4))});
+                // the page only gets the masked address and the row id (visitors' privacy, even from the admin)
+                emails.add(new String[]{com.github.skeliit.WebUtils.maskEmail(rs.getString(1)), String.valueOf(rs.getTimestamp(2)),
+                        String.valueOf(rs.getTimestamp(3)), String.valueOf(rs.getTimestamp(4)), String.valueOf(rs.getInt(5))});
             }
         } catch (SQLException e) { throw new ServletException(e); }
         req.setAttribute("emails", emails);
@@ -51,11 +53,11 @@ public class AdminNewsletterServlet extends HttpServlet {
         if (!isAdmin(req.getSession(false))) { resp.sendError(403); return; }
         String action = req.getParameter("action");
         if ("test".equals(action) || "send".equals(action)) { compose(req, resp, action); return; }
-        String email = req.getParameter("email");
-        if (email != null && !email.isBlank()) {
+        String id = req.getParameter("id");
+        if (id != null && id.matches("\\d{1,9}")) {
             try (Connection conn = getConn();
-                 PreparedStatement ps = conn.prepareStatement("DELETE FROM newsletter_emails WHERE email=?")) {
-                ps.setString(1, email);
+                 PreparedStatement ps = conn.prepareStatement("DELETE FROM newsletter_emails WHERE id=?")) {
+                ps.setInt(1, Integer.parseInt(id));
                 ps.executeUpdate();
             } catch (SQLException e) { throw new ServletException(e); }
         }
