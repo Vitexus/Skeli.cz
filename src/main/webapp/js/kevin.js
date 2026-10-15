@@ -874,7 +874,10 @@
     var go = function () {
       walking = true;
       var dir = Math.random() < 0.5 ? 1 : -1, W = window.innerWidth, w = walker.offsetWidth || 130;
-      var x = dir > 0 ? -w : W, stopAt = W * (0.3 + Math.random() * 0.4), stopped = false, last = performance.now();
+      // the right third stays clear of the Spotify button; a cardboard box on the way now and then (cats and boxes)
+      var x = dir > 0 ? -w : W, stopAt = W * (0.25 + Math.random() * 0.4), stopped = false, last = performance.now();
+      var box = boxNext || Math.random() < 0.35 ? cardboardBox(stopAt) : null;
+      boxNext = false;
       walker.hidden = false;
       walkK.setPaused(false);
       walkK.turn(dir * Math.PI / 2);
@@ -883,13 +886,21 @@
         if (!walking) return;
         var dt = Math.min(0.1, (now - last) / 1000);
         last = now;
-        // a stop half way: he turns to you, looks round or waves, then goes on
-        if (!stopped && (dir > 0 ? x + w / 2 >= stopAt : x + w / 2 <= stopAt) && Math.random() < 0.6) {
+        var there = dir > 0 ? x + w / 2 >= stopAt : x + w / 2 <= stopAt;
+        var goOn = function () { if (!walking) return; walkK.turn(dir * Math.PI / 2); walkK.hold('walk'); last = performance.now(); requestAnimationFrame(step); };
+        // the box: he jumps in, peeks out over its edge for a while, jumps out and goes on
+        if (!stopped && there && box) {
+          stopped = true;
+          walker.style.transform = 'translateX(' + x + 'px)';
+          return intoTheBox(box, goOn);
+        }
+        // or a stop half way: he turns to you, looks round or waves, then goes on
+        if (!stopped && there && Math.random() < 0.6) {
           stopped = true;
           walkK.turn(0);
           var what = Math.random() < 0.5 ? 'wave' : 'lookAround', ms = walkK.once(what) || 2500;
           walker.style.transform = 'translateX(' + x + 'px)';
-          return setTimeout(function () { if (!walking) return; walkK.turn(dir * Math.PI / 2); walkK.hold('walk'); last = performance.now(); requestAnimationFrame(step); }, ms);
+          return setTimeout(goOn, ms);
         }
         if (!stopped && (dir > 0 ? x + w / 2 >= stopAt : x + w / 2 <= stopAt)) stopped = true;
         x += dir * 95 * dt;   // about his stride at this size
@@ -913,9 +924,47 @@
       });
     }).catch(function () { /* no walk this time */ });
   }
+  // a cardboard box on the bottom edge, its middle at x: the back (inside and back flaps) behind Kevin, the front
+  // panel in front of him, so in the box only his head shows over its edge
+  var boxNext = false;
+  function cardboardBox(x) {
+    var back = document.createElement('div'), front = document.createElement('div');
+    back.className = 'kevin-box kevin-box-back';
+    front.className = 'kevin-box kevin-box-front';
+    back.setAttribute('aria-hidden', 'true');
+    front.setAttribute('aria-hidden', 'true');
+    back.innerHTML = '<svg viewBox="0 0 160 120"><path d="M14 52 L30 22 L130 22 L146 52 Z" fill="#6e4a24"/>'
+      + '<path d="M30 22 L18 4 L74 10 L80 22 Z" fill="#c69a63"/><path d="M130 22 L142 6 L88 10 L80 22 Z" fill="#b8884f"/></svg>';
+    front.innerHTML = '<svg viewBox="0 0 160 120"><path d="M14 52 L146 52 L146 118 L14 118 Z" fill="#b98a52"/>'
+      + '<path d="M14 52 L146 52 L146 60 L14 60 Z" fill="#a2743f"/><path d="M14 52 L4 74 L60 70 L72 52 Z" fill="#d3a56b"/>'
+      + '<path d="M146 52 L156 74 L100 70 L88 52 Z" fill="#c99b60"/><rect x="72" y="52" width="16" height="66" fill="#d9c08f" opacity=".75"/>'
+      + '<text x="80" y="98" text-anchor="middle" font-size="11" font-family="Arial Black, sans-serif" fill="#5a3a18" opacity=".7" transform="rotate(-4 80 98)">SKELO SQUAD</text></svg>';
+    [back, front].forEach(function (el) { el.style.left = (x - 80) + 'px'; document.body.appendChild(el); });
+    return { back: back, front: front, remove: function () { [back, front].forEach(function (el) { el.classList.add('gone'); setTimeout(function () { el.remove(); }, 900); }); } };
+  }
+  // up, then down into the box (only the head over its edge), a look round, up and out again
+  function intoTheBox(box, then) {
+    var c = walker.querySelector('canvas');
+    walkK.turn(0);
+    walkK.once('jump');
+    c.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-60px)', offset: 0.45 }, { transform: 'translateY(24px)' }],
+      { duration: 1100, easing: 'ease-in-out', fill: 'forwards' });
+    setTimeout(function () {
+      if (!walking) return;
+      walkK.hold('lookAround');
+      setTimeout(function () {
+        if (!walking) return;
+        walkK.once('jump');
+        c.animate([{ transform: 'translateY(24px)' }, { transform: 'translateY(-60px)', offset: 0.5 }, { transform: 'translateY(0)' }],
+          { duration: 1100, easing: 'ease-in-out', fill: 'forwards' });
+        setTimeout(function () { box.remove(); then(); }, 1100);
+      }, 3600);
+    }, 1100);
+  }
   function endWalk() {
     walking = false;
-    if (walker) walker.hidden = true;
+    document.querySelectorAll('.kevin-box').forEach(function (el) { el.remove(); });
+    if (walker) { walker.hidden = true; walker.querySelector('canvas').getAnimations().forEach(function (a) { a.cancel(); }); }
     if (walkK) { walkK.hold(null); walkK.setPaused(true); }
     scheduleWalk();
   }
@@ -1027,8 +1076,8 @@
     } else if (d.clip && L.clip[d.clip]) {
       if (d.clip !== 'ok' || Math.random() < 0.5) react('clip', L.clip[d.clip], d.clip === 'ok' ? 'cool' : 'sulk');
     } else if (d.walk) {
-      // a walk now (also used by the tests)
-      if (!walking && wideMq.matches && !reduced) walk();
+      // a walk now (also used by the tests); {walk: 'box'} = with the cardboard box
+      if (!walking && wideMq.matches && !reduced) { boxNext = d.walk === 'box'; walk(); }
     } else if (d.tip) {
       // another script wants a tip now (also used by the tests): he peeks out to say it
       lastAuto = 0;
