@@ -55,90 +55,56 @@
   </section>
 
 <%
-  // visits (VisitStats): no cookies, a visitor counts once a day; the admin's own visits are not counted
+  // visits at a glance (the details and charts are on /admin/stats)
   java.util.Map<String, Object> vs = new java.util.HashMap<>();
-  java.util.List<String[]> topLyrics = new java.util.ArrayList<>();
+  long[] visitDays = new long[14];
   try {
     vs = com.github.skeliit.service.VisitStats.summary();
-    topLyrics = com.github.skeliit.service.VisitStats.topLyrics(5);
+    visitDays = com.github.skeliit.service.VisitStats.dailyVisits(14);
   } catch (java.sql.SQLException e) {
     application.log("Visit stats", e);
   }
-  // {key, icon, label}
+  long visitMax = 1;
+  for (long d : visitDays) visitMax = Math.max(visitMax, d);
   String[][] visitTiles = {
       {"online", "fa-signal", "Právě na webu"},
       {"today", "fa-user", "Lidí dnes"},
-      {"yesterday", "fa-clock-rotate-left", "Lidí včera"},
       {"days7", "fa-calendar-week", "Návštěv za 7 dní"},
-      {"days30", "fa-calendar", "Návštěv za 30 dní"},
-      {"allVisits", "fa-infinity", "Návštěv celkem"},
-      {"pagesToday", "fa-file-lines", "Zobrazených stránek dnes"},
-      {"pagesAll", "fa-layer-group", "Zobrazených stránek celkem"}
+      {"pagesToday", "fa-file-lines", "Stránek dnes"}
   };
 %>
-  <h3 class="admin-section-title" id="stats"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Návštěvnost</h3>
-  <% if ("1".equals(request.getParameter("statsReset"))) { %>
-  <p class="admin-flash"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Statistiky jsou vynulované, počítá se od teď.</p>
-  <% } %>
-  <div class="admin-stats admin-visits">
-    <% for (String[] tile : visitTiles) { Object n = vs.getOrDefault(tile[0], 0); %>
-    <div class="admin-stat<%= "online".equals(tile[0]) ? " live" : "" %>">
-      <i class="fa-solid <%= tile[1] %>" aria-hidden="true"></i>
-      <b><%= n %></b>
-      <span><%= tile[2] %></span>
+  <section class="admin-card admin-glance">
+    <div class="admin-glance-head">
+      <h3><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Návštěvnost</h3>
+      <a href="/admin/stats">Všechny statistiky a grafy <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
     </div>
-    <% } %>
-  </div>
-  <div class="admin-grid">
-    <section class="admin-card">
-      <h3><i class="fa-solid fa-ranking-star" aria-hidden="true"></i> Nejčtenější texty</h3>
-      <% if (topLyrics.isEmpty()) { %>
-        <p class="text-dim">Zatím nikdo nic nečetl.</p>
-      <% } else { %>
-      <ol class="admin-top">
-        <% for (String[] row : topLyrics) { %>
-        <li><span><%= com.github.skeliit.WebUtils.escapeHtml(row[0]) %> <small><%= com.github.skeliit.WebUtils.escapeHtml(row[1]).toUpperCase() %></small></span> <b><%= row[2] %>×</b></li>
-        <% } %>
-      </ol>
+    <div class="admin-stats admin-visits">
+      <% for (String[] tile : visitTiles) { %>
+      <div class="admin-stat<%= "online".equals(tile[0]) ? " live" : "" %>">
+        <i class="fa-solid <%= tile[1] %>" aria-hidden="true"></i>
+        <b><%= vs.getOrDefault(tile[0], 0) %></b>
+        <span><%= tile[2] %></span>
+      </div>
       <% } %>
-    </section>
-    <section class="admin-card">
-      <h3><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Jak se počítá</h3>
-      <p class="text-dim">Každý člověk se započítá jednou za den, text písně taky jen jednou za den. Roboti a tvoje návštěvy jako admina se nepočítají. Bez cookies, takže se počítají všichni, i ti, kdo v cookie liště odmítnou.</p>
-      <p class="text-dim">Počítá se od: <b><%= com.github.skeliit.WebUtils.escapeHtml(vs.getOrDefault("since", "–")) %></b></p>
-      <form method="post" action="/admin/stats-reset" class="admin-reset">
-        <input type="hidden" name="csrf" value="${csrf}">
-        <label class="checkbox-label"><input type="checkbox" name="confirm" value="ANO" required> Opravdu vynulovat počítadla (zobrazení textů i návštěvnost)</label>
-        <button type="submit" class="btn-delete"><i class="fa-solid fa-rotate-left"></i> Vynulovat statistiky</button>
-      </form>
-    </section>
+    </div>
+    <div class="play-days admin-spark" role="img" aria-label="Lidé po dnech za posledních 14 dní">
+      <% for (int i = 0; i < visitDays.length; i++) { %><span class="play-day<%= visitDays[i] == 0 ? " zero" : "" %>" style="--h: <%= Math.round(visitDays[i] * 100.0 / visitMax) %>%" title="<%= visitDays[i] %> lidí"><b><%= visitDays[i] > 0 ? visitDays[i] : "" %></b></span><% } %>
+    </div>
+    <p class="text-dim admin-spark-note">Lidé po dnech, posledních 14 dní (dnes vpravo).</p>
+  </section>
+
+  <%-- the things done most often, one tap away --%>
+  <div class="admin-quick">
+    <a class="admin-btn primary" href="/admin/track"><i class="fa-solid fa-plus" aria-hidden="true"></i> Přidat track z YouTube</a>
+    <a class="admin-btn" href="/admin/newsletter#compose"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Napsat novinky</a>
+    <a class="admin-btn" href="/admin/lyrics"><i class="fa-solid fa-align-left" aria-hidden="true"></i> Upravit text</a>
+    <a class="admin-btn" href="/admin/comments"><i class="fa-solid fa-comments" aria-hidden="true"></i> Komentáře</a>
   </div>
 
-  <h3 class="admin-section-title"><i class="fa-solid fa-compact-disc" aria-hidden="true"></i> Obsah</h3>
-  <div class="admin-grid">
-    <section class="admin-card admin-link-card">
-      <h3>Katalog písní</h3>
-      <p class="text-dim">Středem je píseň: na ni se vážou texty, klipy z YouTube, Spotify, Apple Music a náhledový obrázek.</p>
-      <a class="admin-btn primary" href="/admin/songs"><i class="fa-solid fa-music"></i> Otevřít katalog</a>
-    </section>
-    <section class="admin-card admin-link-card">
-      <h3>Texty písní</h3>
-      <p class="text-dim">Vlož nebo uprav text kterékoli písně (CS/EN/DE/UK/VI). Songy bez textu a klipy bez songu jsou v seznamu nahoře.</p>
-      <a class="admin-btn primary" href="/admin/lyrics"><i class="fa-solid fa-align-left"></i> Otevřít editor textů</a>
-    </section>
-    <section class="admin-card admin-link-card">
-      <h3>Přidat track z YouTube</h3>
-      <p class="text-dim">Vlož odkaz na klip – název, rok a náhled se načtou samy, doplníš Spotify, Apple Music a text a jedním tlačítkem je track na webu.</p>
-      <a class="admin-btn primary" href="/admin/track"><i class="fa-solid fa-plus"></i> Přidat track</a>
-    </section>
-    <section class="admin-card admin-link-card">
-      <h3>Citáty na úvodu</h3>
-      <p class="text-dim">Dva řádky z písně, které se na úvodní stránce vypálí. Přidej, uprav nebo smaž.</p>
-      <a class="admin-btn primary" href="/admin/quotes"><i class="fa-solid fa-quote-left"></i> Upravit citáty</a>
-    </section>
-    <section class="admin-card admin-card-wide">
-      <h3>Přidat / upravit song a video ručně</h3>
-      <p class="text-dim">Song, který není na tvém kanálu (feat, cizí kanál, jen Spotify…): vlož odkaz na video a název songu – objeví se v Diskografii. Bez odkazu se přidá song bez videa.</p>
+  <details class="admin-card admin-manual" id="manual"<%= request.getParameter("manual") != null ? " open" : "" %>>
+    <summary><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Přidat / upravit song a video ručně</summary>
+    <% if ("saved".equals(request.getParameter("manual"))) { %><p class="admin-flash"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Uloženo.</p><% } %>
+    <p class="text-dim">Song, který není na tvém kanálu (feat, cizí kanál, jen Spotify…): vlož odkaz na video a název songu – objeví se v Diskografii. Bez odkazu se přidá song bez videa. Běžně stačí „Přidat track z YouTube“.</p>
       <form method="post" action="/admin/video" class="admin-form admin-form-cols">
         <input type="hidden" name="csrf" value="${csrf}">
         <label class="span-2">Odkaz na YouTube nebo ID videa <input name="youtube_id" placeholder="https://www.youtube.com/watch?v=…"></label>
@@ -148,65 +114,7 @@
         <label>Napojit na text (lyric ID) <input name="lyric_id" type="number" min="1"></label>
         <button type="submit" class="span-2"><i class="fa-solid fa-floppy-disk"></i> Uložit</button>
       </form>
-    </section>
-  </div>
-
-  <h3 class="admin-section-title" id="community"><i class="fa-solid fa-people-group" aria-hidden="true"></i> Komunita</h3>
-  <div class="admin-grid">
-    <section class="admin-card admin-link-card">
-      <h3>Komentáře</h3>
-      <p class="text-dim">Všechny komentáře u textů i klipů, nahlášené nahoře. Smazat nebo zamítnout nahlášení jedním klikem.</p>
-      <a class="admin-btn" href="/admin/comments"><i class="fa-solid fa-comments"></i> Komentáře</a>
-    </section>
-    <section class="admin-card admin-link-card">
-      <h3>Uživatelé</h3>
-      <p class="text-dim">Role (uživatel / admin), smazání účtu.</p>
-      <a class="admin-btn" href="/admin_users.jsp"><i class="fa-solid fa-users"></i> Správa uživatelů</a>
-    </section>
-    <section class="admin-card admin-link-card">
-      <h3>Newsletter</h3>
-      <p class="text-dim">Kdo odebírá novinky e-mailem a kdo už odběr potvrdil.</p>
-      <a class="admin-btn" href="/admin/newsletter"><i class="fa-solid fa-envelope-open-text"></i> Odběratelé</a>
-    </section>
-  </div>
-
-  <h3 class="admin-section-title" id="sync"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> Synchronizace</h3>
-  <section class="admin-card admin-sync-card">
-    <div class="admin-sync-item">
-      <i class="fab fa-youtube icon-youtube" aria-hidden="true"></i>
-      <div><b>YouTube</b><span>Načte videa z kanálu a spáruje je se songy.</span></div>
-      <a class="admin-btn" href="/admin/sync">Spustit</a>
-    </div>
-    <div class="admin-sync-item">
-      <i class="fab fa-instagram icon-instagram" aria-hidden="true"></i>
-      <div><b>Instagram</b><span>Běží samo každou hodinu: posledních 25 příspěvků do Aktualit.</span></div>
-      <a class="admin-btn" href="/admin/instagram-sync">Spustit</a>
-    </div>
-    <div class="admin-sync-item">
-      <i class="fab fa-apple" aria-hidden="true"></i>
-      <div><b>Apple Music</b><span>Najde písně v katalogu Apple Music a doplní odkazy (zdarma, bez klíčů). Časovaný text jen s placeným účtem Apple Developer.</span>
-<%
-  // result of /admin/apple-sync (numbers only, never echoed as text)
-  String appleRes = request.getParameter("apple");
-  if ("error".equals(appleRes)) {
-%>
-        <span class="admin-sync-result warn">Katalog Apple Music teď nejde načíst. Zkus to prosím později.</span>
-<% } else if (appleRes != null && appleRes.matches("[0-9]{1,4}")) {
-     String miss = request.getParameter("appleMissing"), lyr = request.getParameter("appleLyrics");
-     miss = miss != null && miss.matches("[0-9]{1,4}") ? miss : "0";
-     lyr = lyr != null && lyr.matches("[0-9]{1,4}") ? lyr : "0";
-%>
-        <span class="admin-sync-result">Hotovo: doplněno <b><%= appleRes %></b>, bez Apple Music zůstává <b><%= miss %></b> (featy u jiných interpretů, songy, které na Apple Music nejsou)<% if (!"0".equals(lyr)) { %>, časovaných textů: <b><%= lyr %></b><% } %>.</span>
-<% } %>
-      </div>
-      <a class="admin-btn" href="/admin/apple-sync">Spustit</a>
-    </div>
-    <div class="admin-sync-item">
-      <i class="fa-solid fa-file-zipper" aria-hidden="true"></i>
-      <div><b>Export textů</b><span>Stáhne všechny texty jako soubory TTML v archivu ZIP, např. pro Apple Music přes DistroKid.</span></div>
-      <a class="admin-btn" href="/admin/lyrics-export">Stáhnout</a>
-    </div>
-  </section>
+  </details>
 </main>
 
 <%@ include file="includes/footer.jsp" %>

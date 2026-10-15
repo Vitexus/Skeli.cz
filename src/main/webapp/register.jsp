@@ -24,7 +24,7 @@
         <%-- honeypot: invisible to people, bots fill it in and are ignored --%>
         <div class="hp-field" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
         <label><%= t.getProperty("auth.label.username","Uživatel") %><br>
-          <input type="text" name="username" required pattern="[A-Za-z0-9._-]{3,50}" maxlength="50" value="<%= com.github.skeliit.WebUtils.escapeHtml(request.getAttribute("username")) %>" autocomplete="username"></label>
+          <input type="text" name="username" required pattern="[A-Za-z0-9._\-]{3,50}" maxlength="50" value="<%= com.github.skeliit.WebUtils.escapeHtml(request.getAttribute("username")) %>" autocomplete="username"></label>
         <label><%= t.getProperty("auth.label.email","E-mail") %><br>
           <input type="email" name="email" required maxlength="255" value="<%= com.github.skeliit.WebUtils.escapeHtml(request.getAttribute("email")) %>" autocomplete="email"></label>
         <div class="row">

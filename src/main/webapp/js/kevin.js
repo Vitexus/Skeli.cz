@@ -54,7 +54,7 @@
   root.innerHTML =
     '<div class="kevin-bubble" role="status" aria-live="polite" hidden><p class="kevin-text"></p><a class="kevin-link" hidden></a><div class="kevin-extra" hidden></div></div>'
     + '<button type="button" class="kevin-body" aria-label="' + esc(L.ui.call) + '" title="' + esc(L.ui.call) + '">'
-    + '<canvas class="kevin-canvas" aria-hidden="true"></canvas><img class="kevin-still" src="/img/kevin.webp" alt="" hidden></button>'
+    + '<canvas class="kevin-canvas" aria-hidden="true"></canvas><img class="kevin-still" src="/img/kevin.webp' + (version ? '?' + version : '') + '" alt="" hidden></button>'
     + '<div class="kevin-tools">'
     + '<button type="button" class="kevin-sound" aria-pressed="true" title="' + esc(L.ui.sound) + '" aria-label="' + esc(L.ui.sound) + '"><i class="fa-solid fa-volume-high"></i></button>'
     + '<button type="button" class="kevin-hide" title="' + esc(L.ui.hide) + '" aria-label="' + esc(L.ui.hide) + '"><i class="fa-solid fa-xmark"></i></button>'
@@ -108,10 +108,16 @@
   function load3d() {
     var gl = null;
     try { gl = document.createElement('canvas').getContext('webgl2'); } catch (e) { gl = null; }
-    if (reduced || saveData || !gl) return useStill();
-    import('/js/kevin3d.js' + (version ? '?' + version : '')).then(function (m) {
-      k = m.createKevin(canvas, { light: document.body.classList.contains('light') });
-      canvas.hidden = false; still.hidden = true;
+    // localStorage.kevinLite = '1': just the picture (slow devices; the tests, whose software WebGL can't keep up)
+    if (reduced || saveData || !gl || store.get('kevinLite') === '1') return useStill();
+    // the ginger cat (js/kevin-model.js, about 5 MB with all his moves): the still image stays until he is on screen
+    import('/js/kevin-model.js' + (version ? '?' + version : '')).then(function (m) {
+      k = m.createKevin(canvas, {
+        light: document.body.classList.contains('light'),
+        src: '/kevin/kevin.glb' + (version ? '?' + version : ''),
+        onReady: function () { canvas.hidden = false; still.hidden = true; },
+        onError: useStill
+      });
       k.setPaused(root.hidden);
       new MutationObserver(function () { k.setLight(document.body.classList.contains('light')); })
         .observe(document.body, { attributes: true, attributeFilter: ['class'] });
@@ -150,6 +156,7 @@
   }
   function hideBubble(pose) {
     endPeek();
+    if (stopBeat) { stopBeat(); stopBeat = null; }   // the beat ends with his words
     bubble.hidden = true;
     extra.innerHTML = '';
     root.classList.remove('talking');
@@ -284,42 +291,121 @@
 
   // ---------- the beat (Web Audio, only ever after a click) ----------
   var audio = null;
-  function beat(bars, bpm) {
+  // Five styles, picked at random: drums, bass and chords on a 16-step bar. bpm = the drum tempo,
+  // flow = the tempo his words follow (half of it for trap and drill), swing = how late the off-beat 16ths are.
+  // The key and the chord progression are random too, so the melody is never quite the same.
+  var STYLES = [
+    { name: 'boombap', label: 'boom-bap beat', bpm: 90, flow: 90, swing: 0.1, kick: [0, 7, 10], snare: [4, 12], hats: 2, open: [14],
+      bass: 'kick', keys: 'stab', progs: [[0, 8, 3, 10], [0, 5, 8, 7], [0, 3, 8, 7]], minor: true },
+    { name: 'lofi', label: 'lo-fi beat', bpm: 78, flow: 78, swing: 0.18, kick: [0, 7, 9], snare: [4, 12], hats: 2, soft: true, crackle: true,
+      bass: 'root', keys: 'pad', progs: [[5, 4, 2, 0], [0, 9, 5, 7], [2, 7, 0, 9]], minor: false },
+    { name: 'trap', label: 'trap beat', bpm: 140, flow: 70, swing: 0, kick: [0, 3, 10], snare: [8], clap: true, hats: 1, rolls: true,
+      bass: '808', keys: 'dark', progs: [[0, 8, 3, 10], [0, 1, 0, 8]], minor: true },
+    { name: 'drill', label: 'drill beat', bpm: 142, flow: 71, swing: 0.06, kick: [0, 6, 11], snare: [8, 14], hats: [0, 3, 6, 8, 10, 13], slide: true,
+      bass: '808', keys: 'bell', progs: [[0, 1, 0, 8], [0, 8, 1, 0]], minor: true },
+    { name: 'oldschool', label: 'old-school beat', bpm: 96, flow: 96, swing: 0.12, kick: [0, 3, 8, 10], snare: [4, 12], clap: true, hats: 2, open: [6, 14],
+      bass: 'funk', keys: 'stab', progs: [[0, 5, 0, 7], [0, 3, 5, 3]], minor: true }
+  ];
+  var lastStyle = '';
+  function chooseStyle() {
+    var options = STYLES.filter(function (s) { return s.name !== lastStyle; });
+    var s = options[Math.floor(Math.random() * options.length)];
+    lastStyle = s.name;
+    return s;
+  }
+  // plays a style for about `seconds`; returns stop()
+  function beat(style, seconds) {
     if (!soundOn) return function () {};
     try {
       audio = audio || new (window.AudioContext || window.webkitAudioContext)();
       if (audio.state === 'suspended') audio.resume();
     } catch (e) { return function () {}; }
     var ctx = audio, out = ctx.createGain(), lp = ctx.createBiquadFilter();
-    out.gain.value = 0.32;
+    out.gain.value = style.soft ? 0.26 : 0.3;
     lp.type = 'lowpass';
-    lp.frequency.value = 9000;
+    lp.frequency.value = style.soft ? 5200 : 9500;
     out.connect(lp);
     lp.connect(ctx.destination);
-    var noise = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate), nd = noise.getChannelData(0);
+    var noise = ctx.createBuffer(1, ctx.sampleRate * 0.4, ctx.sampleRate), nd = noise.getChannelData(0);
     for (var i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
-    var t0 = ctx.currentTime + 0.05, step = 60 / bpm / 2, nodes = [];
-    function kick(t) {
-      var o = ctx.createOscillator(), g = ctx.createGain();
-      o.frequency.setValueAtTime(130, t);
-      o.frequency.exponentialRampToValueAtTime(42, t + 0.14);
-      g.gain.setValueAtTime(1, t);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-      o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.42); nodes.push(o);
+    var nodes = [], t0 = ctx.currentTime + 0.06, sixteenth = 60 / style.bpm / 4, bar = sixteenth * 16;
+    var bars = Math.max(1, Math.ceil(seconds / bar));
+    var root = 33 + Math.floor(Math.random() * 7);   // A1 … D#2: a random key every time
+    var prog = style.progs[Math.floor(Math.random() * style.progs.length)];
+    function hz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+    function env(g, t, peak, attack, len) {
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(peak, t + attack);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + len);
     }
-    function hit(t, freq, type, gain, len) {
+    function osc(type, f, t, len, peak, attack, dest, filterHz) {
+      var o = ctx.createOscillator(), g = ctx.createGain(), node = g;
+      o.type = type; o.frequency.setValueAtTime(f, t);
+      env(g, t, peak, attack, len);
+      o.connect(g);
+      if (filterHz) { var f2 = ctx.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = filterHz; g.connect(f2); node = f2; }
+      node.connect(dest || out);
+      o.start(t); o.stop(t + len + 0.05); nodes.push(o);
+      return o;
+    }
+    function noiseHit(t, freq, type, peak, len) {
       var s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
       s.buffer = noise; f.type = type; f.frequency.value = freq;
-      g.gain.setValueAtTime(gain, t);
-      g.gain.exponentialRampToValueAtTime(0.001, t + len);
+      g.gain.setValueAtTime(peak, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + len);
       s.connect(f); f.connect(g); g.connect(out); s.start(t); s.stop(t + len + 0.02); nodes.push(s);
     }
-    // boom-bap: kick on 1 and the "and" of 3, snare on 2 and 4, hats on every eighth
-    for (var b = 0; b < bars; b++) for (var e = 0; e < 8; e++) {
-      var t = t0 + (b * 8 + e) * step;
-      if (e === 0 || e === 5) kick(t);
-      if (e === 2 || e === 6) hit(t, 1800, 'bandpass', 0.7, 0.18);
-      hit(t, 7500, 'highpass', e % 2 ? 0.12 : 0.2, 0.05);
+    function kick(t) {
+      var o = osc('sine', 150, t, 0.42, style.soft ? 0.8 : 1, 0.004);
+      o.frequency.exponentialRampToValueAtTime(45, t + 0.13);
+    }
+    function snare(t, peak) {
+      noiseHit(t, 1900, 'bandpass', peak, 0.2);
+      osc('triangle', 185, t, 0.1, peak * 0.5, 0.002);
+    }
+    function clap(t) { [0, 0.011, 0.023].forEach(function (d) { noiseHit(t + d, 1250, 'bandpass', 0.55, 0.12); }); }
+    function hat(t, peak, open) { noiseHit(t, 8200, 'highpass', peak, open ? 0.28 : 0.045); }
+    function sub(t, m, len, glideTo) {
+      var o = osc('sine', hz(m), t, len, 0.75, 0.006);
+      if (glideTo != null) o.frequency.exponentialRampToValueAtTime(hz(glideTo), t + Math.min(len, 0.25));
+    }
+    // chords: minor or major sevenths on the progression's degree
+    function chordNotes(degree) {
+      var base = root + 24 + degree, third = style.minor ? 3 : 4;
+      return [base, base + third, base + 7, base + (style.minor ? 10 : 11)];
+    }
+    function keys(t, degree, kind) {
+      var ns = chordNotes(degree);
+      if (kind === 'pad') ns.forEach(function (m) { osc('triangle', hz(m), t, bar * 0.95, 0.05, 0.08, null, 1600); osc('sine', hz(m) * 1.003, t, bar * 0.95, 0.03, 0.08); });
+      if (kind === 'dark') ns.forEach(function (m) { osc('sawtooth', hz(m - 12), t, bar * 0.95, 0.025, 0.2, null, 700); });
+      if (kind === 'stab') [0, 6].forEach(function (s) { ns.forEach(function (m) { osc('square', hz(m), t + s * sixteenth, sixteenth * 1.6, 0.018, 0.005, null, 2200); }); });
+      if (kind === 'bell') [0, 3, 7, 10, 12].forEach(function (s, k) { osc('sine', hz(ns[k % 3] + 12), t + s * sixteenth, 0.5, 0.05, 0.003); });
+    }
+    // a little vinyl crackle under lo-fi
+    if (style.crackle) {
+      var len = bars * bar, cb = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * len), ctx.sampleRate), cd = cb.getChannelData(0);
+      for (var c = 0; c < cd.length; c++) cd[c] = Math.random() < 0.0009 ? (Math.random() * 2 - 1) * 0.6 : (Math.random() * 2 - 1) * 0.004;
+      var cs = ctx.createBufferSource(), cg = ctx.createGain();
+      cs.buffer = cb; cg.gain.value = 0.5; cs.connect(cg); cg.connect(out); cs.start(t0); nodes.push(cs);
+    }
+    for (var b = 0; b < bars; b++) {
+      var degree = prog[b % prog.length], bt = t0 + b * bar;
+      keys(bt, degree, style.keys);
+      for (var s = 0; s < 16; s++) {
+        var t = bt + s * sixteenth + (s % 2 ? style.swing * sixteenth : 0);
+        var isKick = style.kick.indexOf(s) >= 0;
+        if (isKick) kick(t);
+        if (style.snare.indexOf(s) >= 0) { snare(t, style.soft ? 0.45 : 0.7); if (style.clap) clap(t); }
+        var hatOn = Array.isArray(style.hats) ? style.hats.indexOf(s) >= 0 : s % style.hats === 0;
+        if (hatOn) hat(t, (s % 4 === 0 ? 0.2 : 0.12) * (style.soft ? 0.7 : 1), style.open && style.open.indexOf(s) >= 0);
+        // trap hi-hat rolls: now and then a quick triplet run
+        if (style.rolls && s % 4 === 2 && Math.random() < 0.3) for (var r = 1; r < 3; r++) hat(t + r * sixteenth / 3, 0.09);
+        // bass
+        if (style.bass === '808' && isKick) sub(t, root + degree, sixteenth * 5, style.slide && Math.random() < 0.35 ? root + degree + (Math.random() < 0.5 ? 5 : -2) : null);
+        if (style.bass === 'kick' && isKick) osc('triangle', hz(root + 12 + degree), t, sixteenth * 2.5, 0.22, 0.01, null, 500);
+        if (style.bass === 'root' && (s === 0 || s === 8)) osc('triangle', hz(root + 12 + degree), t, sixteenth * 6, 0.2, 0.02, null, 450);
+        if (style.bass === 'funk' && [0, 3, 6, 10, 13].indexOf(s) >= 0) osc('sawtooth', hz(root + 12 + degree + (s === 13 ? 7 : s === 6 ? 12 : 0)), t, sixteenth * 1.4, 0.12, 0.005, null, 600);
+      }
     }
     return function stop() {
       out.gain.setTargetAtTime(0, ctx.currentTime, 0.05);
@@ -376,9 +462,11 @@
       .catch(function () { return null; })
       .then(function (bars) {
         if (!bars || !bars.lines || !bars.lines.length) { busy = false; return show(pick(L.rap.fail), { pose: 'sulk', after: 'idle' }); }
-        var words = (pick(L.rap.intro) + ' / ' + bars.lines.join(' / ')).split(/\s+/);
-        var bpm = 90, eighth = 60000 / bpm / 2, bars8 = Math.ceil(words.length / 8) + 2;
-        stopBeat = beat(bars8, bpm);
+        // a random style; his words follow its flow (one word an eighth, a breath after a comma). Before the bars:
+        // which song they are from and which beat plays (so the user can say which beats to keep)
+        var style = chooseStyle(), eighth = 60000 / style.flow / 2;
+        var words = (pick(L.rap.intro) + ' / ♪ ' + (bars.song || '') + ' (' + style.label + ') / ' + bars.lines.join(' / ')).split(/\s+/);
+        stopBeat = beat(style, ((words.length + 12) * eighth) / 1000 + 1);
         clearTimeout(hideTimer);
         bubble.hidden = false;
         link.hidden = true;
@@ -394,7 +482,11 @@
             link.textContent = (bars.song ? bars.song + ' · ' : '') + L.ui.fullLyrics;
             link.href = bars.href;
             link.hidden = false;
-            rapTimer = setTimeout(endRap, 8000);
+            // time to read it all in peace (the user found 8 s too short); pointing at the bubble keeps it
+            busy = false;
+            hideAfter = 'idle';
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(function () { hideBubble('idle'); }, Math.max(12000, words.length * 500));
             return;
           }
           var w = words[i++];
@@ -517,6 +609,7 @@
       x.addEventListener('click', closeTv);
       tv.appendChild(frame);
       tv.appendChild(x);
+      window.dispatchEvent(new CustomEvent('skeli:play', { detail: { yt: c.youtubeId } }));   // the admin's play counts
       document.body.appendChild(tv);
       root.classList.add('has-tv');
       show(say(pick(L.play.pick), 0, c.title), { pose: 'cool', href: c.href, linkText: L.play.song, ms: 8000 });
@@ -563,14 +656,20 @@
 
   // "Surprise me": a shuffled deck of everything in L.surprise, none again until all of them have been
   // (the deck lives in the browser session, so a new page does not start it over)
+  var BIG_SURPRISES = ['beatbox', 'rhyme', 'dance', 'dance2', 'dance3', 'robot', 'silly', 'breakdance', 'flair', 'kick', 'dive', 'cheer', 'jump'];
   function nextSurprise() {
-    var all = Object.keys(L.surprise || {}), deck;
+    // only what this model can show (the ginger cat has no sunglasses and no moving tail)
+    var all = Object.keys(L.surprise || {}).filter(function (id) { return !model().can || model().can(id); }), deck;
     try { deck = JSON.parse(session.get('kevinDeck')) || []; } catch (e) { deck = []; }
     deck = deck.filter(function (id) { return all.indexOf(id) >= 0; });
     if (!deck.length) {
+      // shuffled, the big moves (dances, acrobatics, the beat) taking turns with the small ones, a big one first
       var last = session.get('kevinLastSurprise');
-      deck = all.slice();
-      for (var i = deck.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = deck[i]; deck[i] = deck[j]; deck[j] = x; }
+      var shuffle = function (a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = a[i]; a[i] = a[j]; a[j] = x; } return a; };
+      var big = shuffle(all.filter(function (id) { return BIG_SURPRISES.indexOf(id) >= 0; }));
+      var small = shuffle(all.filter(function (id) { return BIG_SURPRISES.indexOf(id) < 0; }));
+      deck = [];
+      while (big.length || small.length) { if (big.length) deck.push(big.shift()); if (small.length) deck.push(small.shift()); }
       if (deck[0] === last && deck.length > 1) deck.push(deck.shift());
     }
     var id = deck.shift();
@@ -581,29 +680,17 @@
   function surprise() {
     var id = nextSurprise(), line = L.surprise[id];
     if (id === 'beatbox' || id === 'rhyme') {
-      // beatbox, or his own little rhyme over the beat
-      var long = id === 'rhyme' ? 8000 : 5400;
+      // a dance to a beat, or his own little rhyme over it
+      var long = id === 'rhyme' ? 8000 : 7000;
       busy = true;
-      stopBeat = beat(id === 'rhyme' ? 3 : 2, 90);
-      show(line, { pose: id === 'rhyme' ? 'rap' : 'beatbox', ms: long });
+      stopBeat = beat(chooseStyle(), long / 1000);
+      model().act(id);
+      show(line, { pose: 'idle', ms: long });
       setTimeout(function () { busy = false; stopBeat = null; }, long);
       return;
     }
-    if (id === 'shades') return show(line, { pose: 'cool', ms: 5200 });
-    if (id === 'turn') {
-      show(line, { pose: 'sulk', ms: 3800, after: 'sulk' });
-      return setTimeout(function () { if (!busy) model().setPose('idle'); }, 4200);
-    }
-    if (id === 'curl') return show(line, { pose: 'sleep', ms: 4500 });
-    if (id === 'wakeup') {
-      // dozes off for a moment, then jolts awake
-      model().setPose('sleep');
-      return setTimeout(function () { model().setPose('idle'); model().act('startle'); show(line, { pose: 'idle' }); }, 1400);
-    }
-    if (id === 'peek') { var spot = findPeekSpot(); if (spot) startPeek(spot); }
-    if (id === 'meow' || id === 'purr') sfx(id);
     var ms = model().act(id);
-    show(line, { pose: 'idle', ms: Math.max(4200, ms + 1200) });
+    show(line, { pose: 'idle', ms: Math.max(4200, ms + 800) });
   }
 
   // ---------- sleep when nobody moves ----------
@@ -758,6 +845,130 @@
     if (!h) wake();
   }
 
+  // ---------- now and then he takes a walk along the bottom edge of the window ----------
+  // A second, small Kevin (his own canvas; the model comes from the browser's cache) walks in from one side, sometimes
+  // stops to look round or wave, and walks out on the other. PC only (no room on a phone), never while the visitor
+  // types, while Kevin is out talking, in the admin, when he was sent away with the cross, with reduced motion or
+  // save-data. A click on him opens his menu.
+  var walker = null, walkK = null, walking = false;
+  function canWalk() {
+    return !adminPage && !userHidden && !reduced && !saveData && wideMq.matches && !document.hidden
+      && root.hidden && !busy && !isField(document.activeElement) && store.get('kevinLite') !== '1';
+  }
+  function scheduleWalk() {
+    setTimeout(function () { if (canWalk()) walk(); else scheduleWalk(); }, 90000 + Math.random() * 90000);
+  }
+  function walk() {
+    var gl = null;
+    try { gl = document.createElement('canvas').getContext('webgl2'); } catch (e) { gl = null; }
+    if (!gl) return;
+    if (!walker) {
+      walker = document.createElement('button');
+      walker.type = 'button';
+      walker.className = 'kevin-walker';
+      walker.setAttribute('aria-label', L.ui.call);
+      walker.innerHTML = '<canvas aria-hidden="true"></canvas>';
+      walker.addEventListener('click', function () { endWalk(); paw.click(); });
+      document.body.appendChild(walker);
+    }
+    var go = function () {
+      walking = true;
+      var dir = Math.random() < 0.5 ? 1 : -1, W = window.innerWidth, w = walker.offsetWidth || 130;
+      // the right third stays clear of the Spotify button; a cardboard box on the way now and then (cats and boxes)
+      var x = dir > 0 ? -w : W, stopAt = W * (0.25 + Math.random() * 0.4), stopped = false, last = performance.now();
+      var box = boxNext || Math.random() < 0.35 ? cardboardBox(stopAt) : null;
+      boxNext = false;
+      walker.hidden = false;
+      walkK.setPaused(false);
+      walkK.turn(dir * Math.PI / 2);
+      walkK.hold('walk');
+      (function step(now) {
+        if (!walking) return;
+        var dt = Math.min(0.1, (now - last) / 1000);
+        last = now;
+        var there = dir > 0 ? x + w / 2 >= stopAt : x + w / 2 <= stopAt;
+        var goOn = function () { if (!walking) return; walkK.turn(dir * Math.PI / 2); walkK.hold('walk'); last = performance.now(); requestAnimationFrame(step); };
+        // the box: he jumps in, peeks out over its edge for a while, jumps out and goes on
+        if (!stopped && there && box) {
+          stopped = true;
+          walker.style.transform = 'translateX(' + x + 'px)';
+          return intoTheBox(box, goOn);
+        }
+        // or a stop half way: he turns to you, looks round or waves, then goes on
+        if (!stopped && there && Math.random() < 0.6) {
+          stopped = true;
+          walkK.turn(0);
+          var what = Math.random() < 0.5 ? 'wave' : 'lookAround', ms = walkK.once(what) || 2500;
+          walker.style.transform = 'translateX(' + x + 'px)';
+          return setTimeout(goOn, ms);
+        }
+        if (!stopped && (dir > 0 ? x + w / 2 >= stopAt : x + w / 2 <= stopAt)) stopped = true;
+        x += dir * 95 * dt;   // about his stride at this size
+        walker.style.transform = 'translateX(' + x + 'px)';
+        if ((dir > 0 && x > W) || (dir < 0 && x < -w)) return endWalk();
+        requestAnimationFrame(step);
+      })(last);
+    };
+    if (walkK) return go();
+    import('/js/kevin-model.js' + (version ? '?' + version : '')).then(function (m) {
+      walkK = m.createKevin(walker.querySelector('canvas'), {
+        light: document.body.classList.contains('light'),
+        src: '/kevin/kevin.glb' + (version ? '?' + version : ''),
+        view: { y: 1.0, z: 5.0, look: 1.0 },
+        onReady: function () {
+          new MutationObserver(function () { walkK.setLight(document.body.classList.contains('light')); })
+            .observe(document.body, { attributes: true, attributeFilter: ['class'] });
+          go();
+        },
+        onError: function () { walker.remove(); walker = null; }
+      });
+    }).catch(function () { /* no walk this time */ });
+  }
+  // a cardboard box on the bottom edge, its middle at x: the back (inside and back flaps) behind Kevin, the front
+  // panel in front of him, so in the box only his head shows over its edge
+  var boxNext = false;
+  function cardboardBox(x) {
+    var back = document.createElement('div'), front = document.createElement('div');
+    back.className = 'kevin-box kevin-box-back';
+    front.className = 'kevin-box kevin-box-front';
+    back.setAttribute('aria-hidden', 'true');
+    front.setAttribute('aria-hidden', 'true');
+    back.innerHTML = '<svg viewBox="0 0 160 120"><path d="M14 52 L30 22 L130 22 L146 52 Z" fill="#6e4a24"/>'
+      + '<path d="M30 22 L18 4 L74 10 L80 22 Z" fill="#c69a63"/><path d="M130 22 L142 6 L88 10 L80 22 Z" fill="#b8884f"/></svg>';
+    front.innerHTML = '<svg viewBox="0 0 160 120"><path d="M14 52 L146 52 L146 118 L14 118 Z" fill="#b98a52"/>'
+      + '<path d="M14 52 L146 52 L146 60 L14 60 Z" fill="#a2743f"/><path d="M14 52 L4 74 L60 70 L72 52 Z" fill="#d3a56b"/>'
+      + '<path d="M146 52 L156 74 L100 70 L88 52 Z" fill="#c99b60"/><rect x="72" y="52" width="16" height="66" fill="#d9c08f" opacity=".75"/>'
+      + '<text x="80" y="98" text-anchor="middle" font-size="11" font-family="Arial Black, sans-serif" fill="#5a3a18" opacity=".7" transform="rotate(-4 80 98)">SKELO SQUAD</text></svg>';
+    [back, front].forEach(function (el) { el.style.left = (x - 80) + 'px'; document.body.appendChild(el); });
+    return { back: back, front: front, remove: function () { [back, front].forEach(function (el) { el.classList.add('gone'); setTimeout(function () { el.remove(); }, 900); }); } };
+  }
+  // up, then down into the box (only the head over its edge), a look round, up and out again
+  function intoTheBox(box, then) {
+    var c = walker.querySelector('canvas');
+    walkK.turn(0);
+    walkK.once('jump');
+    c.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-60px)', offset: 0.45 }, { transform: 'translateY(24px)' }],
+      { duration: 1100, easing: 'ease-in-out', fill: 'forwards' });
+    setTimeout(function () {
+      if (!walking) return;
+      walkK.hold('lookAround');
+      setTimeout(function () {
+        if (!walking) return;
+        walkK.once('jump');
+        c.animate([{ transform: 'translateY(24px)' }, { transform: 'translateY(-60px)', offset: 0.5 }, { transform: 'translateY(0)' }],
+          { duration: 1100, easing: 'ease-in-out', fill: 'forwards' });
+        setTimeout(function () { box.remove(); then(); }, 1100);
+      }, 3600);
+    }, 1100);
+  }
+  function endWalk() {
+    walking = false;
+    document.querySelectorAll('.kevin-box').forEach(function (el) { el.remove(); });
+    if (walker) { walker.hidden = true; walker.querySelector('canvas').getAnimations().forEach(function (a) { a.cancel(); }); }
+    if (walkK) { walkK.hold(null); walkK.setPaused(true); }
+    scheduleWalk();
+  }
+
   function start() {
     document.body.appendChild(root);
     placePaw();
@@ -774,7 +985,7 @@
     else ensureModel();          // a page without the header bar: he stands there from the start
     wake();
     greet();
-    if (!adminPage) scheduleTip();
+    if (!adminPage) { scheduleTip(); scheduleWalk(); }
   }
 
   // Easter egg: click him over and over (each click within 2.5 s of the last) and at 5, 10 and 20 he
@@ -805,6 +1016,7 @@
   root.querySelector('.kevin-hide').addEventListener('click', function () { setHidden(true); });
   // the paw: on a phone straight to his menu (that is why it was tapped), elsewhere a hello
   paw.addEventListener('click', function () {
+    if (walking) endWalk();   // only one Kevin at a time
     if (!root.hidden) { endRap(); hideBubble('idle'); place(false); return; }   // a second tap: back in
     var said = pending;
     pending = null;
@@ -835,7 +1047,11 @@
     var a = el.getBoundingClientRect(), b = root.getBoundingClientRect();
     return window.innerWidth <= 1024 || (a.left < b.right + 20 && a.right > b.left - 20 && a.bottom > b.top - 20);
   }
-  document.addEventListener('focusin', function (e) { if (isField(e.target) && covers(e.target)) root.classList.add('ducked'); });
+  document.addEventListener('focusin', function (e) {
+    if (!isField(e.target)) return;
+    if (walking) endWalk();   // the visitor types: no walk across the page
+    if (covers(e.target)) root.classList.add('ducked');
+  });
   document.addEventListener('focusout', function () {
     setTimeout(function () { if (!isField(document.activeElement)) root.classList.remove('ducked'); }, 150);
   });
@@ -859,6 +1075,9 @@
       if (Math.random() < 0.5) react('search', L.search[d.search], d.search === 'found' ? 'point' : 'sulk');
     } else if (d.clip && L.clip[d.clip]) {
       if (d.clip !== 'ok' || Math.random() < 0.5) react('clip', L.clip[d.clip], d.clip === 'ok' ? 'cool' : 'sulk');
+    } else if (d.walk) {
+      // a walk now (also used by the tests); {walk: 'box'} = with the cardboard box
+      if (!walking && wideMq.matches && !reduced) { boxNext = d.walk === 'box'; walk(); }
     } else if (d.tip) {
       // another script wants a tip now (also used by the tests): he peeks out to say it
       lastAuto = 0;

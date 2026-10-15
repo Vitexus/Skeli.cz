@@ -18,7 +18,7 @@ public class AdminStatsResetServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         // a second safety: the form sends confirm=ANO only after the browser's "Are you sure?"
         if (!"ANO".equals(req.getParameter("confirm"))) {
-            resp.sendRedirect("/admin.jsp#stats");
+            resp.sendRedirect("/admin/stats");
             return;
         }
         try {
@@ -26,6 +26,6 @@ public class AdminStatsResetServlet extends HttpServlet {
         } catch (SQLException e) {
             throw new ServletException(e);
         }
-        resp.sendRedirect("/admin.jsp?statsReset=1#stats");
+        resp.sendRedirect("/admin/stats?statsReset=1");
     }
 }

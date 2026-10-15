@@ -132,6 +132,7 @@
               box.innerHTML = '';
               box.appendChild(iframe);
               window.dispatchEvent(new CustomEvent('kevin', { detail: { clip: 'ok' } }));
+              window.dispatchEvent(new CustomEvent('skeli:play', { detail: { yt: box.getAttribute('data-yt') } }));
             });
           }
           bind();

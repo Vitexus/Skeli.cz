@@ -19,7 +19,7 @@ import java.util.Map;
 /** Data for the admin pages: dashboard numbers, users, comments and the reported ones. */
 public class AdminDao {
 
-    /** songs, clips, lyrics, comments, users, subscribers, reports, clipsWithoutSong, songsWithoutLyrics */
+    /** songs, clips, lyrics, comments, users, subscribers, reports, clipsWithoutSong, songsWithoutLyrics, newFeedback */
     public Map<String, Integer> stats() throws SQLException {
         String sql = "SELECT "
                 + "(SELECT COUNT(*) FROM songs) AS songs, "
@@ -30,7 +30,10 @@ public class AdminDao {
                 + "(SELECT COUNT(*) FROM newsletter_emails WHERE confirmed_at IS NOT NULL) AS subscribers, "
                 + "(SELECT COUNT(*) FROM (SELECT DISTINCT kind, comment_id FROM comment_reports) r) AS reports, "
                 + "(SELECT COUNT(*) FROM videos WHERE song_id IS NULL) AS clipsWithoutSong, "
-                + "(SELECT COUNT(*) FROM songs s WHERE NOT EXISTS (SELECT 1 FROM lyrics l WHERE l.song_id = s.id)) AS songsWithoutLyrics";
+                + "(SELECT COUNT(*) FROM songs s WHERE NOT EXISTS (SELECT 1 FROM lyrics l WHERE l.song_id = s.id)) AS songsWithoutLyrics, "
+                // messages about the site from the last week that the admin hasn't picked as a reference
+                + "(SELECT COUNT(*) FROM site_feedback WHERE message IS NOT NULL AND message <> '' AND hearted_at IS NULL "
+                + "   AND COALESCE(updated_at, created_at) > NOW() - INTERVAL 7 DAY) AS newFeedback";
         Map<String, Integer> out = new LinkedHashMap<>();
         try (Connection conn = Db.get(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {

@@ -61,7 +61,7 @@ public class AppleMusicSyncServlet extends HttpServlet {
             }
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Apple Music catalogue lookup failed", e);
-            resp.sendRedirect("/admin.jsp?apple=error#sync");
+            resp.sendRedirect("/admin/system?apple=error");
             return;
         }
 
@@ -87,7 +87,7 @@ public class AppleMusicSyncServlet extends HttpServlet {
             }
         }
 
-        resp.sendRedirect("/admin.jsp?apple=" + filled + "&appleMissing=" + missing + "&appleLyrics=" + lyricsStored + "#sync");
+        resp.sendRedirect("/admin/system?apple=" + filled + "&appleMissing=" + missing + "&appleLyrics=" + lyricsStored);
     }
 
     private static String env(String name, String fallback) {

@@ -3,7 +3,7 @@
 <%-- Karaoke cinema (preview of the coming big karaoke): /karaoke/{song uuid}, KaraokeCinemaServlet fills kinoJson.
      Two rooms: Prostor (/kino/prostor.js, a looping video; the default) and Ořechový salon (/kino/domov.js); switching loads the page again.
      A loading screen stays up until the room is built (no jerk on the way in). Czech only for now. --%>
-<% String v = "5.8.3"; %>
+<% String v = "5.9.0"; %>
 <!doctype html>
 <html lang="cs">
 <head>
@@ -98,12 +98,19 @@ button { font: inherit; color: inherit; }
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
 .clip-rim::before { background: conic-gradient(from var(--rim-a), #7a5200, #e6b730 18%, #ff9a2e 32%, #ffe08a 42%, #e6b730 55%, #8f6600 70%, #c99a12 86%, #7a5200);
-  filter: brightness(calc(.8 + var(--k) * .9));
+  filter: brightness(calc(.8 + var(--k) * .9)) blur(1.4px);   /* the soft edge keeps the tilted, shrunk ring from looking jagged */
   animation: rim-flow 16s linear infinite; }
 .clip-rim::after { inset: -10px; padding: 10px; background: conic-gradient(from var(--rim-b), transparent 0 84%, rgba(255, 220, 140, .3) 89%, #fff7dc 92.5%, rgba(255, 200, 90, .3) 95%, transparent 98%);
-  animation: rim-run 7s linear infinite; }
+  filter: blur(1.4px); animation: rim-run 7s linear infinite; }
 /* embers rising through the space (prostor.js draws them; faster and brighter on the bass) */
 .space-embers { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; }
+/* nebulae, comets, hyperspace, gold dust and fireworks (space-fx.js), with the embers behind the clip */
+.space-fx { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; }
+/* MC Kevin floating left of the panel (kevin-guest.js places him) */
+.kino-kevin { position: fixed; z-index: 1; pointer-events: none; opacity: 0; transition: opacity 1.2s ease; will-change: transform; }
+.kino-kevin.in { opacity: 1; }
+.kino-kevin[hidden] { display: none; }
+.kino-kevin canvas { width: 100%; height: 100%; display: block; filter: drop-shadow(0 0 18px rgba(255, 170, 60, .25)); }
 @keyframes rim-flow { to { --rim-a: 360deg; } }
 @keyframes rim-run { to { --rim-b: 360deg; } }
 @media (prefers-reduced-motion: reduce) { .clip-rim::before, .clip-rim::after { animation: none; } }

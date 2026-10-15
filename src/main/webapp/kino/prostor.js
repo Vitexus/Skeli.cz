@@ -89,6 +89,15 @@ const GLITCH = { x0: .684, y0: .186, x1: .752, y1: .272 };
 const glitch = document.createElement('div'); glitch.className = 'space-glitch'; bg.after(glitch);
 const kick = () => bg.play().catch(() => {});
 kick(); addEventListener('pointerdown', kick, { once: true });
+// more life in the space (space-fx.js: nebulae in the clip's colours, comets, hyperspace in the chorus, gold dust,
+// fireworks) and MC Kevin floating left of the panel (kevin-guest.js); both with this file's version
+const VER = new URL(import.meta.url).search;
+let sfx = null, guest = null;
+import('./space-fx.js' + VER).then((m) => { sfx = m.spaceFx(glitch, view, coloursAt); }).catch(() => {});
+if (!qs.has('nokevin')) import('./kevin-guest.js' + VER).then((m) => m.kevinGuest(VER)).then((gst) => { guest = gst; fit(); }).catch(() => {});   // #nokevin: without him (slow computers, tests)
+// the chorus: lines that come more than once
+const seenLine = {}, lineKeys = D.lines.map((l) => { const k = l.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ''); seenLine[k] = (seenLine[k] || 0) + 1; return k; });
+const isChorus = lineKeys.map((k) => k && seenLine[k] > 1);
 
 // ---------------- the clip, bent onto the panel ----------------
 const clipEl = document.createElement('div');
@@ -112,6 +121,14 @@ function bassAt(t) {
 }
 let beat = 0, bassAvg = 0;
 poster.src = D.thumb.replace('hqdefault', 'maxresdefault');
+// the clip's colours at its left and right edge (4 times a second, eq/<id>.json): the nebulae take them up
+const EDGE_L = unb64(E.l), EDGE_R = unb64(E.r);
+function coloursAt(t) {
+  const f = Math.max(0, Math.min((E.cframes || 1) - 1, Math.floor(t * (E.cfps || 4)))), n = E.rows || 12;
+  const avg = (buf) => { const o = f * n * 3, c = [0, 0, 0]; for (let y = 0; y < n; y++) for (let k = 0; k < 3; k++) c[k] += buf[o + y * 3 + k] || 0; return c.map((v) => v / n); };
+  return { l: avg(EDGE_L), r: avg(EDGE_R) };
+}
+let panel = null;   // the panel's corners on screen (fit())
 
 // the clip is laid out at 1920x1080 and bent onto the panel: YouTube then sends a sharper picture than at 720p
 const CW = 1920, CH = 1080;
@@ -139,7 +156,10 @@ function fit() {
   Object.assign(glitch.style, { left: (ox + GLITCH.x0 * vw) + 'px', top: (oy + GLITCH.y0 * vh) + 'px', width: ((GLITCH.x1 - GLITCH.x0) * vw) + 'px', height: ((GLITCH.y1 - GLITCH.y0) * vh) + 'px' });
   bg.classList.toggle('upright', H > W * 1.1);
   const p = QUAD.map(([u, v]) => [ox + u * vw, oy + v * vh]);
+  panel = p;
   clipEl.style.transform = rimEl.style.transform = 'matrix3d(' + quadMatrix(CW, CH, p).join(',') + ')';
+  // Kevin: among the floating rocks left of the panel, level with it (the words are below it, never there)
+  if (guest) { const size = Math.min(vw * .19, vh * .4, p[0][0] - 16); guest.place(Math.max(8, p[0][0] - size - vw * .03), oy + vh * .2, Math.max(0, size)); }
   // the depth the embers come out of: a little above the middle of the panel, where the beams meet
   view.x = (p[0][0] + p[1][0] + p[2][0] + p[3][0]) / 4; view.y = (p[0][1] + p[1][1]) / 2 * .5 + (p[2][1] + p[3][1]) / 2 * .5 - (p[3][1] - p[0][1]) * .1; view.s = Math.max(W, H) * .55;
   lyricsEl.style.setProperty('--fs', Math.max(16, Math.min(34, vw * .0145)) + 'px');
@@ -226,6 +246,7 @@ function makeLine(k, role, t) {
   return el;
 }
 function leaveLine(el, quiet) {
+  if (!quiet && sfx && el.classList.contains('cur')) sfx.dust(el.getBoundingClientRect());   // gold dust from a sung line
   if (!quiet) el.querySelectorAll('.w.in').forEach((w) => { const r = w.getBoundingClientRect(); puff(r.left + r.width / 2, r.top + r.height * .5, r.height * 1.2, r.height * 1.6, 2, .35); });
   if (!quiet) el.querySelectorAll('.w').forEach((w) => w.classList.add('sung'));   // it leaves as its last word starts
   el.style.top = el.offsetTop + 'px'; el.classList.add('out');   // out of the flow, where it stood, then up
@@ -343,7 +364,17 @@ function frame(ts) {
   rimEl.style.setProperty('--k', (beat * on).toFixed(3)); rimEl.style.opacity = (.35 + .65 * on).toFixed(3);
   powerEl.style.opacity = (1 - on).toFixed(3);
   const ended = entered && started && t > Math.min(duration() - 1.5, LAST_END + 6);
-  if (ended && !credited) { credited = true; onTo = .15; $('roll').innerHTML = credits(); $('credits').hidden = false; $('credits').classList.add('run'); }
+  if (ended && !credited) {
+    credited = true; onTo = .15; $('roll').innerHTML = credits(); $('credits').hidden = false; $('credits').classList.add('run');
+    if (sfx && panel) sfx.finale([panel[0], panel[1], [(panel[0][0] + panel[1][0]) / 2, panel[0][1] - 20], panel[3], panel[2]]);
+  }
+  // where in the song we are: the chorus, or a long gap between lines
+  let si = -1; for (let s = 0; s < D.times.length && D.times[s][0] <= t; s++) si = s;
+  const nx = D.times[si + 1], prevEnd = si >= 0 ? D.times[si][1] : 0;
+  const chorus = pl && si >= 0 && isChorus[si] && t <= D.times[si][1] + 2;
+  const gap = pl && (si < 0 ? !!nx && nx[0] - t > 4 : t - prevEnd > 1.5 && (!nx || nx[0] - t > 3));
+  if (sfx) sfx.frame(dt, { t, playing: pl, energy: Math.min(1, bassAvg * 1.6), chorus });
+  if (guest) guest.update({ playing: pl && started, chorus, gap, ended, entered });
   if (!ended && credited) { credited = false; onTo = 1; $('credits').hidden = true; $('credits').classList.remove('run'); }
   { const ct = bg.currentTime, du = bg.duration || 9; glitch.style.opacity = (ct < 1.1 ? 1 : ct < 1.4 ? 1 - (ct - 1.1) / .3 : ct > du - .2 ? (ct - du + .2) / .2 : 0).toFixed(3); }
   if (entered) words(t);

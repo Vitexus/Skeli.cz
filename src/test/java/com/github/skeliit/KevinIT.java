@@ -20,7 +20,7 @@ class KevinIT extends UiTestSupport {
     private void openWithKevin(String path, String beforeReload) {
         driver.get(BASE_URL + path);
         ((JavascriptExecutor) driver).executeScript(
-                "localStorage.setItem('cookieConsent','true'); localStorage.setItem('sp_min','1'); sessionStorage.clear();" + beforeReload);
+                "localStorage.setItem('cookieConsent','true'); localStorage.setItem('sp_min','1'); localStorage.setItem('kevinLite','1'); sessionStorage.clear();" + beforeReload);
         driver.navigate().refresh();
         new WebDriverWait(driver, Duration.ofSeconds(10))
                 .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".kevin-body")));
@@ -129,7 +129,8 @@ class KevinIT extends UiTestSupport {
         saysOneOf("comment.added");
         // the fifth click in a row: he has had enough
         for (int i = 0; i < 5; i++) js.executeScript("document.querySelector('.kevin-body').click()");
-        assertEquals("Můžeš na mě přestat klikat?", driver.findElement(By.cssSelector(".kevin-text")).getText());
+        new WebDriverWait(driver, Duration.ofSeconds(5)).until(d -> "Můžeš na mě přestat klikat?".equals(
+                ((JavascriptExecutor) d).executeScript("return document.querySelector('.kevin-text').textContent")));
     }
 
     @Test
