@@ -11,18 +11,19 @@ import { MeshoptDecoder } from './vendor/three/meshopt_decoder.module.js';
 // poses he stays in (looping clips)
 const POSES = { idle: 'idle', rap: 'rap', beatbox: 'silly', cool: 'bored', point: 'idle', sleep: 'lie', sulk: 'bored' };
 // one-shot acts for "Surprise me" (keys of KEVIN_LINES.surprise) → clips; null = done in code here
+// (each surprise in kevin-lines.js is one of his real moves; beatbox and the rhyme dance with a beat)
 const ACTS = {
-  wave: 'wave', smug: 'nod', stretch: 'stretchArms', yawn: 'neck', lookaround: 'lookAround', squint: 'no',
-  wink: 'nod', startle: 'nervous', hunt: 'nervous', jump: 'jump', peek: 'lookAround', roll: 'breakdance',
-  grin: 'laugh', frown: 'no', meow: 'talk2', purr: 'idle', desk: 'typing', sad: 'bored', dance: 'dance',
-  sway: 'silly', claws: 'stretchArms', wow: 'cheer', nod: 'nod', whiskers: 'neck', comfy: 'lookAround',
-  photo: 'fistPump', robot: 'robot', flair: 'flair', clap: 'clap', shrug: 'shrug', kick: 'kick', sing: 'sing',
+  beatbox: 'silly', rhyme: 'rap', dance: 'dance', dance2: 'dance2', dance3: 'dance3', robot: 'robot', silly: 'silly',
+  breakdance: 'breakdance', flair: 'flair', jump: 'jump', dive: 'dive', kick: 'kick', cheer: 'cheer', clap: 'clap',
+  fistPump: 'fistPump', laugh: 'laugh', sing: 'sing', rap: 'rap', typing: 'typing', stretchArms: 'stretchArms',
+  neck: 'neck', lie: 'lie', thumbsUp: 'thumbsUp', wave: 'wave', nervous: 'nervous', shrug: 'shrug', lookAround: 'lookAround',
   hide: null, freeze: null, leave: 'walk'
 };
-// surprises whose words need something this model hasn't got (sunglasses, a moving tail, a tongue)
+// surprises whose words need something this model hasn't got (none in the current set)
 const CANNOT = new Set(['shades', 'tail', 'lick']);
-// looping clips played as an act run this long, then he goes back
-const LOOP_ACT_S = 4.5;
+// looping clips played as an act run this long (dances longer: they are the fun), then he goes back
+const LOOP_ACT_S = 4.5, DANCE_S = 7.5;
+const DANCES = new Set(['dance', 'dance2', 'dance3', 'robot', 'silly', 'breakdance', 'flair', 'sing', 'rap']);
 const TALK = ['talk', 'talk2'];
 
 export function createKevin(canvas, opts = {}) {
@@ -45,7 +46,7 @@ export function createKevin(canvas, opts = {}) {
   const rim = new THREE.DirectionalLight(0xff9a40, 2.2);
   rim.position.set(3, 2, -4);
   scene.add(rim);
-  const holder = new THREE.Group();   // turned for spin / sulk, moved for hide / leave
+  const holder = new THREE.Group();   // turned for spin, moved for hide / leave
   scene.add(holder);
   function setLight(light) {
     rim.color.set(light ? 0x9cc8ff : 0xff9a40);
@@ -135,8 +136,8 @@ export function createKevin(canvas, opts = {}) {
       head.rotation.y += lookX * 0.45;
       head.rotation.x += lookY * 0.2;
     }
-    // turned away when sulking, a full spin on demand, hiding and walking off for two surprises
-    let yaw = (pose === 'sulk' ? Math.PI : 0) + turnTo;
+    // a full spin on demand, hiding and walking off for two surprises (sulking he shrugs, never turns his back)
+    let yaw = turnTo;
     if (spinT >= 0) {
       spinT += dt;
       const p = Math.min(1, spinT / 1.1);
@@ -156,7 +157,13 @@ export function createKevin(canvas, opts = {}) {
   requestAnimationFrame(frame);
 
   return {
-    setPose(p) { if (POSES[p]) { pose = p; crossfade(); } },
+    setPose(p) {
+      if (!POSES[p]) return;
+      // sulking: a shrug first, then he leans back bored
+      if (p === 'sulk' && pose !== 'sulk' && actions.shrug && !act) { act = 'shrug'; actEnd = clock + actions.shrug.getClip().duration; }
+      pose = p;
+      crossfade();
+    },
     get pose() { return pose; },
     setTalking(on) {
       on = !!on;
@@ -174,7 +181,7 @@ export function createKevin(canvas, opts = {}) {
       if (name === 'hide') { special = { name, len: 3.2 }; specialT = 0; len = 3.2; }
       if (clipName && actions[clipName]) {
         const clip = actions[clipName].getClip();
-        len = name === 'leave' ? 3.6 : clip.duration < 6 ? clip.duration : LOOP_ACT_S;
+        len = name === 'leave' ? 3.6 : DANCES.has(clipName) ? Math.max(clip.duration < 6 ? clip.duration : 0, DANCE_S) : clip.duration < 6 ? clip.duration : LOOP_ACT_S;
         if (name === 'leave') { special = { name, len }; specialT = 0; }
         act = clipName;
         crossfade();

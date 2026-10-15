@@ -295,15 +295,15 @@
   // flow = the tempo his words follow (half of it for trap and drill), swing = how late the off-beat 16ths are.
   // The key and the chord progression are random too, so the melody is never quite the same.
   var STYLES = [
-    { name: 'boombap', bpm: 90, flow: 90, swing: 0.1, kick: [0, 7, 10], snare: [4, 12], hats: 2, open: [14],
+    { name: 'boombap', label: 'boom-bap beat', bpm: 90, flow: 90, swing: 0.1, kick: [0, 7, 10], snare: [4, 12], hats: 2, open: [14],
       bass: 'kick', keys: 'stab', progs: [[0, 8, 3, 10], [0, 5, 8, 7], [0, 3, 8, 7]], minor: true },
-    { name: 'lofi', bpm: 78, flow: 78, swing: 0.18, kick: [0, 7, 9], snare: [4, 12], hats: 2, soft: true, crackle: true,
+    { name: 'lofi', label: 'lo-fi beat', bpm: 78, flow: 78, swing: 0.18, kick: [0, 7, 9], snare: [4, 12], hats: 2, soft: true, crackle: true,
       bass: 'root', keys: 'pad', progs: [[5, 4, 2, 0], [0, 9, 5, 7], [2, 7, 0, 9]], minor: false },
-    { name: 'trap', bpm: 140, flow: 70, swing: 0, kick: [0, 3, 10], snare: [8], clap: true, hats: 1, rolls: true,
+    { name: 'trap', label: 'trap beat', bpm: 140, flow: 70, swing: 0, kick: [0, 3, 10], snare: [8], clap: true, hats: 1, rolls: true,
       bass: '808', keys: 'dark', progs: [[0, 8, 3, 10], [0, 1, 0, 8]], minor: true },
-    { name: 'drill', bpm: 142, flow: 71, swing: 0.06, kick: [0, 6, 11], snare: [8, 14], hats: [0, 3, 6, 8, 10, 13], slide: true,
+    { name: 'drill', label: 'drill beat', bpm: 142, flow: 71, swing: 0.06, kick: [0, 6, 11], snare: [8, 14], hats: [0, 3, 6, 8, 10, 13], slide: true,
       bass: '808', keys: 'bell', progs: [[0, 1, 0, 8], [0, 8, 1, 0]], minor: true },
-    { name: 'oldschool', bpm: 96, flow: 96, swing: 0.12, kick: [0, 3, 8, 10], snare: [4, 12], clap: true, hats: 2, open: [6, 14],
+    { name: 'oldschool', label: 'old-school beat', bpm: 96, flow: 96, swing: 0.12, kick: [0, 3, 8, 10], snare: [4, 12], clap: true, hats: 2, open: [6, 14],
       bass: 'funk', keys: 'stab', progs: [[0, 5, 0, 7], [0, 3, 5, 3]], minor: true }
   ];
   var lastStyle = '';
@@ -462,9 +462,10 @@
       .catch(function () { return null; })
       .then(function (bars) {
         if (!bars || !bars.lines || !bars.lines.length) { busy = false; return show(pick(L.rap.fail), { pose: 'sulk', after: 'idle' }); }
-        var words = (pick(L.rap.intro) + ' / ' + bars.lines.join(' / ')).split(/\s+/);
-        // a random style; his words follow its flow (one word an eighth, a breath after a comma)
+        // a random style; his words follow its flow (one word an eighth, a breath after a comma). Before the bars:
+        // which song they are from and which beat plays (so the user can say which beats to keep)
         var style = chooseStyle(), eighth = 60000 / style.flow / 2;
+        var words = (pick(L.rap.intro) + ' / ♪ ' + (bars.song || '') + ' (' + style.label + ') / ' + bars.lines.join(' / ')).split(/\s+/);
         stopBeat = beat(style, ((words.length + 12) * eighth) / 1000 + 1);
         clearTimeout(hideTimer);
         bubble.hidden = false;
@@ -655,15 +656,20 @@
 
   // "Surprise me": a shuffled deck of everything in L.surprise, none again until all of them have been
   // (the deck lives in the browser session, so a new page does not start it over)
+  var BIG_SURPRISES = ['beatbox', 'rhyme', 'dance', 'dance2', 'dance3', 'robot', 'silly', 'breakdance', 'flair', 'kick', 'dive', 'cheer', 'jump'];
   function nextSurprise() {
     // only what this model can show (the ginger cat has no sunglasses and no moving tail)
     var all = Object.keys(L.surprise || {}).filter(function (id) { return !model().can || model().can(id); }), deck;
     try { deck = JSON.parse(session.get('kevinDeck')) || []; } catch (e) { deck = []; }
     deck = deck.filter(function (id) { return all.indexOf(id) >= 0; });
     if (!deck.length) {
+      // shuffled, the big moves (dances, acrobatics, the beat) taking turns with the small ones, a big one first
       var last = session.get('kevinLastSurprise');
-      deck = all.slice();
-      for (var i = deck.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = deck[i]; deck[i] = deck[j]; deck[j] = x; }
+      var shuffle = function (a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = a[i]; a[i] = a[j]; a[j] = x; } return a; };
+      var big = shuffle(all.filter(function (id) { return BIG_SURPRISES.indexOf(id) >= 0; }));
+      var small = shuffle(all.filter(function (id) { return BIG_SURPRISES.indexOf(id) < 0; }));
+      deck = [];
+      while (big.length || small.length) { if (big.length) deck.push(big.shift()); if (small.length) deck.push(small.shift()); }
       if (deck[0] === last && deck.length > 1) deck.push(deck.shift());
     }
     var id = deck.shift();
@@ -674,29 +680,17 @@
   function surprise() {
     var id = nextSurprise(), line = L.surprise[id];
     if (id === 'beatbox' || id === 'rhyme') {
-      // beatbox, or his own little rhyme over the beat
-      var long = id === 'rhyme' ? 8000 : 5400;
+      // a dance to a beat, or his own little rhyme over it
+      var long = id === 'rhyme' ? 8000 : 7000;
       busy = true;
       stopBeat = beat(chooseStyle(), long / 1000);
-      show(line, { pose: id === 'rhyme' ? 'rap' : 'beatbox', ms: long });
+      model().act(id);
+      show(line, { pose: 'idle', ms: long });
       setTimeout(function () { busy = false; stopBeat = null; }, long);
       return;
     }
-    if (id === 'shades') return show(line, { pose: 'cool', ms: 5200 });
-    if (id === 'turn') {
-      show(line, { pose: 'sulk', ms: 3800, after: 'sulk' });
-      return setTimeout(function () { if (!busy) model().setPose('idle'); }, 4200);
-    }
-    if (id === 'curl') return show(line, { pose: 'sleep', ms: 4500 });
-    if (id === 'wakeup') {
-      // dozes off for a moment, then jolts awake
-      model().setPose('sleep');
-      return setTimeout(function () { model().setPose('idle'); model().act('startle'); show(line, { pose: 'idle' }); }, 1400);
-    }
-    if (id === 'peek') { var spot = findPeekSpot(); if (spot) startPeek(spot); }
-    if (id === 'meow' || id === 'purr') sfx(id);
     var ms = model().act(id);
-    show(line, { pose: 'idle', ms: Math.max(4200, ms + 1200) });
+    show(line, { pose: 'idle', ms: Math.max(4200, ms + 800) });
   }
 
   // ---------- sleep when nobody moves ----------

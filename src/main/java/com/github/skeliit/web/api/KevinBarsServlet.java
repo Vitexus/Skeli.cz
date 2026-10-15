@@ -56,23 +56,38 @@ public class KevinBarsServlet extends HttpServlet {
         JSON.writeValue(resp.getOutputStream(), out);
     }
 
+    /** At most this many lines in one go (a whole verse or chorus of that size, otherwise four lines of it). */
+    static final int MAX_LINES = 6;
+
     /**
-     * Two neighbouring lines of a lyric that rap well: not empty, not too short or long,
-     * not a repeat of each other. Empty list when the text has no such pair.
+     * A part of a lyric that makes sense on its own: a whole verse or chorus (the blocks between empty lines), so
+     * the rhymes and the thought are complete. A longer verse gives four of its lines, starting where a sentence
+     * starts. Only real lines (no labels, not too short or long, no line twice). Empty list when the
+     * text has no block of at least two such lines.
      */
     static List<String> pickBars(String words) {
         if (words == null) return List.of();
-        String[] raw = words.replace("\\n", "\n").split("\\r?\\n");
-        List<String> lines = new ArrayList<>();
-        for (String l : raw) lines.add(l.trim());
-        List<Integer> starts = new ArrayList<>();
-        for (int i = 0; i + 1 < lines.size(); i++) {
-            String a = lines.get(i), b = lines.get(i + 1);
-            if (good(a) && good(b) && !a.equalsIgnoreCase(b)) starts.add(i);
+        List<List<String>> blocks = new ArrayList<>();
+        List<String> cur = new ArrayList<>();
+        for (String raw : words.replace("\\n", "\n").split("\\r?\\n")) {
+            String l = raw.trim();
+            if (l.isEmpty()) {
+                if (!cur.isEmpty()) { blocks.add(cur); cur = new ArrayList<>(); }
+                continue;
+            }
+            if (!good(l) || cur.stream().anyMatch(x -> x.equalsIgnoreCase(l))) continue;   // a chorus sung twice: once
+            cur.add(l);
         }
-        if (starts.isEmpty()) return List.of();
-        int i = starts.get(ThreadLocalRandom.current().nextInt(starts.size()));
-        return List.of(lines.get(i), lines.get(i + 1));
+        if (!cur.isEmpty()) blocks.add(cur);
+        blocks.removeIf(b -> b.size() < 2);
+        if (blocks.isEmpty()) return List.of();
+        List<String> b = blocks.get(ThreadLocalRandom.current().nextInt(blocks.size()));
+        if (b.size() <= MAX_LINES) return List.copyOf(b);
+        // four lines starting where a sentence starts (the verse's start or after . ! ?), not mid-thought
+        List<Integer> starts = new ArrayList<>();
+        for (int i = 0; i + 4 <= b.size(); i++) if (i == 0 || b.get(i - 1).matches(".*[.!?…]$")) starts.add(i);
+        int start = starts.get(ThreadLocalRandom.current().nextInt(starts.size()));
+        return List.copyOf(b.subList(start, start + 4));
     }
 
     private static boolean good(String line) {
