@@ -537,10 +537,11 @@ body.light .photo-band::before {
 .kevin.from-header .kevin-bubble::after { left: auto; right: -7px; bottom: auto; top: 14px; transform: rotate(-45deg); }
 .kevin.from-header .kevin-tools { top: 100%; right: 50%; transform: translateX(50%); flex-direction: row; }
 .kevin.from-header.ducked { translate: none; opacity: 1; }
-body:has(.kevin.from-header) .kevin-tv { top: calc(var(--header-h) + 12px); bottom: auto; left: auto; right: 176px; width: min(380px, calc(100vw - 200px)); }
+/* the TV opens under Kevin, never over his bubble (that sits left of him at the top) */
+body:has(.kevin.from-header) .kevin-tv { top: calc(var(--header-h) + 210px); bottom: auto; left: auto; right: 12px; width: min(380px, calc(100vw - 24px)); }
 @media (max-width: 600px) {
   .kevin.from-header .kevin-bubble { max-width: calc(100vw - 110px); }
-  body:has(.kevin.from-header) .kevin-tv { left: 12px; right: 12px; width: auto; top: calc(var(--header-h) + 140px); }
+  body:has(.kevin.from-header) .kevin-tv { left: 12px; right: 12px; width: auto; top: calc(var(--header-h) + 210px); }
 }
 @media (max-width: 1024px) {
   .kevin { width: 104px; height: 120px; left: 4px; bottom: calc(14px + env(safe-area-inset-bottom)); }
@@ -887,7 +888,7 @@ body.light .lyric-page .lyric-title {
   position: fixed;
   left: 176px;
   bottom: 18px;
-  z-index: 1150;
+  z-index: 1140;   /* under Kevin and his bubble */
   width: min(380px, calc(100vw - 200px));
   aspect-ratio: 16 / 9;
   border-radius: 14px;
