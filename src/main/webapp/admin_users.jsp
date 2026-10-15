@@ -28,7 +28,7 @@
           <tr class="role-<%= WebUtils.escapeHtml(u.role).toLowerCase() %>">
             <td><%= u.id %></td>
             <td><%= WebUtils.escapeHtml(u.username) %></td>
-            <td><%= WebUtils.escapeHtml(u.email) %></td>
+            <td><%= WebUtils.escapeHtml(WebUtils.maskEmail(u.email)) %></td>
             <td><span class="role-badge"><%= WebUtils.escapeHtml(u.role) %></span></td>
             <td><%= u.createdAt == null ? "" : new java.text.SimpleDateFormat("d. M. yyyy HH:mm").format(u.createdAt) %></td>
             <td class="act">

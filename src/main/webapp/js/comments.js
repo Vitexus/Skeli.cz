@@ -238,6 +238,7 @@
           if (o.mode === 'reply') open[o.root] = true;
           close();
           load(res.body && res.body.id);
+          if (o.mode !== 'edit') window.dispatchEvent(new CustomEvent('kevin', { detail: { comment: 'added' } }));
         });
       });
       setTimeout(grow, 0);
@@ -319,7 +320,12 @@
         editSlot.appendChild(composer({ mode: 'edit', id: cid, text: item.content, focus: true, onClose: function () { text.hidden = false; } }));
       } else if (act === 'delete') {
         if (!confirm(T['comment.deleteConfirm'])) return;
-        post({ action: 'delete', id: cid }).then(function (res) { if (fine(res)) load(); });
+        post({ action: 'delete', id: cid }).then(function (res) {
+          if (!fine(res)) return;
+          load();
+          // Kevin only comments on tidying up after yourself (not on an admin removing someone else's)
+          if (!item.canReport) window.dispatchEvent(new CustomEvent('kevin', { detail: { comment: 'deleted' } }));
+        });
       } else if (act === 'pin') {
         post({ action: 'pin', id: cid, on: item.pinned ? '0' : '1' }).then(function (res) { if (fine(res)) load(); });
       } else if (act === 'heart') {

@@ -78,7 +78,7 @@
   if (!grid || !input) return;
   var cards = [].slice.call(grid.querySelectorAll('.song-row'));
   var heads = [].slice.call(grid.querySelectorAll('.song-year-head'));
-  var year = '', hits = null, timer = 0, asked = '';
+  var year = '', hits = null, timer = 0, kevinTimer = 0, asked = '';
   // one chip per year, newest first; only the newest shows until "Older years" opens the rest
   var years = [];
   cards.forEach(function (c) { var y = c.dataset.year; if (y && years.indexOf(y) < 0) years.push(y); });
@@ -140,6 +140,11 @@
           hits = {};
           list.forEach(function (s) { hits[s.id] = s; });
           render();
+          // Kevin says a word once the visitor stops typing for a moment
+          clearTimeout(kevinTimer);
+          kevinTimer = setTimeout(function () {
+            if (asked === q) window.dispatchEvent(new CustomEvent('kevin', { detail: { search: list.length ? 'found' : 'none' } }));
+          }, 1500);
         });
     }, 220);
   });

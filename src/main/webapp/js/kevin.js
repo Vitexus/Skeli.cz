@@ -27,7 +27,25 @@
   if (!L) return;
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var saveData = navigator.connection && navigator.connection.saveData;
-  function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
+  // A line he hasn't said lately in this visit (the last 40 are remembered), and not food again within two
+  // minutes of talking about food (he must not go on about his bowl every ten seconds).
+  var FOOD = /misk|granul|konzerv|jídl|snídan|večeř|pamls|tuňák|oběd|bowl|food|kibble|treat|tuna|breakfast|dinner|lunch|\btins?\b|napf|futter|leckerli|dose|thunfisch|frühstück|essen|миск|корм|консерв|їж|снідан|вечер|смакол|тунц|обід|bát|đồ ăn|hạt|hộp|cá ngừ|bữa/i;
+  function said() { try { return JSON.parse(session.get('kevinSaid')) || []; } catch (e) { return []; } }
+  function pick(list) {
+    if (!list || !list.length) return '';
+    if (typeof list === 'string') return list;
+    var recent = said(), foodLately = Date.now() - (parseInt(session.get('kevinFood'), 10) || 0) < 120000;
+    var fresh = list.filter(function (l) { return recent.indexOf(l) < 0 && !(foodLately && FOOD.test(l)); });
+    if (!fresh.length) fresh = list.filter(function (l) { return recent.indexOf(l) < 0; });
+    if (!fresh.length) fresh = list;
+    return fresh[Math.floor(Math.random() * fresh.length)];
+  }
+  function remember(line) {
+    var recent = said().filter(function (l) { return l !== line; });
+    recent.push(line);
+    session.set('kevinSaid', JSON.stringify(recent.slice(-40)));
+    if (FOOD.test(line)) session.set('kevinFood', String(Date.now()));
+  }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
   // ---------- DOM ----------
@@ -75,7 +93,7 @@
 
   // ---------- the 3D model (or the still image) ----------
   var k = null;   // controller from kevin3d.js
-  var fake = { setPose: function () {}, setTalking: function () {}, spin: function () {}, look: function () {}, setLight: function () {}, setPaused: function () {} };
+  var fake = { setPose: function () {}, setTalking: function () {}, spin: function () {}, look: function () {}, setLight: function () {}, setPaused: function () {}, act: function () { return 0; } };
   function model() { return k || fake; }
   function useStill() { canvas.hidden = true; still.hidden = false; }
   // The model is built only the first time he comes out (he mostly waits in the paw): building it is the
@@ -114,6 +132,7 @@
     }
     clearTimeout(hideTimer);
     text.textContent = msg;
+    remember(msg);
     link.hidden = !opts.href;
     if (opts.href) { link.href = opts.href; link.textContent = opts.linkText || ''; }
     extra.innerHTML = '';
@@ -256,7 +275,8 @@
     setTimeout(function () {
       if (!document.hidden && !asleep) {
         var tip = Math.random() < 0.6;
-        auto(pick(tip ? (L.tips || L.idle) : L.idle), 'point', 0.8, tip);
+        var own = window.innerWidth <= 767 && L.mobile ? L.idle.concat(L.mobile) : L.idle;   // on a phone also his size joke
+        auto(pick(tip ? (L.tips || L.idle) : own), 'point', 0.8, tip);
       }
       scheduleTip();
     }, 75000 + Math.random() * 45000);
@@ -307,6 +327,44 @@
     };
   }
 
+  // a short meow or a purr (only from "Surprise me", so always after a click), synthesised
+  function sfx(kind) {
+    if (!soundOn) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state === 'suspended') audio.resume();
+    } catch (e) { return; }
+    var ctx = audio, t = ctx.currentTime + 0.03, o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    o.connect(f); f.connect(g); g.connect(ctx.destination);
+    if (kind === 'meow') {
+      // a voice gliding up and down through a mouth-like band
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(420, t);
+      o.frequency.linearRampToValueAtTime(760, t + 0.22);
+      o.frequency.linearRampToValueAtTime(380, t + 0.7);
+      f.type = 'bandpass'; f.Q.value = 3;
+      f.frequency.setValueAtTime(900, t);
+      f.frequency.linearRampToValueAtTime(1700, t + 0.25);
+      f.frequency.linearRampToValueAtTime(800, t + 0.7);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.25, t + 0.06);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.75);
+      o.start(t); o.stop(t + 0.8);
+    } else {
+      // a low rumble, breathing in and out twice
+      o.type = 'sawtooth';
+      o.frequency.value = 26;
+      f.type = 'lowpass'; f.frequency.value = 260;
+      g.gain.setValueAtTime(0.0001, t);
+      [0, 1.4].forEach(function (s) {
+        g.gain.exponentialRampToValueAtTime(0.35, t + s + 0.5);
+        g.gain.exponentialRampToValueAtTime(0.05, t + s + 1.3);
+      });
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 3);
+      o.start(t); o.stop(t + 3.05);
+    }
+  }
+
   // ---------- rap: the words appear on the beat ----------
   var stopBeat = null, rapTimer = 0;
   function rap() {
@@ -317,8 +375,8 @@
       .then(function (r) { return r.status === 200 ? r.json() : null; })
       .catch(function () { return null; })
       .then(function (bars) {
-        if (!bars || !bars.lines || !bars.lines.length) { busy = false; return show(pick(L.rapFail), { pose: 'sulk', after: 'idle' }); }
-        var words = (pick(L.rapIntro) + ' / ' + bars.lines.join(' / ')).split(/\s+/);
+        if (!bars || !bars.lines || !bars.lines.length) { busy = false; return show(pick(L.rap.fail), { pose: 'sulk', after: 'idle' }); }
+        var words = (pick(L.rap.intro) + ' / ' + bars.lines.join(' / ')).split(/\s+/);
         var bpm = 90, eighth = 60000 / bpm / 2, bars8 = Math.ceil(words.length / 8) + 2;
         stopBeat = beat(bars8, bpm);
         clearTimeout(hideTimer);
@@ -394,7 +452,7 @@
     var list = el('ul', 'kevin-results');
     box.appendChild(input);
     box.appendChild(list);
-    show(L.find.prompt, { pose: 'idle', extra: box, ms: 30000 });
+    show(pick(L.find.prompt), { pose: 'idle', extra: box, ms: 30000 });
     setTimeout(function () { input.focus(); }, 50);
     var timer = 0, asked = '';
     input.addEventListener('input', function () {
@@ -407,7 +465,8 @@
           if (asked !== q) return;
           list.innerHTML = '';
           found = found || [];
-          text.textContent = found.length ? say(L.find.found, found.length) : L.find.none;
+          text.textContent = pick(found.length ? L.find.found : L.find.none);
+          remember(text.textContent);
           model().setPose(found.length ? 'cool' : 'sulk');
           found.slice(0, 5).forEach(function (s) {
             var li = el('li'), a = el('a');
@@ -423,6 +482,7 @@
     input.addEventListener('keydown', function (e) {
       var first = list.querySelector('a');
       if (e.key === 'Enter' && first) location.href = first.href;
+      else if (e.key === 'Enter' && input.value.trim().length < 2) text.textContent = pick(L.find.empty);
     });
   }
 
@@ -435,8 +495,13 @@
     root.classList.remove('has-tv');
   }
   function play() {
+    // first a word about the job, then (after a breath) what he picked
+    show(pick(L.play.intro), { pose: 'point' });
+    var asked = Date.now();
     getJson('/api/kevin/random').then(function (c) {
-      if (!c || !/^[\w-]{6,20}$/.test(c.youtubeId)) return show(L.play.fail, { pose: 'sulk' });
+      return new Promise(function (done) { setTimeout(function () { done(c); }, Math.max(0, 1800 - (Date.now() - asked))); });
+    }).then(function (c) {
+      if (!c || !/^[\w-]{6,20}$/.test(c.youtubeId)) return show(pick(L.clip.fail), { pose: 'sulk' });
       closeTv();
       tv = el('div', 'kevin-tv');
       var frame = el('iframe');
@@ -454,24 +519,26 @@
       tv.appendChild(x);
       document.body.appendChild(tv);
       root.classList.add('has-tv');
-      show(say(pick(L.play.intro), 0, c.title), { pose: 'cool', href: c.href, linkText: L.play.song, ms: 8000 });
+      show(say(pick(L.play.pick), 0, c.title), { pose: 'cool', href: c.href, linkText: L.play.song, ms: 8000 });
     });
   }
 
   // 2) what's new since the last visit (the visit before this browser session)
+  // asked = from his menu; otherwise he says it himself when the visitor is back after a while
   function news(asked, onEmpty) {
     var prev = session.get('kevinPrevVisit');
-    if (!prev) { if (asked) show(L.news.first, { pose: 'point', href: '/music.jsp', linkText: L.news.link }); return; }
+    if (!prev) { if (asked) show(pick(L.news.first), { pose: 'point', href: '/music.jsp', linkText: L.news.link }); return; }
     getJson('/api/kevin/news?since=' + encodeURIComponent(prev)).then(function (n) {
       var parts = [];
       if (n && n.clips && n.clips.length === 1) parts.push(say(L.news.clip, 1, n.clips[0].title));
       if (n && n.clips && n.clips.length > 1) parts.push(say(L.news.clips, n.clips.length, n.clips[0].title));
       if (n && n.posts) parts.push(say(L.news.posts, n.posts));
-      if (!parts.length) { if (asked) show(L.news.none, { pose: 'sulk', after: 'idle' }); else if (onEmpty) onEmpty(); return; }
+      if (!parts.length) { if (asked) show(pick(L.news.none), { pose: 'sulk', after: 'idle' }); else if (onEmpty) onEmpty(); return; }
       if (!asked && acted) return;
       var href = n.clips && n.clips.length ? n.clips[0].href : '/aktuality.jsp';
       lastAuto = Date.now();
-      show(L.news.intro + ' ' + parts.join(', ') + '.', { pose: 'point', href: href, linkText: L.news.link, ms: 16000 });
+      var lead = pick(asked ? L.news.some : L.back.news);
+      show(lead + ' ' + L.news.lead + ' ' + parts.join(', ') + '.', { pose: 'point', href: href, linkText: L.news.link, ms: 16000 });
     });
   }
 
@@ -484,28 +551,59 @@
       if (s.clipsWithoutSong) parts.push(say(L.admin.clips, s.clipsWithoutSong, s.newestClipWithoutSong || ''));
       if (s.songsWithoutLyrics) parts.push(say(L.admin.lyrics, s.songsWithoutLyrics));
       if (!href && parts.length) { href = '/admin/lyrics'; linkText = L.admin.toLyrics; }
-      if (!parts.length) return show(L.admin.clean, { pose: 'cool' });
-      show(L.admin.hello + ' ' + parts.join('; ') + '.', { pose: 'point', href: href, linkText: linkText, ms: 14000 });
+      if (!parts.length) return show(pick(L.admin.clean), { pose: 'cool' });
+      // by name (both Skeli and his brother are admins); "missing details" only when something is missing
+      var hello = L.admin.hello.filter(function (l) { return s.name || l.indexOf('{name}') < 0; });
+      if (s.clipsWithoutSong || s.songsWithoutLyrics) hello = hello.concat(L.admin.missing || []);
+      var lead = pick(hello).replace('{name}', s.name || '');
+      parts[0] = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+      show(lead + ' ' + parts.join('. ') + '.', { pose: 'point', href: href, linkText: linkText, ms: 16000 });
     });
   }
 
-  // the old surprises: never the same one twice in a row
-  var lastReaction = '';
+  // "Surprise me": a shuffled deck of everything in L.surprise, none again until all of them have been
+  // (the deck lives in the browser session, so a new page does not start it over)
+  function nextSurprise() {
+    var all = Object.keys(L.surprise || {}), deck;
+    try { deck = JSON.parse(session.get('kevinDeck')) || []; } catch (e) { deck = []; }
+    deck = deck.filter(function (id) { return all.indexOf(id) >= 0; });
+    if (!deck.length) {
+      var last = session.get('kevinLastSurprise');
+      deck = all.slice();
+      for (var i = deck.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = deck[i]; deck[i] = deck[j]; deck[j] = x; }
+      if (deck[0] === last && deck.length > 1) deck.push(deck.shift());
+    }
+    var id = deck.shift();
+    session.set('kevinDeck', JSON.stringify(deck));
+    session.set('kevinLastSurprise', id);
+    return id;
+  }
   function surprise() {
-    var options = ['beatbox', 'spin', 'cool', 'sulk'].filter(function (r) { return r !== lastReaction; });
-    var r = pick(options);
-    lastReaction = r;
-    if (r === 'beatbox') {
+    var id = nextSurprise(), line = L.surprise[id];
+    if (id === 'beatbox' || id === 'rhyme') {
+      // beatbox, or his own little rhyme over the beat
+      var long = id === 'rhyme' ? 8000 : 5400;
       busy = true;
-      stopBeat = beat(2, 90);
-      show(pick(L.beatbox), { pose: 'beatbox', ms: 5400 });
-      setTimeout(function () { busy = false; stopBeat = null; }, 5400);
+      stopBeat = beat(id === 'rhyme' ? 3 : 2, 90);
+      show(line, { pose: id === 'rhyme' ? 'rap' : 'beatbox', ms: long });
+      setTimeout(function () { busy = false; stopBeat = null; }, long);
       return;
     }
-    if (r === 'spin') { model().spin(); return show(pick(L.spin)); }
-    if (r === 'cool') return show(pick(L.cool), { pose: 'cool', ms: 5200 });
-    show(pick(L.sulk), { pose: 'sulk', ms: 3800, after: 'sulk' });
-    setTimeout(function () { if (!busy) show(pick(L.unsulk), { pose: 'idle' }); }, 4000);
+    if (id === 'shades') return show(line, { pose: 'cool', ms: 5200 });
+    if (id === 'turn') {
+      show(line, { pose: 'sulk', ms: 3800, after: 'sulk' });
+      return setTimeout(function () { if (!busy) model().setPose('idle'); }, 4200);
+    }
+    if (id === 'curl') return show(line, { pose: 'sleep', ms: 4500 });
+    if (id === 'wakeup') {
+      // dozes off for a moment, then jolts awake
+      model().setPose('sleep');
+      return setTimeout(function () { model().setPose('idle'); model().act('startle'); show(line, { pose: 'idle' }); }, 1400);
+    }
+    if (id === 'peek') { var spot = findPeekSpot(); if (spot) startPeek(spot); }
+    if (id === 'meow' || id === 'purr') sfx(id);
+    var ms = model().act(id);
+    show(line, { pose: 'idle', ms: Math.max(4200, ms + 1200) });
   }
 
   // ---------- sleep when nobody moves ----------
@@ -566,18 +664,59 @@
       }
       return;
     }
+    // something the visitor has just done (signed in, saved a password…) beats any greeting
+    var done = loadReaction();
+    if (done) {
+      session.set('kevinHello', '1');
+      return setTimeout(function () { if (!acted) react(done[0], done[1], done[2]); }, 900);
+    }
+    var prev = parseInt(session.get('kevinPrevVisit'), 10);
     if (!session.get('kevinHello')) {
       session.set('kevinHello', '1');
-      var hello = function () { onOwn(pick(L.greet[dayPart()]), { pose: 'point', after: 'idle' }, false, 0); lastAuto = Date.now(); };
-      // back after a while: what came out since, otherwise the usual hello
-      var prev = parseInt(session.get('kevinPrevVisit'), 10);
+      var d = new Date(), h = d.getHours(), time = h + ':' + String(d.getMinutes()).padStart(2, '0');
+      var say1 = function (list) { onOwn(pick(list).replace('{time}', time), { pose: 'point', after: 'idle' }, false, 0); lastAuto = Date.now(); };
+      // the very first visit: he sniffs the newcomer; at three in the morning his own line now and then
+      var hello = function () { say1(!(prev > 0) && L.first ? L.first : h === 3 && L.greet.three && Math.random() < 0.5 ? L.greet.three : L.greet[dayPart()]); };
+      // back after a while: what came out since, otherwise a "back again"
       return setTimeout(function () {
         if (acted) return;
-        if (prev > 0 && Date.now() - prev > 30 * 60000) news(false, function () { if (!acted) hello(); }); else hello();
+        if (prev > 0 && Date.now() - prev > 30 * 60000) news(false, function () { if (!acted) say1(L.back.plain); }); else hello();
       }, 900);
     }
-    var key = pageKey();
-    if (key && L.page[key] && Math.random() < (key === 'error' ? 1 : 0.4)) setTimeout(function () { auto(pick(L.page[key])); }, 1500);
+    var key = pageKey(), lines = L.page[key];
+    if (key === 'login' && prev > 0) lines = lines.concat(L.page.loginBack || []);
+    // a song he has his own memories of (by the clip on the page; L.songs is keyed by YouTube id)
+    var clip = key === 'song' && document.querySelector('main [data-yt]');
+    var own = clip && L.songs && L.songs[clip.getAttribute('data-yt')];
+    if (own && Math.random() < 0.6) lines = own;
+    if (lines && Math.random() < (key === 'error' ? 1 : 0.4)) setTimeout(function () { auto(pick(lines)); }, 1500);
+  }
+
+  // What the page says the visitor has just done: [what, lines, pose]. Signing in and out shows as the
+  // logout form in the header appearing or going since the last page (remembered in the session).
+  function loadReaction() {
+    var q = new URLSearchParams(location.search);
+    var signedIn = !!document.querySelector('form.logout-form'), before = session.get('kevinAuth');
+    session.set('kevinAuth', signedIn ? '1' : '0');
+    if (q.get('password_changed') === 'true' || q.get('reset') === '1') return ['pw', L.pw.changed, 'cool'];
+    if (q.get('saved') === 'true' && /uzivatel/.test(location.pathname)) return ['profile', L.profile, 'cool'];
+    if (pageKey() === 'login' && document.querySelector('.form-alert')) return ['auth', L.auth.fail, 'sulk'];
+    if (q.get('welcome') && signedIn) return ['auth', L.auth.welcome || L.auth.in, 'cool'];   // just signed up
+    if (before === '0' && signedIn) return ['auth', L.auth.in, 'point'];
+    if (before === '1' && !signedIn) return ['auth', L.auth.out, 'idle'];
+    return null;
+  }
+
+  // An answer to something the visitor did: at most once in 45 s for each kind, never when he was closed
+  // with the cross (then he only gives tips). In the paw he peeks out to say it, or the paw gets a dot.
+  var reactedAt = {};
+  function react(what, lines, pose) {
+    if (!lines || (root.hidden && !canPop())) return;
+    var now = Date.now();
+    if (reactedAt[what] && now - reactedAt[what] < 45000) return;
+    reactedAt[what] = now;
+    lastAuto = now;
+    onOwn(pick(lines), { pose: pose || 'point', after: 'idle' }, false, 0.5);
   }
 
   // ---------- show / hide ----------
@@ -638,7 +777,21 @@
     if (!adminPage) scheduleTip();
   }
 
-  body.addEventListener('click', menu);
+  // Easter egg: click him over and over (each click within 2.5 s of the last) and at 5, 10 and 20 he
+  // has had enough; at 20 he gives up and lies down
+  var clicks = 0, lastClick = 0;
+  body.addEventListener('click', function () {
+    var now = Date.now();
+    clicks = now - lastClick < 2500 ? clicks + 1 : 1;
+    lastClick = now;
+    var lines = L.clicks || [];
+    var at = clicks === 5 ? 0 : clicks === 10 ? 1 : clicks === 20 ? 2 : -1;
+    if (at < 0 || !lines[at]) return menu();
+    acted = true;
+    if (busy) endRap();
+    show(lines[at], at === 2 ? { pose: 'sleep', ms: 6000 } : { pose: 'sulk', ms: 4200, after: 'idle' });
+    if (at === 2) { model().act('roll'); clicks = 0; }
+  });
   // a click elsewhere closes the menu (not the rap or a message)
   document.addEventListener('pointerdown', function (e) {
     if (!bubble.hidden && !extra.hidden && !root.contains(e.target)) hideBubble('idle');
@@ -696,6 +849,16 @@
       show(pick(L.pw[d.pw]), { pose: d.pw === 'strong' ? 'cool' : d.pw === 'weak' ? 'sulk' : 'idle', after: 'idle' });
     } else if (d.page && L.page[d.page]) {
       auto(pick(L.page[d.page]));
+    } else if (d.avatar) {
+      react('profile', L.profile, 'cool');
+    } else if (d.comment && L.comment[d.comment]) {
+      react('comment', L.comment[d.comment], d.comment === 'added' ? 'cool' : 'idle');
+    } else if (d.heart && L.heart[d.heart]) {
+      react('heart', L.heart[d.heart], d.heart === 'on' ? 'cool' : 'sulk');
+    } else if (d.search && L.search[d.search]) {
+      if (Math.random() < 0.5) react('search', L.search[d.search], d.search === 'found' ? 'point' : 'sulk');
+    } else if (d.clip && L.clip[d.clip]) {
+      if (d.clip !== 'ok' || Math.random() < 0.5) react('clip', L.clip[d.clip], d.clip === 'ok' ? 'cool' : 'sulk');
     } else if (d.tip) {
       // another script wants a tip now (also used by the tests): he peeks out to say it
       lastAuto = 0;

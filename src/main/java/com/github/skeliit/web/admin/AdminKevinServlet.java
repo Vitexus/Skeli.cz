@@ -7,6 +7,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -29,6 +30,9 @@ public class AdminKevinServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Map<String, Object> out = new LinkedHashMap<>();
+        // Kevin greets the admin by name (Skeli and his brother are both admins)
+        HttpSession session = req.getSession(false);
+        out.put("name", session == null ? null : session.getAttribute("username"));
         try (Connection conn = Db.get()) {
             // one report per comment, however many people reported it
             out.put("reports", count(conn, "SELECT COUNT(*) FROM (SELECT DISTINCT kind, comment_id FROM comment_reports) r"));
