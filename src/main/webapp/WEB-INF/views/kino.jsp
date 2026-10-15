@@ -3,7 +3,7 @@
 <%-- Karaoke cinema (preview of the coming big karaoke): /karaoke/{song uuid}, KaraokeCinemaServlet fills kinoJson.
      Two rooms: Prostor (/kino/prostor.js, a looping video; the default) and Ořechový salon (/kino/domov.js); switching loads the page again.
      A loading screen stays up until the room is built (no jerk on the way in). Czech only for now. --%>
-<% String v = "5.9.1"; %>
+<% String v = "5.9.2"; %>
 <!doctype html>
 <html lang="cs">
 <head>
@@ -106,11 +106,6 @@ button { font: inherit; color: inherit; }
 .space-embers { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; }
 /* nebulae, comets, hyperspace, gold dust and fireworks (space-fx.js), with the embers behind the clip */
 .space-fx { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; }
-/* MC Kevin dropping by onto the top edge of the panel's frame (kevin-guest.js places him; the box's bottom middle = his spot) */
-.kino-kevin { position: fixed; z-index: 1; pointer-events: none; transform-origin: 50% 100%; overflow: visible; }
-.kino-kevin[hidden] { display: none; }
-.kino-kevin-lift { position: absolute; inset: 0; }
-.kino-kevin canvas { position: absolute; left: 0; width: 100%; height: 100%; display: block; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .45)); }
 @keyframes rim-flow { to { --rim-a: 360deg; } }
 @keyframes rim-run { to { --rim-b: 360deg; } }
 @media (prefers-reduced-motion: reduce) { .clip-rim::before, .clip-rim::after { animation: none; } }
