@@ -55,6 +55,26 @@ public class GoogleSignInServlet extends HttpServlet {
 
     private static String redirectUri() { return WebUtils.baseUrl() + "/auth/google/callback"; }
 
+    /** The host of APP_BASE_URL, null when it can't be read. */
+    static String baseHost() {
+        try { return java.net.URI.create(WebUtils.baseUrl()).getHost(); } catch (IllegalArgumentException e) { return null; }
+    }
+
+    /** The host the visitor typed: behind Apache from X-Forwarded-Host (the first one), else the Host header; no port. */
+    static String requestHost(HttpServletRequest req) {
+        return requestHost(req.getHeader("X-Forwarded-Host"), req.getHeader("Host"));
+    }
+
+    static String requestHost(String forwarded, String hostHeader) {
+        String h = forwarded;
+        if (h == null || h.isBlank()) h = hostHeader;
+        if (h == null || h.isBlank()) return null;
+        h = h.split(",")[0].trim();
+        if (h.startsWith("[")) return h.substring(0, h.indexOf(']') + 1);   // [::1]:8080
+        int colon = h.indexOf(':');
+        return colon >= 0 ? h.substring(0, colon) : h;
+    }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (!isConfigured()) { resp.sendError(404); return; }
@@ -63,6 +83,16 @@ public class GoogleSignInServlet extends HttpServlet {
     }
 
     private void start(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        // Google sends the visitor back to APP_BASE_URL (www.skeli.cz). Someone who started on another address of
+        // the site (skeli.cz without www) has their session cookie only there: back on www it isn't sent, the state
+        // is missing and the first try failed (the second one, already on www, worked). So first over to the right
+        // address, once (hop), and start there.
+        String want = baseHost(), host = requestHost(req);
+        if (want != null && host != null && !want.equalsIgnoreCase(host) && req.getParameter("hop") == null) {
+            String next = LoginServlet.safeNext(req.getParameter("next"));
+            resp.sendRedirect(WebUtils.baseUrl() + "/auth/google?hop=1" + (next != null ? "&next=" + enc(next) : ""));
+            return;
+        }
         HttpSession s = req.getSession(true);
         String state = random(), verifier = random() + random();
         s.setAttribute("googleState", state);
