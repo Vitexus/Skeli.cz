@@ -16,6 +16,8 @@
         <c:when test="${param.msg == 'track_added'}">Track přidán. Teď můžeš doplnit překlady textu a obrázek.</c:when>
         <c:when test="${param.msg == 'video_linked'}">YouTube video napojeno.</c:when>
         <c:when test="${param.msg == 'video_unlinked'}">YouTube video odpojeno.</c:when>
+        <c:when test="${param.msg == 'video_deleted'}">Klip je smazaný z celého webu a synchronizace z YouTube ho už nevrátí.</c:when>
+        <c:when test="${param.msg == 'confirm_delete'}">Pro smazání písně zaškrtni potvrzení.</c:when>
         <c:when test="${param.msg == 'preview_saved'}">Náhledový obrázek uložen.</c:when>
         <c:when test="${param.msg == 'preview_deleted'}">Náhledový obrázek smazán.</c:when>
         <c:when test="${param.msg == 'art_saved'}">Obrázek v seznamu Texty uložen.</c:when>
@@ -358,6 +360,13 @@
                       <input type="hidden" name="youtube_id" value="<c:out value='${v.youtubeId}'/>">
                       <button type="submit" class="btn-delete" onclick="return confirm('Odpojit video od této písně?')">Odpojit</button>
                     </form>
+                    <form method="post" action="/admin/song" class="inline-form">
+                      <input type="hidden" name="csrf" value="${csrf}">
+                      <input type="hidden" name="id" value="${song.id}">
+                      <input type="hidden" name="action" value="delete_video">
+                      <input type="hidden" name="youtube_id" value="<c:out value='${v.youtubeId}'/>">
+                      <button type="submit" class="btn-delete" onclick="return confirm('Smazat tenhle klip z celého webu? Synchronizace z YouTube ho už nevrátí.')"><i class="fa-solid fa-trash" aria-hidden="true"></i> Smazat klip</button>
+                    </form>
                   </td>
                 </tr>
               </c:forEach>
@@ -381,6 +390,19 @@
       </form>
     </section>
   </div>
+
+  <%-- the song off the site: its lyrics in every language go with it; its clips stay as clips without a song --%>
+  <section class="admin-card admin-danger">
+    <h3><i class="fa-solid fa-trash" aria-hidden="true"></i> Smazat píseň</h3>
+    <p class="text-dim">Smaže píseň <b><c:out value="${song.name}"/></b> i s texty ve všech jazycích a komentáři k nim. Její klipy zůstanou jako klipy bez písně – když mají zmizet taky, smaž je nahoře tlačítkem Smazat klip (nejlíp ještě předtím).</p>
+    <form method="post" action="/admin/song" class="admin-reset">
+      <input type="hidden" name="csrf" value="${csrf}">
+      <input type="hidden" name="id" value="${song.id}">
+      <input type="hidden" name="action" value="delete_song">
+      <label class="checkbox-label"><input type="checkbox" name="confirm" value="ANO" required> Opravdu smazat tuhle píseň</label>
+      <button type="submit" class="btn-delete"><i class="fa-solid fa-trash" aria-hidden="true"></i> Smazat píseň</button>
+    </form>
+  </section>
 </main>
 
 <link href="/vendor/cropper/cropper.min.css" rel="stylesheet">

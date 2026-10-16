@@ -138,6 +138,21 @@ public class AdminSongDetailServlet extends HttpServlet {
                     if (yt != null) songs.unlinkVideo(yt, id);
                     resp.sendRedirect(hub + "&msg=video_unlinked");
                 }
+                case "delete_video" -> {
+                    // off the whole site, and the YouTube sync won't bring it back
+                    String yt = normalizeYoutubeId(req.getParameter("youtube_id"));
+                    if (yt != null) songs.deleteVideo(yt);
+                    resp.sendRedirect(hub + "&msg=video_deleted");
+                }
+                case "delete_song" -> {
+                    // only with the box ticked (the form asks), the song and its lyrics in every language
+                    if (!"ANO".equals(req.getParameter("confirm"))) {
+                        resp.sendRedirect(hub + "&msg=confirm_delete");
+                        return;
+                    }
+                    songs.deleteSong(id);
+                    resp.sendRedirect(req.getContextPath() + "/admin/songs?deleted=1");
+                }
                 case "save_art" -> {
                     if ("1".equals(req.getParameter("auto"))) {
                         songs.updateArt(id, null, null, null);

@@ -458,6 +458,10 @@ body.light .report-actions .btn-dismiss { background: transparent; color: var(--
 .admin-top small { color: var(--text-dim); font-size: var(--fs-small); }
 .admin-top b { font-weight: 400; color: var(--accent); }
 .admin-reset { display: grid; gap: 10px; margin-top: 8px; justify-items: start; }
+/* a song's page: deleting it, at the very end and set apart */
+.admin-danger { margin-top: 24px; border-color: rgba(255, 107, 110, .45); }
+.admin-danger h3 i { color: #ff6b6e; }
+.admin-danger p { margin: 0; }
 
 /* Song hub: the picture in the song's Texty row, moved and resized by hand. The rows use the
    Texty page's own .song-row styles; the phone one copies its ≤600 px rules. */
