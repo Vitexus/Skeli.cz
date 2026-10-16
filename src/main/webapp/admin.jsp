@@ -10,6 +10,22 @@
   }
   String adminName = com.github.skeliit.WebUtils.escapeHtml(session.getAttribute("username"));
   int nReports = st.getOrDefault("reports", 0), nClipsAlone = st.getOrDefault("clipsWithoutSong", 0), nNoText = st.getOrDefault("songsWithoutLyrics", 0);
+  // which ones, so the to-do list says what it means (a clip on YouTube that isn't joined to a song of the catalogue
+  // doesn't show in the discography or among the lyrics)
+  java.util.List<String> clipNames = new java.util.ArrayList<>(), noTextNames = new java.util.ArrayList<>();
+  try {
+    com.github.skeliit.dao.AdminDao todo = new com.github.skeliit.dao.AdminDao();
+    if (nClipsAlone > 0) clipNames = todo.clipsWithoutSong();
+    if (nNoText > 0) noTextNames = todo.songsWithoutLyrics();
+  } catch (java.sql.SQLException e) {
+    application.log("Admin to-do", e);
+  }
+  // Czech plurals: 1 / 2–4 / 5 and more
+  String reportsText = nReports == 1 ? "nahlášený komentář čeká na rozhodnutí" : nReports < 5 ? "nahlášené komentáře čekají na rozhodnutí" : "nahlášených komentářů čeká na rozhodnutí";
+  String clipsText = nClipsAlone == 1 ? "klip z YouTube zatím není u žádné písně" : nClipsAlone < 5 ? "klipy z YouTube zatím nejsou u žádné písně" : "klipů z YouTube zatím není u žádné písně";
+  String clipsTail = nClipsAlone == 1 ? ", takže se neukazuje v Diskografii ani v Textech" : ", takže se neukazují v Diskografii ani v Textech";
+  String clipsHint = nClipsAlone == 1 ? "V editoru textů ho přiřadíš k písni, nebo z něj jedním klikem uděláš novou." : "V editoru textů je přiřadíš k písni, nebo z nich jedním klikem uděláš novou.";
+  String noTextText = nNoText == 1 ? "píseň nemá text" : nNoText < 5 ? "písně nemají text" : "písní nemá text";
   // {link, icon, label, key}
   String[][] tiles = {
       {"/admin/songs", "fa-music", "Písně", "songs"},
@@ -47,9 +63,9 @@
       <p class="admin-done"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Všechno hotovo. Můžeš jít nahrávat.</p>
     <% } else { %>
     <ul>
-      <% if (nReports > 0) { %><li class="urgent"><a href="/admin/comments#reports"><i class="fa-solid fa-flag"></i> <b><%= nReports %></b> nahlášených komentářů čeká na rozhodnutí</a></li><% } %>
-      <% if (nClipsAlone > 0) { %><li><a href="/admin/lyrics"><i class="fa-solid fa-film"></i> <b><%= nClipsAlone %></b> klipů nemá song – v editoru textů z nich jedním klikem uděláš song</a></li><% } %>
-      <% if (nNoText > 0) { %><li><a href="/admin/lyrics"><i class="fa-solid fa-align-left"></i> <b><%= nNoText %></b> songů nemá text</a></li><% } %>
+      <% if (nReports > 0) { %><li class="urgent"><a href="/admin/comments#reports"><i class="fa-solid fa-flag"></i> <span><b><%= nReports %></b> <%= reportsText %></span></a></li><% } %>
+      <% if (nClipsAlone > 0) { %><li><a href="/admin/lyrics"><i class="fa-solid fa-film"></i> <span><b><%= nClipsAlone %></b> <%= clipsText %><%= clipsTail %><% if (!clipNames.isEmpty()) { %><small><%= com.github.skeliit.WebUtils.escapeHtml(String.join(" · ", clipNames)) %></small><% } %><small><%= clipsHint %></small></span></a></li><% } %>
+      <% if (nNoText > 0) { %><li><a href="/admin/lyrics"><i class="fa-solid fa-align-left"></i> <span><b><%= nNoText %></b> <%= noTextText %><% if (!noTextNames.isEmpty()) { %><small><%= com.github.skeliit.WebUtils.escapeHtml(String.join(" · ", noTextNames)) %></small><% } %></span></a></li><% } %>
     </ul>
     <% } %>
   </section>

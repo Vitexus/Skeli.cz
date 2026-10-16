@@ -351,6 +351,10 @@ body.light .report-actions .btn-dismiss { background: transparent; color: var(--
 .admin-todo li i { color: var(--accent); width: 18px; text-align: center; }
 .admin-todo li.urgent i, .admin-todo li.urgent b { color: #ff6b6e; }
 .admin-todo b { font-family: var(--font-body); font-weight: 400; }
+.admin-todo li i { flex: none; align-self: flex-start; margin-top: 3px; }
+.admin-todo li a > span { display: block; min-width: 0; }
+/* which ones and what to do, under the line */
+.admin-todo li small { display: block; margin-top: 3px; color: var(--text-dim); font-size: var(--fs-small); }
 .admin-done { margin: 0; color: #4fdc8c; }
 .admin-section-title { display: flex; align-items: center; gap: 10px; margin: 38px 0 14px; font-size: var(--fs-h3); letter-spacing: 0.08em; }
 
