@@ -546,8 +546,13 @@ body.light .report-actions .btn-dismiss { background: transparent; color: var(--
 .play-chart figcaption { font-size: var(--fs-small); color: var(--text-dim); margin-bottom: 8px; }
 .play-chart figcaption b { color: var(--accent); font-weight: 400; }
 .play-days { display: flex; align-items: flex-end; gap: 3px; height: 130px; padding: 0 2px; border-bottom: 1px solid var(--panel-border); }
+/* the charts' colour follows the value (--v 0..100 % of the highest): little = red, through orange and yellow,
+   a lot = green; the higher, the lighter too, so the step reads even without telling red from green (the numbers
+   stay on the columns and in the tooltips) */
+.play-day, .play-top li { --heat: oklch(calc(.56 + var(--v, 0) * .0022) .17 calc(25 + var(--v, 0) * 1.2)); }
+body.light .play-day, body.light .play-top li { --heat: oklch(calc(.5 + var(--v, 0) * .0016) .17 calc(25 + var(--v, 0) * 1.2)); }
 .play-day { position: relative; flex: 1 1 0; min-width: 0; height: max(var(--h), 3px); border-radius: 4px 4px 0 0;
-  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 55%, transparent)); }
+  background: linear-gradient(180deg, var(--heat), color-mix(in oklch, var(--heat) 55%, transparent)); }
 .play-day.zero { background: var(--panel-border); }
 .play-day b { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 400; color: var(--text-dim); white-space: nowrap; }
 .play-days:has(.play-day:nth-child(15)) .play-day b { display: none; }   /* 30 days: numbers only on hover (title) */
@@ -556,9 +561,23 @@ body.light .report-actions .btn-dismiss { background: transparent; color: var(--
 .play-top li { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 0 12px;
   border-radius: 8px; overflow: hidden; counter-increment: play; isolation: isolate; }
 .play-top li::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--w); z-index: -1; border-radius: 8px;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 34%, transparent), color-mix(in srgb, var(--accent) 12%, transparent)); }
+  background: linear-gradient(90deg, color-mix(in oklch, var(--heat) 42%, transparent), color-mix(in oklch, var(--heat) 14%, transparent)); }
 .play-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-text); font-size: var(--fs-text); }
 .play-name::before { content: counter(play) ". "; color: var(--text-dim); }
 .play-top b { flex: none; font-weight: 400; color: var(--accent); }
 .play-note { margin: 0; font-size: var(--fs-small); }
+/* /admin/stats: the people-per-day chart on top, a round arrow under it opens the rest */
+.stats-hero { display: grid; gap: 10px; }
+.stats-hero h3 { margin: 0; }
+.stats-hero .play-days { height: 170px; }
+.stats-hero figcaption { margin: 6px 0 0; }
+.stats-more { margin-top: 10px; }
+.stats-more > summary { list-style: none; display: flex; flex-direction: column-reverse; align-items: center; gap: 6px; width: max-content;
+  margin: 0 auto 14px; padding: 4px 18px; cursor: pointer; color: var(--text-dim); font-size: var(--fs-small); }
+.stats-more > summary::-webkit-details-marker { display: none; }
+.stats-more > summary i { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--accent);
+  color: var(--accent); transition: transform .3s, background .2s, color .2s; }
+.stats-more > summary:hover i, .stats-more > summary:focus-visible i { background: var(--accent); color: var(--accent-ink); }
+.stats-more[open] > summary i { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .stats-more > summary i { transition: none; } }
 @media (max-width: 600px) { .play-switch { flex-direction: column; } .play-days { height: 100px; gap: 2px; } }

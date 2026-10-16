@@ -1,9 +1,36 @@
 <%@ include file="/includes/header.jsp" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%-- /admin/stats (AdminPagesServlet): visits and what is played most --%>
+<%-- /admin/stats (AdminPagesServlet): the people-per-day chart of the dashboard on top; the arrow under it opens
+     the rest (the numbers, what is played most, the most read lyrics) --%>
 <main class="admin-page admin-stats-page">
   <%@ include file="/includes/admin-nav.jspf" %>
   <h2 class="admin-page-title">Statistiky</h2>
+<%
+  long[] heroDays = new long[14];
+  try {
+    heroDays = com.github.skeliit.service.VisitStats.dailyVisits(14);
+  } catch (java.sql.SQLException e) {
+    application.log("Visit stats", e);
+  }
+  long heroMax = 1;
+  for (long d : heroDays) heroMax = Math.max(heroMax, d);
+  java.time.LocalDate heroFirst = java.time.LocalDate.now(java.time.ZoneId.of("Europe/Prague")).minusDays(13);
+  java.time.format.DateTimeFormatter heroFmt = java.time.format.DateTimeFormatter.ofPattern("d. M.");
+  // open when coming back from a tab or a reset (those reload the page), closed on a plain visit
+  boolean moreOpen = request.getParameter("plays") != null || request.getParameter("period") != null || request.getParameter("statsReset") != null;
+%>
+  <section class="admin-card stats-hero">
+    <h3><i class="fa-solid fa-chart-column" aria-hidden="true"></i> Lidé po dnech</h3>
+    <figure class="play-chart">
+      <div class="play-days" role="img" aria-label="Lidé po dnech za posledních 14 dní">
+        <% for (int i = 0; i < heroDays.length; i++) { long pct = Math.round(heroDays[i] * 100.0 / heroMax); %><span class="play-day<%= heroDays[i] == 0 ? " zero" : "" %>" style="--h: <%= pct %>%; --v: <%= pct %>" title="<%= heroFirst.plusDays(i).format(heroFmt) %>: <%= heroDays[i] %> lidí"><b><%= heroDays[i] > 0 ? heroDays[i] : "" %></b></span><% } %>
+      </div>
+      <div class="play-axis"><span><%= heroFirst.format(heroFmt) %></span><span><%= heroFirst.plusDays(7).format(heroFmt) %></span><span>dnes</span></div>
+      <figcaption>Posledních 14 dní, každý člověk jednou za den.</figcaption>
+    </figure>
+  </section>
+  <details class="stats-more"<%= moreOpen ? " open" : "" %>>
+    <summary><span>Další statistiky</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
 <%
   // what is played most (VisitStats.countPlay): lyrics read, karaoke entered, clips started – per day, no personal data
   String playKind = request.getParameter("plays");
@@ -46,7 +73,7 @@
       <figcaption>Po dnech, posledních <%= chartDays %> dní: <b><%= dayTotal %></b> celkem</figcaption>
       <div class="play-days" role="img" aria-label="Spuštění po dnech za posledních <%= chartDays %> dní, celkem <%= dayTotal %>">
         <% for (int i = 0; i < daily.length; i++) { java.time.LocalDate d = firstDay.plusDays(i); %>
-        <span class="play-day<%= daily[i] == 0 ? " zero" : "" %>" style="--h: <%= Math.round(daily[i] * 100.0 / dayMax) %>%" title="<%= d.format(dm) %>: <%= daily[i] %>×"><b><%= daily[i] > 0 ? daily[i] : "" %></b></span>
+        <span class="play-day<%= daily[i] == 0 ? " zero" : "" %>" style="--h: <%= Math.round(daily[i] * 100.0 / dayMax) %>%; --v: <%= Math.round(daily[i] * 100.0 / dayMax) %>" title="<%= d.format(dm) %>: <%= daily[i] %>×"><b><%= daily[i] > 0 ? daily[i] : "" %></b></span>
         <% } %>
       </div>
       <div class="play-axis"><span><%= firstDay.format(dm) %></span><span><%= firstDay.plusDays(chartDays / 2).format(dm) %></span><span>dnes</span></div>
@@ -56,7 +83,7 @@
     <% } else { %>
     <ol class="play-top">
       <% for (String[] row : topPlays) { long n = Long.parseLong(row[1]); %>
-      <li style="--w: <%= Math.round(n * 100.0 / topMax) %>%"><span class="play-name"><%= com.github.skeliit.WebUtils.escapeHtml(row[0]) %></span><b><%= n %>×</b></li>
+      <li style="--w: <%= Math.round(n * 100.0 / topMax) %>%; --v: <%= Math.round(n * 100.0 / topMax) %>"><span class="play-name"><%= com.github.skeliit.WebUtils.escapeHtml(row[0]) %></span><b><%= n %>×</b></li>
       <% } %>
     </ol>
     <% } %>
@@ -121,5 +148,6 @@
       </form>
     </section>
   </div>
+  </details>
 </main>
 <%@ include file="/includes/footer.jsp" %>
