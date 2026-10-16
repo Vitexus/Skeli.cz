@@ -36,6 +36,11 @@ public class AdminVideoServlet extends HttpServlet {
             // a video that isn't in the DB yet (e.g. from someone else's channel) is added;
             // the title comes from the form or else from YouTube
             if (youtubeId != null) {
+                // added by hand: off the list of hidden clips (V83), if it was there
+                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM video_blocklist WHERE youtube_id = ?")) {
+                    ps.setString(1, youtubeId);
+                    ps.executeUpdate();
+                }
                 try (PreparedStatement ps = conn.prepareStatement(
                         "INSERT IGNORE INTO videos (youtube_id, title) VALUES (?, ?)")) {
                     ps.setString(1, youtubeId);

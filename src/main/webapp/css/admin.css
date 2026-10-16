@@ -236,6 +236,12 @@ body.light .report-actions .btn-dismiss { background: transparent; color: var(--
 .ls-video { margin: 0 0 6px; }
 .ls-video button { width: 100%; justify-content: flex-start; text-align: left; font-size: var(--fs-small); padding: 7px 12px; }
 .ls-video .fa-youtube { color: var(--youtube); }
+/* a clip without a song: make it a song (the wide button) or keep it off the site (the eye) */
+.ls-video-row { display: flex; gap: 6px; align-items: flex-start; }
+.ls-video-row .ls-video { flex: 1; min-width: 0; }
+.ls-video-hide { margin: 0; }
+.ls-video-hide button { width: 40px; min-height: 40px; padding: 0; justify-content: center; color: var(--text-dim); }
+.ls-video-hide button:hover { color: #ff6b6e; border-color: #ff6b6e; }
 .ls-new { display: flex; flex-direction: column; gap: 8px; }
 .lyrics-edit h3 { display: flex; align-items: center; gap: 12px; }
 .lyrics-langs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }

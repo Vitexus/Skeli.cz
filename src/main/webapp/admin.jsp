@@ -23,8 +23,8 @@
   // Czech plurals: 1 / 2–4 / 5 and more
   String reportsText = nReports == 1 ? "nahlášený komentář čeká na rozhodnutí" : nReports < 5 ? "nahlášené komentáře čekají na rozhodnutí" : "nahlášených komentářů čeká na rozhodnutí";
   String clipsText = nClipsAlone == 1 ? "klip z YouTube zatím není u žádné písně" : nClipsAlone < 5 ? "klipy z YouTube zatím nejsou u žádné písně" : "klipů z YouTube zatím není u žádné písně";
-  String clipsTail = nClipsAlone == 1 ? ", takže se neukazuje v Diskografii ani v Textech" : ", takže se neukazují v Diskografii ani v Textech";
-  String clipsHint = nClipsAlone == 1 ? "V editoru textů ho přiřadíš k písni, nebo z něj jedním klikem uděláš novou." : "V editoru textů je přiřadíš k písni, nebo z nich jedním klikem uděláš novou.";
+  String clipsTail = nClipsAlone == 1 ? " – v Diskografii je jen jako klip, bez textu a bez stránky písně" : " – v Diskografii jsou jen jako klipy, bez textu a bez stránky písně";
+  String clipsHint = nClipsAlone == 1 ? "V editoru textů ho přiřadíš k písni, uděláš z něj novou, nebo ho schováš, když to ještě není hotová písnička." : "V editoru textů je přiřadíš k písni, uděláš z nich nové, nebo je schováš, když to ještě nejsou hotové písničky.";
   String noTextText = nNoText == 1 ? "píseň nemá text" : nNoText < 5 ? "písně nemají text" : "písní nemá text";
   // {link, icon, label, key}
   String[][] tiles = {
