@@ -72,6 +72,23 @@
       {"days7", "fa-calendar-week", "Návštěv za 7 dní"},
       {"pagesToday", "fa-file-lines", "Stránek dnes"}
   };
+  // under the arrow: the other numbers and the top 5 of the last 7 days of each kind
+  String[][] moreTiles = {
+      {"yesterday", "fa-clock-rotate-left", "Lidí včera"},
+      {"days30", "fa-calendar", "Návštěv za 30 dní"},
+      {"allVisits", "fa-infinity", "Návštěv celkem"},
+      {"pagesAll", "fa-layer-group", "Stránek celkem"}
+  };
+  String[][] topKinds = {{"lyric", "fa-align-left", "Texty"}, {"karaoke", "fa-microphone", "Karaoke"}, {"clip", "fa-play", "Klipy"}};
+  java.util.Map<String, java.util.List<String[]>> tops = new java.util.LinkedHashMap<>();
+  for (String[] k : topKinds) {
+    try {
+      tops.put(k[0], com.github.skeliit.service.VisitStats.topPlays(k[0], 7, 5));
+    } catch (java.sql.SQLException e) {
+      application.log("Play stats", e);
+      tops.put(k[0], new java.util.ArrayList<>());
+    }
+  }
 %>
   <section class="admin-card admin-glance">
     <div class="admin-glance-head">
@@ -91,6 +108,37 @@
       <% for (int i = 0; i < visitDays.length; i++) { %><span class="play-day<%= visitDays[i] == 0 ? " zero" : "" %>" style="--h: <%= Math.round(visitDays[i] * 100.0 / visitMax) %>%; --v: <%= Math.round(visitDays[i] * 100.0 / visitMax) %>" title="<%= visitDays[i] %> lidí"><b><%= visitDays[i] > 0 ? visitDays[i] : "" %></b></span><% } %>
     </div>
     <p class="text-dim admin-spark-note">Lidé po dnech, posledních 14 dní (dnes vpravo).</p>
+    <%-- the round arrow under the chart: the rest of the numbers, without leaving the dashboard --%>
+    <details class="stats-more">
+      <summary><span>Další statistiky</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+      <div class="admin-stats admin-visits">
+        <% for (String[] tile : moreTiles) { %>
+        <div class="admin-stat">
+          <i class="fa-solid <%= tile[1] %>" aria-hidden="true"></i>
+          <b><%= vs.getOrDefault(tile[0], 0) %></b>
+          <span><%= tile[2] %></span>
+        </div>
+        <% } %>
+      </div>
+      <p class="admin-more-k">Nejvíc puštěné za posledních 7 dní</p>
+      <div class="admin-more-tops">
+        <% for (String[] k : topKinds) { java.util.List<String[]> rows = tops.get(k[0]); long max = rows.isEmpty() ? 1 : Math.max(1, Long.parseLong(rows.get(0)[1])); %>
+        <div class="admin-more-top">
+          <h4><i class="fa-solid <%= k[1] %>" aria-hidden="true"></i> <%= k[2] %></h4>
+          <% if (rows.isEmpty()) { %>
+          <p class="text-dim">Zatím nic.</p>
+          <% } else { %>
+          <ol class="play-top">
+            <% for (String[] row : rows) { long n = Long.parseLong(row[1]); long pct = Math.round(n * 100.0 / max); %>
+            <li style="--w: <%= pct %>%; --v: <%= pct %>"><span class="play-name"><%= com.github.skeliit.WebUtils.escapeHtml(row[0]) %></span><b><%= n %>×</b></li>
+            <% } %>
+          </ol>
+          <% } %>
+        </div>
+        <% } %>
+      </div>
+      <a class="admin-more-all" href="/admin/stats">Všechny statistiky a grafy <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </details>
   </section>
 
   <%-- the things done most often, one tap away --%>
