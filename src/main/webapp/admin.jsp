@@ -88,7 +88,7 @@
       <% } %>
     </div>
     <div class="play-days admin-spark" role="img" aria-label="Lidé po dnech za posledních 14 dní">
-      <% for (int i = 0; i < visitDays.length; i++) { %><span class="play-day<%= visitDays[i] == 0 ? " zero" : "" %>" style="--h: <%= Math.round(visitDays[i] * 100.0 / visitMax) %>%" title="<%= visitDays[i] %> lidí"><b><%= visitDays[i] > 0 ? visitDays[i] : "" %></b></span><% } %>
+      <% for (int i = 0; i < visitDays.length; i++) { %><span class="play-day<%= visitDays[i] == 0 ? " zero" : "" %>" style="--h: <%= Math.round(visitDays[i] * 100.0 / visitMax) %>%; --v: <%= Math.round(visitDays[i] * 100.0 / visitMax) %>" title="<%= visitDays[i] %> lidí"><b><%= visitDays[i] > 0 ? visitDays[i] : "" %></b></span><% } %>
     </div>
     <p class="text-dim admin-spark-note">Lidé po dnech, posledních 14 dní (dnes vpravo).</p>
   </section>
