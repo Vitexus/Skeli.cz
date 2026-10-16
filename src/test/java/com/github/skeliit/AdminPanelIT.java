@@ -274,7 +274,9 @@ public class AdminPanelIT extends UiTestSupport {
     @DisplayName("The statistics page shows the visits and the counters can be reset to zero (the dashboard shows four of them)")
     void visitStatsAndReset() throws Exception {
         driver.get(BASE_URL + "/admin.jsp");
-        assertEquals(4, driver.findElements(By.cssSelector(".admin-glance .admin-stat")).size(), "visits at a glance on the dashboard");
+        assertEquals(4, driver.findElements(By.cssSelector(".admin-glance > .admin-visits .admin-stat")).size(), "visits at a glance on the dashboard");
+        assertEquals(4, driver.findElements(By.cssSelector(".admin-glance .stats-more .admin-stat")).size(), "the other four under the arrow");
+        assertEquals(3, driver.findElements(By.cssSelector(".admin-glance .stats-more .admin-more-top")).size(), "the top 5s of the week: lyrics, karaoke, clips");
         driver.get(BASE_URL + "/admin/stats");
         assertFalse(driver.findElements(By.cssSelector("#stats")).isEmpty(), "NĂˇvĹˇtÄ›vnost section");
         assertEquals(8, driver.findElements(By.cssSelector(".admin-visits .admin-stat")).size());
