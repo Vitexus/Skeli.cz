@@ -97,6 +97,26 @@ public class AdminLyricsServlet extends HttpServlet {
             } else if ("from_video".equals(action)) {
                 Integer songId = songFromVideo(req.getParameter("youtube_id"));
                 resp.sendRedirect(songId == null ? "/admin/lyrics?error=1" : "/admin/lyrics?song=" + songId);
+            } else if ("hide_video".equals(action)) {
+                // a clip that isn't a finished song: off the site, and the YouTube sync won't bring it back (V83)
+                String yt = req.getParameter("youtube_id");
+                if (yt != null && yt.matches("[A-Za-z0-9_-]{6,32}")) {
+                    try (Connection c = Db.get()) {
+                        try (PreparedStatement ps = c.prepareStatement("INSERT IGNORE INTO video_blocklist (youtube_id) VALUES (?)")) {
+                            ps.setString(1, yt);
+                            ps.executeUpdate();
+                        }
+                        try (PreparedStatement ps = c.prepareStatement("DELETE FROM video_comments WHERE youtube_id = ?")) {
+                            ps.setString(1, yt);
+                            ps.executeUpdate();
+                        }
+                        try (PreparedStatement ps = c.prepareStatement("DELETE FROM videos WHERE youtube_id = ? AND song_id IS NULL")) {
+                            ps.setString(1, yt);
+                            ps.executeUpdate();
+                        }
+                    }
+                }
+                resp.sendRedirect("/admin/lyrics?hidden=1");
             } else if ("new_song".equals(action)) {
                 String name = req.getParameter("name");
                 Integer year = parseId(req.getParameter("year"));

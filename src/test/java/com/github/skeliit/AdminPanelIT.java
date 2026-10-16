@@ -2,6 +2,7 @@ package com.github.skeliit;
 
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
 
@@ -182,6 +183,26 @@ public class AdminPanelIT extends UiTestSupport {
     }
 
     @Test
+    @DisplayName("A clip that isn't a finished song is hidden from the site and stays on the blocklist for the YouTube sync")
+    void hideUnfinishedClip() throws Exception {
+        String youtubeId = "it" + uniq();
+        update("INSERT INTO videos (youtube_id, title) VALUES (?, 'Skeli - IT Unfinished')", youtubeId);
+        try {
+            driver.get(BASE_URL + "/admin/lyrics");
+            WebElement hide = driver.findElement(By.xpath(
+                    "//form[contains(@class,'ls-video-hide')][.//input[@name='youtube_id'][@value='" + youtubeId + "']]//button"));
+            ((JavascriptExecutor) driver).executeScript("window.confirm = function () { return true; }");
+            clickAndWaitReload(hide, false);
+            assertFalse(exists("SELECT 1 FROM videos WHERE youtube_id=?", youtubeId), "the clip is off the site");
+            assertTrue(exists("SELECT 1 FROM video_blocklist WHERE youtube_id=?", youtubeId), "and on the list the sync skips");
+            assertFalse(driver.findElements(By.cssSelector(".form-success")).isEmpty());
+        } finally {
+            update("DELETE FROM videos WHERE youtube_id=?", youtubeId);
+            update("DELETE FROM video_blocklist WHERE youtube_id=?", youtubeId);
+        }
+    }
+
+    @Test
     @DisplayName("Lyrics editor: new song, text saved and shown, clip turned into a song")
     void lyricsEditor() throws Exception {
         String songName = "IT Lyrics " + uniq();
@@ -208,7 +229,7 @@ public class AdminPanelIT extends UiTestSupport {
 
             driver.get(BASE_URL + "/admin/lyrics");
             WebElement clip = driver.findElement(By.xpath(
-                    "//form[contains(@class,'ls-video')][.//input[@name='youtube_id'][@value='" + youtubeId + "']]//button"));
+                    "//form[contains(concat(' ', @class, ' '), ' ls-video ')][.//input[@name='youtube_id'][@value='" + youtubeId + "']]//button"));
             clickAndWaitReload(clip, false);
             assertEquals("IT Clip", queryString(
                     "SELECT s.name FROM videos v JOIN songs s ON s.id=v.song_id WHERE v.youtube_id=?", youtubeId));

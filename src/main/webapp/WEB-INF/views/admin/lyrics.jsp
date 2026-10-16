@@ -15,6 +15,7 @@
   <h2 class="admin-page-title">Texty písní</h2>
 
   <% if ("1".equals(request.getParameter("saved"))) { %><div class="form-success">Text uložen.</div><% } %>
+  <% if ("1".equals(request.getParameter("hidden"))) { %><div class="form-success">Klip je pryč z webu a synchronizace z YouTube ho už nevrátí. Až bude písnička hotová, přidej ji přes „Přidat track“.</div><% } %>
   <% if ("1".equals(request.getParameter("error"))) { %><div class="form-alert">Něco chybí nebo je text moc dlouhý (max 20 000 znaků).</div><% } %>
 
   <div class="lyrics-editor-layout">
@@ -33,14 +34,22 @@
 
       <% if (!videos.isEmpty()) { %>
       <h3>Klipy bez songu</h3>
-      <p class="text-dim">Kliknutím z klipu uděláš song a můžeš mu doplnit text.</p>
-      <% for (VideoRow v : videos) { %>
-        <form method="post" action="/admin/lyrics" class="ls-video">
-          <input type="hidden" name="csrf" value="<%= csrfToken %>">
-          <input type="hidden" name="action" value="from_video">
-          <input type="hidden" name="youtube_id" value="<%= com.github.skeliit.WebUtils.escapeHtml(v.youtubeId) %>">
-          <button type="submit"><i class="fab fa-youtube"></i> <%= com.github.skeliit.WebUtils.escapeHtml(v.title) %></button>
-        </form>
+      <p class="text-dim">Kliknutím z klipu uděláš song a můžeš mu doplnit text. Klip, který ještě není hotová písnička, schováš křížkem – z webu zmizí a synchronizace z YouTube ho už nevrátí.</p>
+      <% for (VideoRow v : videos) { String vid = com.github.skeliit.WebUtils.escapeHtml(v.youtubeId), vtitle = com.github.skeliit.WebUtils.escapeHtml(v.title); %>
+        <div class="ls-video-row">
+          <form method="post" action="/admin/lyrics" class="ls-video">
+            <input type="hidden" name="csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="action" value="from_video">
+            <input type="hidden" name="youtube_id" value="<%= vid %>">
+            <button type="submit"><i class="fab fa-youtube"></i> <%= vtitle %></button>
+          </form>
+          <form method="post" action="/admin/lyrics" class="ls-video-hide" onsubmit="return confirm('Schovat tenhle klip z webu?')">
+            <input type="hidden" name="csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="action" value="hide_video">
+            <input type="hidden" name="youtube_id" value="<%= vid %>">
+            <button type="submit" title="Skrýt z webu" aria-label="Skrýt z webu: <%= vtitle %>"><i class="fa-solid fa-eye-slash" aria-hidden="true"></i></button>
+          </form>
+        </div>
       <% } %>
       <% } %>
 

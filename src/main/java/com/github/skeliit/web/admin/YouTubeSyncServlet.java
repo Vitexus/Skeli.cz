@@ -188,12 +188,15 @@ public class YouTubeSyncServlet extends HttpServlet {
                 ts = Timestamp.valueOf(publishedAt.replace("T"," ").replace("Z", ""));
             }
         } catch (Exception ignore) {}
+        // a clip the admin kept off the site (video_blocklist, V83) is never added again
         try (PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO videos (youtube_id, title, published_at) VALUES (?, ?, ?) " +
+                "INSERT INTO videos (youtube_id, title, published_at) SELECT ?, ?, ? FROM DUAL " +
+                "WHERE NOT EXISTS (SELECT 1 FROM video_blocklist WHERE youtube_id = ?) " +
                 "ON DUPLICATE KEY UPDATE title = VALUES(title), published_at = COALESCE(VALUES(published_at), published_at)")) {
             ps.setString(1, videoId);
             ps.setString(2, title);
             if (ts == null) ps.setNull(3, Types.TIMESTAMP); else ps.setTimestamp(3, ts);
+            ps.setString(4, videoId);
             ps.executeUpdate();
         }
     }
