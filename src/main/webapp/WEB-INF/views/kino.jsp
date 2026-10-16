@@ -3,7 +3,7 @@
 <%-- Karaoke cinema (preview of the coming big karaoke): /karaoke/{song uuid}, KaraokeCinemaServlet fills kinoJson.
      Two rooms: Prostor (/kino/prostor.js, a looping video; the default) and Ořechový salon (/kino/domov.js); switching loads the page again.
      A loading screen stays up until the room is built (no jerk on the way in). Czech only for now. --%>
-<% String v = "5.9.2"; %>
+<% String v = "5.9.3"; %>
 <!doctype html>
 <html lang="cs">
 <head>
@@ -214,7 +214,7 @@ button { font: inherit; color: inherit; }
 .room[aria-pressed="true"] b { color: var(--gold); }
 .rooms { position: absolute; right: 8px; bottom: calc(100% + 10px); display: grid; grid-template-columns: 270px; gap: 8px; padding: 10px; border-radius: 16px;
   background: rgba(12, 12, 14, .88); border: 1px solid rgba(255, 255, 255, .1); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
-.rooms[hidden] { display: none; }
+.rooms[hidden], .room-pick[hidden], .cb.room-btn[hidden] { display: none; }
 .rooms .room { height: 66px; }
 @media (max-width: 760px) { .room-pick { grid-template-columns: minmax(0, 1fr); width: 92vw; } .rooms { grid-template-columns: 1fr; width: 86vw; right: 50%; transform: translateX(50%); } }
 .cb.room-btn { width: auto; padding: 0 14px 0 12px; gap: 7px; display: inline-flex; align-items: center; border-radius: 999px; border: 1px solid rgba(230, 183, 48, .45); color: var(--gold); font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
@@ -322,6 +322,24 @@ body.fading::after { opacity: 1; pointer-events: auto; }
   var ROOM = new URLSearchParams(location.search).get("v");
   try { if (!ROOM) ROOM = localStorage.getItem("kinoRoom"); } catch (e) {}
   if (ROOM !== "a") ROOM = "p";
+  // the Ořechový salon is a heavy 3D room: on a phone or tablet (an iPhone above all) or a weak computer the
+  // browser runs out of memory, drops the page and loads it again and again (the picker "blinks", the cinema
+  // throws you out). There only Prostor is offered. And on any device: when the salon went down on its last load
+  // (the page came back without leaving it properly), Prostor this time.
+  var weak = /iP(hone|od|ad)|Android/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+    || Math.min(screen.width, screen.height) < 600 || (navigator.deviceMemory && navigator.deviceMemory < 4);
+  var crashed = false;
+  try { crashed = sessionStorage.getItem("kinoTry") === "a"; sessionStorage.removeItem("kinoTry"); } catch (e) {}
+  if (weak || crashed) {
+    ROOM = "p";
+    document.querySelectorAll('[data-room="a"]').forEach(function (b) { b.remove(); });
+    document.querySelector(".room-pick").hidden = true;   // one room: nothing to pick
+    document.getElementById("roomBtn").hidden = true;
+  }
+  if (ROOM === "a") {
+    try { sessionStorage.setItem("kinoTry", "a"); } catch (e) {}
+    addEventListener("pagehide", function () { try { sessionStorage.removeItem("kinoTry"); } catch (e) {} });   // left properly
+  }
   if (ROOM === "p") document.body.classList.add("cinema");
   document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("[data-room]"); if (!b) return;

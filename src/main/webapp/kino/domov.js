@@ -664,7 +664,11 @@ $('pp').onclick = () => (playing() ? pause() : play());
 $('back5').onclick = () => seek(now() - 5);
 $('fwd5').onclick = () => seek(now() + 5);
 $('vol').oninput = (ev) => { if (clock) clock.setVolume(+ev.target.value); };
-$('fs').onclick = () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}));
+// the whole screen where the browser can (an iPhone's Safari can't for a page, only for a video: then no button)
+const fsRoot = document.documentElement, fsOn = () => document.fullscreenElement || document.webkitFullscreenElement;
+const fsEnter = fsRoot.requestFullscreen || fsRoot.webkitRequestFullscreen, fsExit = document.exitFullscreen || document.webkitExitFullscreen;
+if (!fsEnter) $('fs').hidden = true;
+$('fs').onclick = () => { try { const r = fsOn() ? fsExit.call(document) : fsEnter.call(fsRoot); if (r && r.catch) r.catch(() => {}); } catch (e) { /* not allowed now */ } };
 $('exit').onclick = leave;
 let entered = false, idleTimer = 0;
 addEventListener('keydown', (ev) => {
@@ -672,7 +676,7 @@ addEventListener('keydown', (ev) => {
   if (ev.key === ' ') { ev.preventDefault(); playing() ? pause() : play(); }
   else if (ev.key === 'ArrowLeft') seek(now() - 5);
   else if (ev.key === 'ArrowRight') seek(now() + 5);
-  else if (ev.key === 'Escape' && !document.fullscreenElement) leave();
+  else if (ev.key === 'Escape' && !fsOn()) leave();
   else if (ev.key === 'f' || ev.key === 'F') $('fs').click();
   else if (/^[1-6]$/.test(ev.key)) { const r = 'abcdef'[+ev.key - 1]; if (VARIANTS[r]) applyRoom(r); else document.querySelector('[data-room="f"]').click(); }
   wake();

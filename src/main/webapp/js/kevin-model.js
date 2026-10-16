@@ -28,6 +28,9 @@ const TALK = ['talk', 'talk2'];
 
 export function createKevin(canvas, opts = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
+  // a phone short of memory (an iPhone) may take the 3D away from the page: then the still picture (opts.onError),
+  // never an empty spot where he was
+  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); if (opts.onError) opts.onError(e); }, { once: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   const scene = new THREE.Scene();
