@@ -64,8 +64,41 @@ public final class VisitStats {
     static String visitorId(HttpServletRequest req) {
         HttpSession s = req.getSession(false);
         Object uid = s == null ? null : s.getAttribute("userId");
-        String who = uid != null ? "u" + uid : WebUtils.clientIp(req) + "|" + req.getHeader("User-Agent");
-        return hash(daySalt(), who);
+        return uid != null ? hash(daySalt(), "u" + uid) : anonymousId(req);
+    }
+
+    /** The id of this browser without an account (its address and browser): what a visitor had before signing in. */
+    static String anonymousId(HttpServletRequest req) {
+        return hash(daySalt(), WebUtils.clientIp(req) + "|" + req.getHeader("User-Agent"));
+    }
+
+    /**
+     * Someone who signs in during the visit was counted until then by the browser's id: from now on it is the
+     * account's. So that they stay one person (online and today) and a lyric read before and after signing in
+     * counts once, today's rows of the browser's id become the account's (once per session and day). An admin
+     * isn't counted at all: their rows from before signing in are dropped.
+     */
+    private static void merge(String from, String to, boolean admin) throws SQLException {
+        if (from.equals(to)) return;
+        LocalDate day = today();
+        try (Connection c = Db.get()) {
+            for (String table : new String[]{"visit_days", "lyric_view_days", "play_seen"}) {
+                if (!admin) {
+                    try (PreparedStatement ps = c.prepareStatement("UPDATE IGNORE " + table + " SET visitor = ? WHERE day = ? AND visitor = ?")) {
+                        ps.setString(1, to);
+                        ps.setObject(2, day);
+                        ps.setString(3, from);
+                        ps.executeUpdate();
+                    }
+                }
+                // what is left: rows the account already had (or an admin's)
+                try (PreparedStatement ps = c.prepareStatement("DELETE FROM " + table + " WHERE day = ? AND visitor = ?")) {
+                    ps.setObject(1, day);
+                    ps.setString(2, from);
+                    ps.executeUpdate();
+                }
+            }
+        }
     }
 
     static String hash(byte[] key, String who) {
@@ -137,9 +170,23 @@ public final class VisitStats {
         long now = System.currentTimeMillis();
         if (isBot(req.getHeader("User-Agent"))) return online(now);
         String visitor = visitorId(req);
-        touch(visitor, now);
         HttpSession s = req.getSession(false);
         boolean admin = s != null && "ADMIN".equals(s.getAttribute("role"));
+        if (s != null && s.getAttribute("userId") != null) {
+            // signed in: the same browser before signing in is not a second person online (nor today, merge)
+            String before = anonymousId(req);
+            SEEN.remove(before);
+            String day = today().toString();
+            if (!day.equals(s.getAttribute("visitMerged"))) {
+                s.setAttribute("visitMerged", day);
+                try {
+                    merge(before, visitor, admin);
+                } catch (SQLException e) {
+                    req.getServletContext().log("Visit stats", e);
+                }
+            }
+        }
+        touch(visitor, now);
         // at most 300 counted pages an hour from one address: a script can't pump the numbers up
         // (direct local requests are the tests, see WebUtils)
         if (newPage && !admin && (WebUtils.isDirectLocalRequest(req)
