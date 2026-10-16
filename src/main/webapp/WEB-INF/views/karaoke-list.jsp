@@ -63,7 +63,7 @@
             String meta = (s.credits == null || s.credits.isBlank() ? "" : s.credits + " · ") + (s.year == null ? "" : String.valueOf(s.year));
         %>
         <a class="k-poster" href="<%= via %><%= WebUtils.escapeHtml(s.uuid) %>">
-            <span class="k-poster-img" aria-hidden="true"><img src="/yt-thumb/<%= WebUtils.escapeHtml(s.youtubeId) %>/hqdefault.jpg" alt="" loading="lazy"<% if (!s.posterStyle.isEmpty()) { %> style="<%= s.posterStyle %>"<% } %>></span>
+            <span class="k-poster-img" aria-hidden="true"><img src="/yt-thumb/<%= WebUtils.escapeHtml(s.youtubeId) %>/hqdefault.jpg" alt="" decoding="async"<% if (!s.posterStyle.isEmpty()) { %> style="<%= s.posterStyle %>"<% } %>></span>
             <span class="k-poster-no" aria-hidden="true"><%= String.format("%02d", i + 1) %></span>
             <span class="k-poster-text">
                 <span class="k-poster-title"><%= WebUtils.escapeHtml(s.title) %></span>
