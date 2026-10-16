@@ -45,6 +45,31 @@ public class AdminDao {
         return out;
     }
 
+    /** The names of the clips not joined to any song yet (newest first, at most 5), for the dashboard's to-do list. */
+    public List<String> clipsWithoutSong() throws SQLException {
+        List<String> out = new ArrayList<>();
+        try (Connection conn = Db.get(); PreparedStatement ps = conn.prepareStatement(
+                "SELECT title, youtube_id FROM videos WHERE song_id IS NULL ORDER BY published_at DESC, id DESC LIMIT 5");
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String t = rs.getString(1);
+                out.add(t == null || t.isBlank() ? rs.getString(2) : com.github.skeliit.job.VideoTitles.display(t));
+            }
+        }
+        return out;
+    }
+
+    /** The names of the songs that have no lyrics in any language (at most 5). */
+    public List<String> songsWithoutLyrics() throws SQLException {
+        List<String> out = new ArrayList<>();
+        try (Connection conn = Db.get(); PreparedStatement ps = conn.prepareStatement(
+                "SELECT s.name FROM songs s WHERE NOT EXISTS (SELECT 1 FROM lyrics l WHERE l.song_id = s.id) ORDER BY s.id DESC LIMIT 5");
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) out.add(rs.getString(1));
+        }
+        return out;
+    }
+
     /** Reported comments that still exist, the most reported first (at most 50). */
     public List<CommentReport> reportedComments() throws SQLException {
         String sql = "SELECT r.kind, r.comment_id, COUNT(*) AS n, MAX(r.created_at) AS last_at, "
