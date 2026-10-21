@@ -423,7 +423,7 @@ body.light .photo-band::before {
 .kevin-canvas, .kevin-still { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 /* the 3D canvas reaches 40 % past his box on every side (KEVIN_OVERSCAN 1.8 in kevin.js): his arms and legs in a
    dance never get cut off; clicks still go to his box only */
-.kevin-canvas { inset: -40%; width: auto; height: auto; pointer-events: none; }
+.kevin-canvas { left: -40%; top: -40%; right: auto; bottom: auto; width: 180%; height: 180%; pointer-events: none; }   /* a canvas is a replaced element: insets alone would not stretch it */
 .kevin-still { object-fit: contain; }
 .kevin-still[hidden], .kevin-canvas[hidden] { display: none; }
 /* small round buttons beside his head: beat on/off and hide */
