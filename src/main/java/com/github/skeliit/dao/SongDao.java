@@ -307,23 +307,32 @@ public class SongDao {
     }
 
     /**
-     * Deletes a song with its lyrics in every language (their comments, likes and views go with them by the foreign
-     * keys). Its clips stay, as clips without a song (to be deleted on their own if they should go too).
+     * Deletes a song that has no lyrics (the admin deletes those first, each language on its own in the lyrics
+     * editor: a song is never taken with its text by mistake). Its clips stay, as clips without a song (to be deleted
+     * on their own if they should go too). Returns false (nothing deleted) when the song still has lyrics.
      */
-    public void deleteSong(int songId) throws SQLException {
+    public boolean deleteSong(int songId) throws SQLException {
         try (Connection c = Db.get()) {
-            c.setAutoCommit(false);
-            try {
-                for (String q : new String[]{"DELETE FROM lyrics WHERE song_id = ?", "DELETE FROM songs WHERE id = ?"}) {
-                    try (PreparedStatement ps = c.prepareStatement(q)) {
-                        ps.setInt(1, songId);
-                        ps.executeUpdate();
-                    }
+            try (PreparedStatement ps = c.prepareStatement("SELECT 1 FROM lyrics WHERE song_id = ? LIMIT 1")) {
+                ps.setInt(1, songId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) return false;
                 }
-                c.commit();
-            } catch (SQLException e) {
-                c.rollback();
-                throw e;
+            }
+            try (PreparedStatement ps = c.prepareStatement("DELETE FROM songs WHERE id = ?")) {
+                ps.setInt(1, songId);
+                ps.executeUpdate();
+            }
+            return true;
+        }
+    }
+
+    /** How many languages of lyrics the song has (0 = it can be deleted). */
+    public int lyricLanguages(int songId) throws SQLException {
+        try (Connection c = Db.get(); PreparedStatement ps = c.prepareStatement("SELECT COUNT(*) FROM lyrics WHERE song_id = ?")) {
+            ps.setInt(1, songId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
             }
         }
     }

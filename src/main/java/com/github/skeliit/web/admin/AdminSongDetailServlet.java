@@ -56,6 +56,8 @@ public class AdminSongDetailServlet extends HttpServlet {
             req.setAttribute("song", song);
             List<com.github.skeliit.model.SongVideo> videos = songs.videosForSong(song.id);
             req.setAttribute("videos", videos);
+            // the delete box at the end: a song can go only once its lyrics are gone
+            req.setAttribute("lyricLangs", songs.lyricLanguages(song.id));
             // the picture in the song's Texty row: its newest clip, else its preview photo
             String rowArt = !videos.isEmpty() && videos.get(0).youtubeId != null
                     ? "/yt-thumb/" + videos.get(0).youtubeId + "/hqdefault.jpg"
@@ -145,12 +147,16 @@ public class AdminSongDetailServlet extends HttpServlet {
                     resp.sendRedirect(hub + "&msg=video_deleted");
                 }
                 case "delete_song" -> {
-                    // only with the box ticked (the form asks), the song and its lyrics in every language
+                    // only with the box ticked (the form asks), and only a song without lyrics (the text is deleted
+                    // on its own in the lyrics editor, never with the song by mistake)
                     if (!"ANO".equals(req.getParameter("confirm"))) {
                         resp.sendRedirect(hub + "&msg=confirm_delete");
                         return;
                     }
-                    songs.deleteSong(id);
+                    if (!songs.deleteSong(id)) {
+                        resp.sendRedirect(hub + "&msg=has_lyrics");
+                        return;
+                    }
                     resp.sendRedirect(req.getContextPath() + "/admin/songs?deleted=1");
                 }
                 case "save_art" -> {

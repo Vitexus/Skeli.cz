@@ -598,3 +598,6 @@ body.light .play-day, body.light .play-top li { --heat: oklch(calc(.5 + var(--v,
 .stats-more[open] > summary i { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) { .stats-more > summary i { transition: none; } }
 @media (max-width: 600px) { .play-switch { flex-direction: column; } .play-days { height: 100px; gap: 2px; } }
+
+/* the lyrics editor: one language of the text off the site, set apart under Save */
+.lyrics-delete { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--panel-border); }
