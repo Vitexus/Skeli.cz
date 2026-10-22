@@ -52,7 +52,10 @@
   var root = document.createElement('div');
   root.className = 'kevin';
   root.innerHTML =
-    '<div class="kevin-bubble" role="status" aria-live="polite" hidden><p class="kevin-text"></p><a class="kevin-link" hidden></a><div class="kevin-extra" hidden></div></div>'
+    '<div class="kevin-bubble" role="status" aria-live="polite" hidden><p class="kevin-text"></p><a class="kevin-link" hidden></a><div class="kevin-extra" hidden></div>'
+    // the comic tail (css/effects.css): down from the bubble, or out of its side when he is under the bar
+    + '<svg class="kevin-tail down" viewBox="0 0 44 34" aria-hidden="true"><path class="fill" d="M4 0C12 14 20 25 41 32C27 22 24 12 24 0Z"/><path class="ink" d="M4 0C12 14 20 25 41 32C27 22 24 12 24 0"/></svg>'
+    + '<svg class="kevin-tail side" viewBox="0 0 36 34" aria-hidden="true"><path class="fill" d="M0 2C12 6 22 14 34 30C21 26 10 23 0 21Z"/><path class="ink" d="M0 2C12 6 22 14 34 30C21 26 10 23 0 21"/></svg></div>'
     + '<button type="button" class="kevin-body" aria-label="' + esc(L.ui.call) + '" title="' + esc(L.ui.call) + '">'
     + '<canvas class="kevin-canvas" aria-hidden="true"></canvas><img class="kevin-still" src="/img/kevin.webp' + (version ? '?' + version : '') + '" alt="" hidden></button>'
     + '<div class="kevin-tools">'
@@ -779,7 +782,7 @@
     stretch: { act: 'stretchArms', icon: '🙆' }, knead: { act: 'typing', icon: '🐾' }, look: { act: 'lookAround', icon: '👀' },
     fly: { act: 'jump', icon: '🪰' }, neck: { act: 'neck', icon: '😼' }, startle: { act: 'nervous', icon: '❗' },
     shrug: { act: 'shrug', icon: '🐟' }, dance: { act: 'dance2', icon: '🎵' },
-    nap: { pose: 'sleep', ms: 7000, icon: '💤' }, bored: { pose: 'cool', ms: 6000, icon: '🧶' }
+    bored: { pose: 'cool', ms: 6000, icon: '🧶' }   // (no nap: the lying clip sticks his tail up into the air)
   };
   var lastLife = '', emoteTimer = 0;
   function startLife() {
@@ -800,8 +803,9 @@
     }
     ms = ms || 3000;
     var lines = L.life && L.life[k];
-    emote(d.icon, lines ? pick(lines) : '', Math.max(2800, Math.min(ms, 5200)));
-    lifeTimer = setTimeout(lifeStep, ms + 3500 + Math.random() * 5000);
+    // a caption only now and then (more of them felt made up); the move itself every few seconds
+    if (Math.random() < 0.4) emote(d.icon, lines ? pick(lines) : '', Math.max(2800, Math.min(ms, 5200)));
+    lifeTimer = setTimeout(lifeStep, ms + 1500 + Math.random() * 3000);
   }
   function emote(icon, line, ms) {
     clearTimeout(emoteTimer);

@@ -1117,8 +1117,9 @@ button.is-sending { cursor: progress; opacity: 0.85; }
 @keyframes kevin-box-out { to { transform: translateY(30px) scale(.95); opacity: 0; } }
 @media (max-width: 1024px), (prefers-reduced-motion: reduce) { .kevin-box { display: none !important; } }
 
-/* ---------- Kevin's bubble like in a comic: cream paper, black ink outline, a pointed tail to him ----------
-   (the same in both themes – a comic bubble is paper; the colours inside are switched to ink on paper) */
+/* ---------- Kevin's bubble like in a comic: cream paper, a hand-drawn ink outline, a curved tail ----------
+   (the same in both themes – a comic bubble is paper; the colours inside are switched to ink on paper).
+   The uneven corners make the outline look drawn by hand; the tail is an SVG in the bubble (js/kevin.js). */
 .kevin-bubble {
   --ink: #15110a;
   --paper: #fbf6e9;
@@ -1131,35 +1132,28 @@ button.is-sending { cursor: progress; opacity: 0.85; }
   --accent-soft: rgba(138, 93, 0, 0.18);
   color: var(--ink);
   background: var(--paper);
-  border: 2.5px solid var(--ink);
-  border-radius: 28px;
-  padding: 14px 18px;
+  border: 3px solid var(--ink);
+  border-radius: 255px 22px 225px 22px / 22px 225px 22px 255px;
+  padding: 16px 20px;
   box-shadow: 4px 5px 0 rgba(0, 0, 0, 0.38);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-/* the tail: an ink triangle with a paper one inside (it covers the outline where they meet) */
-.kevin-bubble::before,
-.kevin-bubble::after {
-  content: "";
-  position: absolute;
-  transform: none;
-  border: 0;
-  clip-path: polygon(0 0, 100% 0, 8% 100%);
-}
-.kevin-bubble::before { left: 30px; bottom: -19px; width: 26px; height: 20px; background: var(--ink); }
-.kevin-bubble::after { left: 33.5px; bottom: -13px; width: 19px; height: 15px; background: var(--paper); }
-/* out of the paw: the bubble is on his left, the tail points right to him */
-.kevin.from-header .kevin-bubble { border-radius: 28px; }
-.kevin.from-header .kevin-bubble::before,
-.kevin.from-header .kevin-bubble::after { left: auto; bottom: auto; transform: none; clip-path: polygon(0 0, 100% 18%, 0 100%); }
-.kevin.from-header .kevin-bubble::before { right: -20px; top: 14px; width: 21px; height: 24px; }
-.kevin.from-header .kevin-bubble::after { right: -13px; top: 18.5px; width: 15px; height: 16px; }
+.kevin.from-header .kevin-bubble { border-radius: 225px 22px 255px 22px / 22px 255px 22px 225px; }
+.kevin-bubble::before, .kevin-bubble::after,
+.kevin.from-header .kevin-bubble::after { content: none; }
+/* the tail: a paper shape with ink on its two long sides; it covers the outline where it leaves the bubble */
+.kevin-tail { position: absolute; overflow: visible; pointer-events: none; }
+.kevin-tail .fill { fill: var(--paper); }
+.kevin-tail .ink { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.kevin-tail.down { left: 28px; top: 100%; width: 44px; height: 34px; }
+.kevin-tail.side { display: none; left: 100%; top: 12px; width: 36px; height: 34px; }
+/* out of the paw the bubble is on his left: the tail comes out of its right side to him */
+.kevin.from-header .kevin-tail.down { display: none; }
+.kevin.from-header .kevin-tail.side { display: block; }
 /* peeking from the right edge: the tail on the right, mirrored */
-.kevin.peek-right .kevin-bubble::before,
-.kevin.peek-stack.peek-right .kevin-bubble::before { left: auto; right: 22px; clip-path: polygon(0 0, 100% 0, 92% 100%); }
-.kevin.peek-right .kevin-bubble::after,
-.kevin.peek-stack.peek-right .kevin-bubble::after { left: auto; right: 25.5px; clip-path: polygon(0 0, 100% 0, 92% 100%); }
+.kevin.peek-right .kevin-tail.down,
+.kevin.peek-stack.peek-right .kevin-tail.down { left: auto; right: 28px; transform: scaleX(-1); }
 .kevin-bubble .kevin-chip { border-width: 1.5px; }
 
 /* ---------- what he does on his own (js/kevin.js LIFE): a small comic caption by his head ---------- */
