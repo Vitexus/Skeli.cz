@@ -80,6 +80,10 @@
     else toggle.parentNode.insertBefore(paw, toggle);
   }
 
+  // a short line by his head while he does something on his own (LIFE); never a whole bubble
+  var emoteEl = el('div', 'kevin-emote');
+  emoteEl.hidden = true;
+  root.appendChild(emoteEl);
   var bubble = root.querySelector('.kevin-bubble'), text = root.querySelector('.kevin-text'), link = root.querySelector('.kevin-link');
   var extra = root.querySelector('.kevin-extra');
   // his canvas is this many times his box on each axis (.kevin-canvas inset in effects.css: -40 % = 1.8)
@@ -130,6 +134,8 @@
 
   // ---------- speech ----------
   var hideTimer = 0, busy = false, autoCount = 0, lastAuto = 0, hideAfter = 'idle', hideMs = 0;
+  // out of the paw because the visitor called him: once the bubble is gone he stays and lives his cat life (LIFE)
+  var living = false, lifeTimer = 0;
   // opts: pose, after (pose when the bubble goes), ms, extra (a node under the text: buttons,
   // a search field, results), href + linkText (a link under the text)
   var pending = null;   // what he wanted to say while in the paw (said when the paw is tapped)
@@ -280,7 +286,7 @@
     setTimeout(function () {
       if (peeking) return;   // a new peek started meanwhile
       root.classList.remove('peek', 'peek-left', 'peek-right', 'peek-out', 'peek-stack');
-      if (pocket()) { root.classList.add('from-header'); if (bubble.hidden) place(false); }
+      if (pocket()) { root.classList.add('from-header'); if (bubble.hidden) { if (living) startLife(); else place(false); } }
       else root.classList.add('kevin-in');   // pops back up in his corner
     }, 550);
   }
@@ -537,7 +543,9 @@
       });
       box.appendChild(b);
     });
-    show(L.menu.hint, { pose: 'point', extra: box });
+    living = true;
+    // the menu goes after a while when nobody touches it (pointing at it or typing keeps it), he stays
+    show(L.menu.hint, { pose: 'point', extra: box, ms: 9000 });
   }
 
   // 1) find a song by its name or a line of its lyrics
@@ -739,7 +747,8 @@
   var asleep = false, idleTimer = 0;
   function wake() {
     clearTimeout(idleTimer);
-    idleTimer = setTimeout(sleep, 60000);
+    // living on a phone he naps sooner (and then goes back into the paw), so he isn't in the way for long
+    idleTimer = setTimeout(sleep, living && innerWidth <= 767 ? 35000 : 60000);
     if (!asleep) return;
     asleep = false;
     show(pick(L.wake), { pose: 'idle' });
@@ -755,7 +764,58 @@
     bubble.hidden = false;
     clearTimeout(hideTimer);
     hideTimer = setTimeout(function () { bubble.hidden = true; }, 5000);
+    emoteOff();
+    // a nap after his life out of the paw: a while later he curls up back in it
+    if (living && pocket()) {
+      clearTimeout(tuckTimer);
+      tuckTimer = setTimeout(function () { if (asleep && living && bubble.hidden && !busy && !tv) place(false); }, 25000);
+    }
   }
+
+  // ---------- his own cat life (after his menu has gone) ----------
+  // every few seconds something cat-like with a short line by his head (L.life); act = a move of the model,
+  // pose = a pose held for ms. Never the same twice in a row; nothing while he talks, raps, sleeps or shows the TV.
+  var LIFE = {
+    stretch: { act: 'stretchArms', icon: '🙆' }, knead: { act: 'typing', icon: '🐾' }, look: { act: 'lookAround', icon: '👀' },
+    fly: { act: 'jump', icon: '🪰' }, neck: { act: 'neck', icon: '😼' }, startle: { act: 'nervous', icon: '❗' },
+    shrug: { act: 'shrug', icon: '🐟' }, dance: { act: 'dance2', icon: '🎵' },
+    nap: { pose: 'sleep', ms: 7000, icon: '💤' }, bored: { pose: 'cool', ms: 6000, icon: '🧶' }
+  };
+  var lastLife = '', emoteTimer = 0;
+  function startLife() {
+    clearTimeout(lifeTimer);
+    lifeTimer = setTimeout(lifeStep, 2500 + Math.random() * 2500);
+  }
+  function lifeStep() {
+    if (!living || root.hidden) return;
+    if (busy || asleep || !bubble.hidden || tv) return startLife();
+    var keys = Object.keys(LIFE).filter(function (k) { return k !== lastLife && (!LIFE[k].act || model().can(LIFE[k].act)); });
+    var k = keys[Math.floor(Math.random() * keys.length)], d = LIFE[k], ms = 0;
+    lastLife = k;
+    if (d.act) ms = model().act(d.act);
+    if (d.pose) {
+      model().setPose(d.pose);
+      ms = d.ms;
+      setTimeout(function () { if (living && !asleep && bubble.hidden) model().setPose('idle'); }, d.ms);
+    }
+    ms = ms || 3000;
+    var lines = L.life && L.life[k];
+    emote(d.icon, lines ? pick(lines) : '', Math.max(2800, Math.min(ms, 5200)));
+    lifeTimer = setTimeout(lifeStep, ms + 3500 + Math.random() * 5000);
+  }
+  function emote(icon, line, ms) {
+    clearTimeout(emoteTimer);
+    emoteEl.innerHTML = '';
+    emoteEl.appendChild(el('span', 'kevin-emote-icon', icon));
+    if (line) emoteEl.appendChild(el('span', 'kevin-emote-text', line));
+    emoteEl.hidden = false;
+    emoteEl.style.animationDuration = ms + 'ms';   // fades in, stays, fades out within its time
+    emoteEl.classList.remove('on');
+    void emoteEl.offsetWidth;
+    emoteEl.classList.add('on');
+    emoteTimer = setTimeout(emoteOff, ms);
+  }
+  function emoteOff() { clearTimeout(emoteTimer); emoteEl.hidden = true; emoteEl.classList.remove('on'); }
 
   // ---------- what the page is about ----------
   function pageKey() {
@@ -798,6 +858,18 @@
     if (done) {
       session.set('kevinHello', '1');
       return setTimeout(function () { if (!acted) react(done[0], done[1], done[2]); }, 900);
+    }
+    // a song whose lyrics miss a part (the "help us" card): he asks once per song in this browser, before any greeting
+    var helpCard = document.getElementById('lyric-help');
+    if (helpCard && L.help && !store.get('kevinHelp' + helpCard.dataset.song)) {
+      store.set('kevinHelp' + helpCard.dataset.song, '1');
+      session.set('kevinHello', '1');
+      return setTimeout(function () {
+        if (acted) return;
+        onOwn(pick(L.help.say).replace('{lang}', helpCard.dataset.lang || ''),
+          { pose: 'point', after: 'idle', href: '#lyric-help', linkText: L.help.link }, false, 0.5);
+        lastAuto = Date.now();
+      }, 1500);
     }
     var prev = parseInt(session.get('kevinPrevVisit'), 10);
     if (!session.get('kevinHello')) {
@@ -863,10 +935,22 @@
     paw.classList.toggle('is-out', out);
     paw.setAttribute('aria-expanded', String(out));
     model().setPaused(!out);
-    if (!out) { endRap(); clearTimeout(idleTimer); }
+    if (!out) { endRap(); clearTimeout(idleTimer); living = false; clearTimeout(lifeTimer); emoteOff(); }
   }
+  // out of the paw he stands just under the header bar – measured, since the big sign above the menu makes
+  // the bar taller at the top of the page than --header-h says (he stood over the buttons there)
+  var alignRaf = 0;
+  function alignUnderHeader() {
+    alignRaf = 0;
+    var bar = document.getElementById('siteHeader');
+    if (!bar || root.hidden) return;
+    root.style.setProperty('--kevin-top', Math.max(0, Math.round(bar.getBoundingClientRect().bottom)) + 4 + 'px');
+  }
+  addEventListener('scroll', function () { if (!alignRaf && !root.hidden) alignRaf = requestAnimationFrame(alignUnderHeader); }, { passive: true });
+  addEventListener('resize', function () { if (!alignRaf && !root.hidden) alignRaf = requestAnimationFrame(alignUnderHeader); });
   function popOut() {
     place(true);
+    alignUnderHeader();
     root.classList.remove('kevin-in');
     void root.offsetWidth;   // restart the jump-in animation
     root.classList.add('kevin-in');
@@ -874,6 +958,7 @@
   var tuckTimer = 0;
   function scheduleTuck() {
     clearTimeout(tuckTimer);
+    if (living && !root.hidden) return startLife();   // called out by the visitor: he stays and lives
     if (!pocket()) return;
     tuckTimer = setTimeout(function () {
       if (pocket() && !root.hidden && !busy && !tv && bubble.hidden) place(false);
@@ -1182,6 +1267,7 @@
     pending = null;
     paw.classList.remove('has-news');
     setHidden(false);
+    living = true;   // pulled out by the visitor: after what he says he stays a while and lives
     popOut();
     if (said) show(said[0], said[1]); else if (pocket()) menu(); else show(pick(L.wake), { pose: 'point' });
   });
