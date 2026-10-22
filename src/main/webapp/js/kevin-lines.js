@@ -291,7 +291,7 @@ window.KEVIN_LINES = {
       fail: "Teď se mi to nepovedlo odeslat. Zkus to za chvíli.",
       limit: "Toho už je na teď dost, zkus to zase za hodinu."
     },
-    // "Help us finish the lyrics" on a song page that asks for it (he says it once per song, the link scrolls to the card)
+    // „Pomoz nám dopsat text“ na stránce písně, která o to žádá (řekne to jednou u písně, odkaz sjede ke kartě)
     help: {
       say: ["Kus textu nám tu chybí (jazyk: {lang}). Rozumíš mu? Dole je na to políčko.", "Tady někdo rapuje a nikdo neví co. Jazyk: {lang}. Jestli mu rozumíš, zachraň nás."],
       link: "Ukaž mi to"

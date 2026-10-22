@@ -863,7 +863,7 @@
       session.set('kevinHello', '1');
       return setTimeout(function () { if (!acted) react(done[0], done[1], done[2]); }, 900);
     }
-    // a song whose lyrics miss a part (the "help us" card): he asks once per song in this browser, before any greeting
+    // píseň, které chybí kus textu (karta „pomoz nám“): Kevin se zeptá jednou u každé písně, ještě před pozdravem
     var helpCard = document.getElementById('lyric-help');
     if (helpCard && L.help && !store.get('kevinHelp' + helpCard.dataset.song)) {
       store.set('kevinHelp' + helpCard.dataset.song, '1');
