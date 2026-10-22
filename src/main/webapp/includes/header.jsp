@@ -5,7 +5,7 @@
   if (ctx == null) {
     ctx = "";
   }
-  String assetVersion = "5.8.8";
+  String assetVersion = "5.8.9";
 %>
 <%@ include file="/WEB-INF/i18n/i18n.jspf" %>
   <html lang="<%= cur %>">
@@ -117,7 +117,8 @@
            "music.song".equals(headType) ? headTitle : null, headImage, cur, t.getProperty("menu.home"), t.getProperty("menu.lyrics"));
        if (headLd != null) { %><script type="application/ld+json"><%= headLd %></script><% } %>
   </head>
-  <body>
+  <%-- v adminu (is-admin): klidné pozadí bez fotek, bez Spotify a bez veřejné patičky (css/admin.css) --%>
+  <body<%= String.valueOf(fwdUri != null ? fwdUri : request.getRequestURI()).startsWith(ctx + "/admin") ? " class=\"is-admin\"" : "" %>>
     <%-- keyboard and screen reader users jump over the header straight to the page (footer.jsp moves the focus) --%>
     <a class="skip-link" href="#main"><%= t.getProperty("a11y.skip") %></a>
     <%-- the background of every page slowly cross-fades through Skeli's photos and back to the usual one;
@@ -456,6 +457,7 @@
                 // disable PJAX for pages that need full refresh or include page-scoped styles/scripts
                 const noPjax = ['/auth/', '/karaoke-kino/', '/lyrics/', '/texty', '/admin', '/logout', '/login.jsp', '/register.jsp', '/uzivatel.jsp', '/profile.jsp'];
                 if (noPjax.some(p => href.includes(p))) return;
+                if (document.body.classList.contains('is-admin')) return;   // z adminu ven vždy celou stránkou (jiné pozadí a patička)
                 e.preventDefault();
                 navigate(href, true);
               });
