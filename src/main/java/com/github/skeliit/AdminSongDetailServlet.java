@@ -218,6 +218,20 @@ public class AdminSongDetailServlet extends HttpServlet {
                             req.getParameter("apple_music_id"),
                             req.getParameter("spotify_id"),
                             seoKeep);
+                    // only the main form sends the date; the streaming form leaves it alone
+                    String publishedStr = req.getParameter("published_at");
+                    if (publishedStr != null) {
+                        java.time.LocalDateTime published = null;
+                        if (!publishedStr.isBlank()) {
+                            try {
+                                published = java.time.LocalDateTime.parse(publishedStr.trim());
+                            } catch (java.time.format.DateTimeParseException e) {
+                                resp.sendRedirect(hub + "&msg=bad_date");
+                                return;
+                            }
+                        }
+                        songs.updatePublishedAt(id, published);
+                    }
                     resp.sendRedirect(hub + "&msg=saved");
                 }
             }

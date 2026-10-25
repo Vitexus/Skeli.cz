@@ -65,7 +65,7 @@ public class LyricRouterServlet extends HttpServlet {
     }
 
     /** The opening lines of the lyrics joined into one line, cut at a word boundary. */
-    static String firstLines(String words, int max) {
+    public static String firstLines(String words, int max) {
         if (words == null) return null;
         String s = words.strip().replaceAll("\\s*\\R\\s*", " / ").replaceAll("\\s+", " ");
         if (s.length() <= max) return s;
@@ -74,7 +74,7 @@ public class LyricRouterServlet extends HttpServlet {
     }
 
     /** Makes a site-relative upload path absolute for Open Graph; leaves http(s) URLs alone. */
-    static String absoluteImage(String url) {
+    public static String absoluteImage(String url) {
         if (url == null || url.isBlank()) return null;
         if (url.startsWith("http://") || url.startsWith("https://")) return url;
         if (url.startsWith("/")) return WebUtils.baseUrl() + url;

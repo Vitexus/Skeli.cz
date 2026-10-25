@@ -2,6 +2,7 @@
 <%@ include file="includes/header.jsp" %>
 <main>
   <h2><%= t.getProperty("menu.news") %></h2>
+  <p class="feed-subscribe"><a href="<%= request.getContextPath() %>/<%= cur %>/feed/news.rss" type="application/rss+xml"><i class="fas fa-rss" aria-hidden="true"></i> <%= t.getProperty("feed.subscribe") %></a></p>
   <section class="news-feed">
     <div id="social-feed" class="news-grid"></div>
     <div id="feed-empty" class="empty-note" style="display:none;"><%= t.getProperty("news.empty") %></div>

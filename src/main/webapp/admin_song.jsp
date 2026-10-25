@@ -19,6 +19,7 @@
         <c:when test="${param.msg == 'preview_deleted'}">Náhledový obrázek smazán.</c:when>
         <c:when test="${param.msg == 'bad_youtube'}">Neplatné YouTube ID / URL.</c:when>
         <c:when test="${param.msg == 'bad_name'}">Název písně je povinný.</c:when>
+        <c:when test="${param.msg == 'bad_date'}">Neplatné datum vydání.</c:when>
         <c:when test="${param.msg == 'locale_saved'}">Překlad / SEO uloženo.</c:when>
         <c:when test="${param.msg == 'translated'}">Přeloženo.</c:when>
         <c:when test="${param.msg == 'no_translator'}">Není nastaven překladač (DEEPL_API_KEY nebo LIBRETRANSLATE_URL).</c:when>
@@ -87,6 +88,9 @@
         </label>
         <label>Rok
           <input name="year" type="number" min="1900" max="2100" value="${song.year != null ? song.year : ''}">
+        </label>
+        <label>Vydáno (řazení v RSS)
+          <input name="published_at" type="datetime-local" value="${song.publishedAtInput}">
         </label>
         <button type="submit">Uložit</button>
       </form>

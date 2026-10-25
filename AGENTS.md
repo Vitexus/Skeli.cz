@@ -38,6 +38,16 @@ mvn -q -Dtest=ClassName#method test
 - Legacy `/lyrics/{id}` still works; canonical prefers `/…/song/…` when UUID/slug exists.
 - Sitemap + `hreflang` list language variants (`SeoServlet`, `header.jsp`).
 
+## Feeds (RSS 2.0 + Atom)
+- `/{lang}/feed/{songs|videos|news|all}.{rss|atom}` (`FeedServlet`), `/feed` → 301 to `/{lang}/feed/all.rss`; `?limit=` 1–100 (default 30).
+- Data: `dao/FeedDao` → `model/FeedItem`; XML: `service/FeedWriter` (Media RSS, `content:encoded`, never full lyrics).
+- Entry ids are `tag:skeli.cz,2025:…` URIs — never change them, readers would show everything as new.
+- Rendered feeds cached in memory 5 min; ETag/Last-Modified → 304; DB down → stale copy or 503.
+- Autodiscovery `<link rel="alternate">` in `header.jsp` (page feed by servlet path / `feedKind` attribute), RSS icon in footer.
+  PJAX navigation swaps only `<main>`, so `<head>` keeps the first page's feed links until a full reload.
+- Tests: `FeedWriterTest`, `FeedServletTest`, `dao/FeedDaoTest` (unit), `FeedIT` (plain HTTP against a running instance).
+- Song order: `GREATEST(songs.published_at, lyrics.created_at)`; set the release date in the admin song form.
+
 ## Admin song hub
 - `/admin/songs`, `/admin/song?uuid=…` (`AdminSongDetailServlet`, `admin_song.jsp`).
 - Preview upload: `/admin/songs/preview` (multipart, Cropper.js 16:9, max 20 MB).
@@ -46,6 +56,7 @@ mvn -q -Dtest=ClassName#method test
 ## Schema notes (recent)
 - `songs.uuid` required (`V40`); optional legacy `songs.seo_slug` (`V41`).
 - `lyrics.seo_slug`, `lyrics.meta_description` per language (`V42`); unique `(lang, seo_slug)` and `(song_id, lang)`.
+- `songs.published_at` (default NOW, backfilled from first video / year), `lyrics.created_at` / `updated_at` (`V43`) — used by feeds.
 
 ## Update process
 1. Change sources / add next Flyway `V{n}__….sql`.

@@ -42,10 +42,32 @@ Kanonická adresa je **per jazyk**:
 
 UUID písně je stabilní identifikátor (sdílení, admin). SEO alias a meta popisek se ukládají u řádku `lyrics` (jazyk).
 
+## RSS / Atom feedy
+`/{lang}/feed/{druh}.{formát}` pro `cs | en | de | uk`:
+
+| Druh | Obsah |
+|---|---|
+| `songs` | nové texty písní v daném jazyce (popis + odkaz, ne celý text) |
+| `videos` | YouTube videa a shorts |
+| `news` | aktuality: příspěvky ze sociálních sítí (`social_posts`) + shorts |
+| `all` | vše dohromady, bez duplicit |
+
+Formát `rss` (RSS 2.0) nebo `atom` (Atom 1.0), např. `/cs/feed/all.rss`, `/en/feed/songs.atom`.
+`/feed` → 301 na `/{jazyk návštěvníka}/feed/all.rss`. Parametr `?limit=` 1–100 (výchozí 30).
+
+- Položky mají náhled (Media RSS `media:thumbnail`), u videí `media:player`, krátké HTML v `content:encoded` / `content`.
+- Hotový feed se drží 5 min v paměti; `ETag` / `Last-Modified` → odpověď 304. Při výpadku DB se pošle poslední verze, jinak 503.
+- Stránky feedy inzerují v `<head>` (`<link rel="alternate" type="application/rss+xml|atom+xml">`):
+  texty/detail písně → `songs`, hudba → `videos`, aktuality → `news`, všude navíc `all`. V patičce je ikona RSS.
+- Písně se řadí podle data vydání (`songs.published_at`, v adminu pole **Vydáno**) nebo podle přidání jazykové verze, co je později.
+- ID položek (`tag:skeli.cz,2025:…`) se nesmí měnit, čtečky by vše ukázaly jako nové.
+
+Kód: `FeedServlet`, `dao/FeedDao`, `service/FeedWriter`, `model/FeedItem`.
+
 ## Admin — hub písně
 `/admin/songs` → `/admin/song?uuid=…`
 
-- Základní údaje, preview/OG obrázek (ořez 16:9), Apple Music / Spotify, YouTube
+- Základní údaje (název, rok, datum vydání pro RSS), preview/OG obrázek (ořez 16:9), Apple Music / Spotify, YouTube
 - Záložky **cs / en / de / uk**: text, SEO URL, meta popis
 - Tlačítko **Přeložit z CS** (DeepL nebo LibreTranslate)
 

@@ -10,7 +10,7 @@ import java.util.List;
 
 public class SongDao {
     private static final String SONG_COLS =
-            "id, name, year, uuid, seo_slug, apple_music_id, spotify_id, preview_image_url";
+            "id, name, year, published_at, uuid, seo_slug, apple_music_id, spotify_id, preview_image_url";
 
     public List<Song> listWithFirstLyric() throws SQLException {
         String sql = "SELECT s.id, s.name, s.year, s.uuid, s.seo_slug, s.apple_music_id, s.spotify_id, s.preview_image_url, " +
@@ -108,6 +108,14 @@ public class SongDao {
         }
     }
 
+    public void updatePublishedAt(int songId, java.time.LocalDateTime publishedAt) throws SQLException {
+        try (Connection c = Db.get(); PreparedStatement ps = c.prepareStatement("UPDATE songs SET published_at=? WHERE id=?")) {
+            if (publishedAt == null) ps.setNull(1, Types.TIMESTAMP); else ps.setTimestamp(1, Timestamp.valueOf(publishedAt));
+            ps.setInt(2, songId);
+            ps.executeUpdate();
+        }
+    }
+
     public void updateAppleMusicId(int songId, String appleMusicId) throws SQLException {
         try (Connection c = Db.get(); PreparedStatement ps = c.prepareStatement("UPDATE songs SET apple_music_id=? WHERE id=?")) {
             ps.setString(1, blankToNull(appleMusicId));
@@ -197,6 +205,7 @@ public class SongDao {
         s.appleMusicId = rs.getString("apple_music_id");
         try { s.spotifyId = rs.getString("spotify_id"); } catch (SQLException ignore) {}
         s.previewImageUrl = rs.getString("preview_image_url");
+        try { s.publishedAt = rs.getTimestamp("published_at"); } catch (SQLException ignore) {}
         if (withFirstLyric) {
             int fl = rs.getInt("firstLyricId"); s.firstLyricId = rs.wasNull() ? null : fl;
         }

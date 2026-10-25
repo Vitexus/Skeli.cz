@@ -10,6 +10,9 @@
   color: var(--text-dim);
 }
 .empty-note { color: var(--text-dim); font-size: var(--fs-card); text-align: center; padding: 24px 0; }
+.feed-subscribe { text-align: center; margin: -8px 0 16px; font-size: var(--fs-card); }
+.feed-subscribe a { color: var(--text-dim); }
+.feed-subscribe a:hover { color: #f26522; }
 
 .section-head {
   display: flex;

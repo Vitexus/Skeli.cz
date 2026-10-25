@@ -11,6 +11,8 @@ public class Song {
     public String appleMusicId;
     public String spotifyId;
     public String previewImageUrl;
+    /** Release date; orders the songs feed. */
+    public java.sql.Timestamp publishedAt;
 
     // Getters for EL expressions
     public int getId() { return id; }
@@ -22,6 +24,12 @@ public class Song {
     public String getAppleMusicId() { return appleMusicId; }
     public String getSpotifyId() { return spotifyId; }
     public String getPreviewImageUrl() { return previewImageUrl; }
+    public java.sql.Timestamp getPublishedAt() { return publishedAt; }
+
+    /** publishedAt as yyyy-MM-ddTHH:mm for an HTML datetime-local input. */
+    public String getPublishedAtInput() {
+        return publishedAt == null ? "" : publishedAt.toLocalDateTime().toString().substring(0, 16);
+    }
 
     /** Public path for Czech (default): /cs/song/{seoSlug|uuid}. */
     public String getPublicPath() {

@@ -430,6 +430,7 @@ body.light .site-footer { background: linear-gradient(to bottom, rgba(255, 255, 
 .social-btn.ig:hover { color: #E1306C; border-color: #E1306C; }
 .social-btn.yt:hover { color: var(--youtube); border-color: var(--youtube); }
 .social-btn.sp:hover { color: var(--spotify); border-color: var(--spotify); }
+.social-btn.rss:hover { color: #f26522; border-color: #f26522; }
 
 .footer-bottom {
   max-width: var(--container);
