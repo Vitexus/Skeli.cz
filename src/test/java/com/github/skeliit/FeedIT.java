@@ -57,7 +57,8 @@ public class FeedIT {
         assertEquals(404, get("/cs/feed/nope.rss").statusCode());
         assertEquals(404, get("/cs/feed/all.json").statusCode());
         HttpResponse<String> r = get("/feed");
-        assertEquals(301, r.statusCode());
+        assertEquals(302, r.statusCode());
+        assertEquals("no-store", r.headers().firstValue("Cache-Control").orElse(""));
         assertTrue(r.headers().firstValue("Location").orElse("").endsWith("/cs/feed/all.rss"));
     }
 

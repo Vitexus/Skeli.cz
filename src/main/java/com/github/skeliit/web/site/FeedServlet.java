@@ -40,6 +40,8 @@ public class FeedServlet extends HttpServlet {
     private static final int DEFAULT_LIMIT = 30;
     private static final int MAX_LIMIT = 100;
     private static final long CACHE_MS = 5 * 60 * 1000L;
+    /** Jak dlouho se při výpadku databáze posílá starší feed, než se zkusí databáze znovu. */
+    private static final long STALE_RETRY_MS = 30 * 1000L;
     /** HTML stránka, ke které feed patří (přeložená veřejná stránka, viz {@link SeoServlet#langUrl}). */
     private static final Map<String, String> PAGES = Map.of(
             "songs", "/texty.jsp", "videos", "/music.jsp", "news", "/aktuality.jsp", "all", "/");
@@ -83,6 +85,23 @@ public class FeedServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Kdy se feed naposledy změnil: při stejném obsahu (ETag) zůstává čas předchozí verze, jinak teď.
+     * Data položek k tomu nestačí: přejmenovaný klip nebo položka, která z feedu zmizí, je nezmění.
+     */
+    static long changedAt(String previousEtag, long previousChangedAt, String etag, long now) {
+        return etag.equals(previousEtag) ? previousChangedAt : now;
+    }
+
+    /** Datum z hlavičky požadavku; neplatné datum se bere jako chybějící (-1), ne jako chyba 500. */
+    static long dateHeader(HttpServletRequest req, String name) {
+        try {
+            return req.getDateHeader(name);
+        } catch (IllegalArgumentException e) {
+            return -1;
+        }
+    }
+
     /** True, když je kopie u klienta aktuální (If-None-Match má přednost před If-Modified-Since). */
     static boolean notModified(String ifNoneMatch, long ifModifiedSince, String etag, long lastModified) {
         if (ifNoneMatch != null) {
@@ -102,7 +121,9 @@ public class FeedServlet extends HttpServlet {
         if ("/feed".equals(req.getServletPath())) {
             HttpSession session = req.getSession(false);
             String lang = I18n.safeLang(session != null ? session.getAttribute("lang") : null);
-            resp.setStatus(301);
+            // dočasně (302) a bez cache: cíl závisí na jazyku v session, trvalé 301 by si prohlížeč zapamatoval
+            resp.setStatus(302);
+            resp.setHeader("Cache-Control", "no-store");
             resp.setHeader("Location", req.getContextPath() + "/" + lang + "/feed/all.rss");
             return;
         }
@@ -116,7 +137,7 @@ public class FeedServlet extends HttpServlet {
         Rendered feed = CACHE.get(key);
         if (feed == null || feed.expires() < System.currentTimeMillis()) {
             try {
-                feed = render(r, limit);
+                feed = render(r, limit, feed);
                 CACHE.put(key, feed);
             } catch (Exception e) {
                 log("feed " + key + ": could not render", e);
@@ -126,14 +147,18 @@ public class FeedServlet extends HttpServlet {
                     resp.sendError(503);
                     return;
                 }
-                // databáze nejede: starší feed je lepší než žádný
+                // databáze nejede: starší feed je lepší než žádný; databáze se zkusí znovu až za chvíli,
+                // ne při každém požadavku
+                feed = new Rendered(feed.body(), feed.etag(), feed.lastModified(),
+                        System.currentTimeMillis() + STALE_RETRY_MS);
+                CACHE.put(key, feed);
             }
         }
 
         resp.setHeader("ETag", feed.etag());
         resp.setDateHeader("Last-Modified", feed.lastModified());
         resp.setHeader("Cache-Control", "public, max-age=900");
-        if (notModified(req.getHeader("If-None-Match"), req.getDateHeader("If-Modified-Since"),
+        if (notModified(req.getHeader("If-None-Match"), dateHeader(req, "If-Modified-Since"),
                 feed.etag(), feed.lastModified())) {
             resp.setStatus(304);
             return;
@@ -143,7 +168,8 @@ public class FeedServlet extends HttpServlet {
         resp.getOutputStream().write(feed.body());
     }
 
-    private Rendered render(Request r, int limit) throws Exception {
+    /** Vypíše feed znovu z databáze; previous = dosavadní verze v paměti (kvůli času poslední změny), může chybět. */
+    private Rendered render(Request r, int limit, Rendered previous) throws Exception {
         List<FeedItem> items = switch (r.kind()) {
             case "songs" -> dao.songs(r.lang(), limit);
             case "videos" -> dao.videos(r.lang(), limit);
@@ -170,7 +196,9 @@ public class FeedServlet extends HttpServlet {
             FeedWriter.writeAtom(meta, items, out);
         }
         byte[] body = out.toString().getBytes(StandardCharsets.UTF_8);
-        return new Rendered(body, etag(body), FeedWriter.lastUpdated(items).toEpochMilli(),
-                System.currentTimeMillis() + CACHE_MS);
+        String etag = etag(body);
+        long now = System.currentTimeMillis();
+        long changed = previous == null ? now : changedAt(previous.etag(), previous.lastModified(), etag, now);
+        return new Rendered(body, etag, changed, now + CACHE_MS);
     }
 }

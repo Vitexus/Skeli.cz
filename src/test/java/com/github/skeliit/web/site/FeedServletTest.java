@@ -2,6 +2,9 @@ package com.github.skeliit.web.site;
 
 import org.junit.jupiter.api.Test;
 
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -58,5 +61,22 @@ class FeedServletTest {
         assertTrue(FeedServlet.notModified(null, 1_700_000_000_000L, tag, modified)); // stejná sekunda
         assertFalse(FeedServlet.notModified(null, 1_699_999_999_000L, tag, modified));
         assertFalse(FeedServlet.notModified(null, -1, tag, modified));
+    }
+
+    @Test
+    void changedAtKeepsTimeWhileContentIsTheSame() {
+        assertEquals(1000L, FeedServlet.changedAt("\"a\"", 1000L, "\"a\"", 5000L));
+        // jiný obsah (např. přejmenovaný klip) = změna teď, i když se data položek nezměnila
+        assertEquals(5000L, FeedServlet.changedAt("\"a\"", 1000L, "\"b\"", 5000L));
+    }
+
+    @Test
+    void invalidDateHeaderIsIgnored() {
+        HttpServletRequest broken = (HttpServletRequest) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class<?>[] {HttpServletRequest.class}, (proxy, method, args) -> {
+                    if ("getDateHeader".equals(method.getName())) throw new IllegalArgumentException("not a date");
+                    return null;
+                });
+        assertEquals(-1, FeedServlet.dateHeader(broken, "If-Modified-Since"));
     }
 }

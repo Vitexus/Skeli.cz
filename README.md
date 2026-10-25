@@ -147,7 +147,7 @@ src/test/java/                       unit testy a UI testy (*IT)
 | `news` | aktuality: příspěvky ze sociálních sítí (`social_posts`) a shorts |
 | `all` | vše dohromady, bez duplicit |
 
-- Např. `/cs/feed/all.rss`, `/en/feed/songs.atom`. `/feed` přesměruje (301) na `/{jazyk návštěvníka}/feed/all.rss`. Parametr `?limit=` 1–100 (výchozí 30).
+- Např. `/cs/feed/all.rss`, `/en/feed/songs.atom`. `/feed` přesměruje (302, bez cache) na `/{jazyk návštěvníka}/feed/all.rss`. Parametr `?limit=` 1–100 (výchozí 30).
 - Datum písně: premiéra (`songs.release_at`), jinak první klip, jinak 1. leden roku. Jazyková verze se počítá od pozdějšího z data písně a svého přidání (`lyrics.created_at`), takže nový překlad staré písně je ve feedu toho jazyka novinkou. Píseň s premiérou teprve před sebou ve feedu není.
 - Položky mají náhled (`media:thumbnail`), klipy `media:player` a krátké HTML (`content:encoded` / `content`).
 - Hotový feed je 5 minut v paměti; `ETag` / `Last-Modified` → 304. Když nejede databáze, pošle se poslední verze, jinak 503.
